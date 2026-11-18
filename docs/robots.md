@@ -77,8 +77,17 @@ By [Bulebots](https://github.com/Bulebots) (the Bulebule contributors) ·
 By [OPRobots](https://oprobots.org) · [OPRobots/NezumiBot](https://github.com/OPRobots/NezumiBot) (GPLv3), based on
 Ratatron
 
+- **Firmware:** `external/NezumiBot/source_code` at its OSHWDEM 2023 tag (its wall follower), unchanged but `setup.c`
+  and `delay.c`, on a fake libopencm3 chip (`ratasim/nezumibot/fw/`, the STM32F401): its `main()` in a coroutine,
+  its SysTick (clock, encoders, the sensors' moving average) every simulated millisecond, the TB6612's PWM (TIM2) and
+  pins, the encoders (TIM3, TIM4), the sensors' ADC1 sequence that DMA copies into `sensors_raw`, USART1.
+- **Sensors:** Sharp GP2Y0A51SK0F where Ratatron has them (its chassis): Ratatron's rays, hold and noise, and the
+  counts for a distance from Ratatron's measured calibration; NezumiBot's own offsets (+50, +95) on top, its own.
 - **Model** (`ratasim/nezumibot`): Ratatron's chassis printed in black, with its own cap
   (`external/NezumiBot/3d_model/stl_files/gorra.stl`), the word its photos show written on it in blue marker
-  ([Permanent Marker](https://fonts.google.com/specimen/Permanent+Marker), downloaded at build time) and its two
-  screws. Wheels and collisions: Ratatron's for now.
-- **Coming:** its N20 wheels, its firmware: libopencm3 on an STM32F401 (BlackPill), Sharp GP2Y0A51SK0F sensors.
+  ([Permanent Marker](https://fonts.google.com/specimen/Permanent+Marker), downloaded at build time), its two
+  screws and its N20 wheels (`Rueda.stl`, 22.1 mm). Collisions: Ratatron's hull and skids.
+- **Physics, assumed:** 100 g, 2S, N20 6 V 30:1 (30 000 rpm free at 6 V, 10 ohm) with 7-pulse encoders (its
+  78.37 um a tick on these wheels).
+- **Run:** `ratasim nezumibot --maze oshwdem2026 [--hand left|right] [--party] [--record out.mp4]`: started as its
+  makers do, with a hand in front of its sensors (held in the air for its menu, then put down).

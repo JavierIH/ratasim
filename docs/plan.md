@@ -32,5 +32,5 @@ In order; each step ends committed and pushed.
 
 ## Status
 
-- [x] 1 · [x] 2 · [x] 3 · [~] 4 (its model; next: its N20 wheels and its firmware) · [ ] 5 · [ ] 6 · [ ] 7 · [ ] 8 ·
+- [x] 1 · [x] 2 · [x] 3 · [x] 4 · [ ] 5 · [ ] 6 · [ ] 7 · [ ] 8 ·
   [ ] 9 · [ ] 10

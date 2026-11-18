@@ -14,7 +14,7 @@ cells of 180 mm).
 | STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · fan | ESP32 · 4 IR · gyro · fan<br>*model; firmware coming* |
 | [<img src="docs/images/robots/bulebule.jpg" width="250"><br>**Bulebule**](docs/robots.md#bulebule) | [<img src="docs/images/robots/nezumibot.jpg" width="250"><br>**NezumiBot**](docs/robots.md#nezumibot) | |
 | by [Bulebots](https://github.com/Bulebots) · [repo](https://github.com/Bulebots/bulebule) | by [OPRobots](https://oprobots.org) · [repo](https://github.com/OPRobots/NezumiBot) | |
-| STM32F103 · 4 IR · gyro · 4 wheels<br>*model; firmware coming* | STM32F401 · 4 Sharp IR · N20 motors<br>*model; firmware coming* | |
+| STM32F103 · 4 IR · gyro · 4 wheels<br>*model; firmware coming* | STM32F401 · 4 Sharp IR · N20 motors<br>*its OSHWDEM 2023 wall follower* | |
 
 Each robot's firmware comes from its own repository, a submodule of `external/` pinned to a commit; its authors are
 credited in [robots.md](docs/robots.md), with what was taken from where.
@@ -84,6 +84,18 @@ front sensor, as on the real robot (`--run`: explore, then the speed run).
 
 ![ZoroBot3 exploring the OSHWDEM 2026 maze](docs/images/maze-zorobot3.jpg)
 
+### NezumiBot in a maze
+
+```sh
+ratasim nezumibot --maze oshwdem2026 --hand left --record nezumibot.mp4
+```
+
+Its firmware as it ran at OSHWDEM 2023 (a wall follower), started as its makers start it: held in the air, a hand
+at its right sensor (`--party`: at its left, and it swaps walls every 30 s after 45 s), a hand at the side of the
+wall to follow, put down in the start cell, a hand in front; it starts 2 s later.
+
+![NezumiBot following the left wall](docs/images/maze-nezumibot.jpg)
+
 ## Layout
 
 ```text
@@ -91,7 +103,8 @@ ratasim/            the simulator: the maze, the physics, Ratatron (its model, s
 ratasim/zorobot/    ZoroBot3: its model from its STEP, its simulated chip (fw/), its runner
 ratasim/gamusino/   Gamusino: its model from the GLB in its repository
 ratasim/bulebule/   Bulebule: its board from its layout, its parts from KiCad's 3D library
-ratasim/nezumibot/  NezumiBot: Ratatron's chassis in black with its cap from its repository
+ratasim/nezumibot/  NezumiBot: Ratatron's chassis in black, its cap and N20 wheels, its simulated chip (fw/), runner
+ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
 ratasim/scenes/     several robots: drag race, crash, loop, pictures
 ratasim/mazes/      competition mazes (micromouseonline text format)
 external/           the robots' repositories (submodules)
