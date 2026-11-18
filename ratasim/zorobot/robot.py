@@ -16,6 +16,7 @@ import numpy as np
 
 from . import config as Z
 from . import model
+from ..hand import Hand
 from ..model import MM, WALL_GROUP
 
 FW_DIR = os.path.join(Z.HERE, 'fw')
@@ -137,7 +138,7 @@ class ZRobot:
         self.battery_raw = int(battery_v / (ADC_LSB * VOLT_DIV_A))
         self.battery_v = battery_v
         self.button, self.button_until = None, 0
-        self.hand, self.hand_until = None, 0
+        self.hand = Hand(self.model, self.data)
         self.fan = 0.0
         self.lib = build()
         self.fw = ZFirmware(self.lib, flash_image(list(menu)))
@@ -147,9 +148,19 @@ class ZRobot:
     def press(self, button, ms=100):
         self.button, self.button_until = button, self.fw.time_ms() + ms
 
-    def cover(self, sensor, ms=500):
-        """A hand in front of a front sensor (how ZoroBot3 is started)."""
-        self.hand, self.hand_until = sensor, self.fw.time_ms() + ms
+    def cover(self, sensors, ms=500):
+        """A hand in front of these sensors for ms (ratasim/hand.py; how ZoroBot3 is started)."""
+        self.hand.sensors, self.hand.until = tuple(sensors), self.fw.time_ms() + ms
+
+    def lift(self):
+        raise ValueError('ZoroBot3 is started on the floor')
+
+    def sensor_ray(self, name):
+        """A sensor's origin and direction in the world."""
+        deg = math.radians(Z.IR_SENSORS[name][2])
+        sid = self.sites[name]
+        rot = self.data.site_xmat[sid].reshape(3, 3)
+        return self.data.site_xpos[sid].copy(), rot @ np.array([math.cos(deg), math.sin(deg), 0.0])
 
     def _ray(self, origin, direction):
         d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
@@ -182,8 +193,6 @@ class ZRobot:
                 dist = beam * math.sin(a) + y
             else:
                 dist = beam * abs(math.cos(a)) - abs(x)
-            if self.hand == name:
-                dist = 30.0
             a_, b_, c_ = self.cal[name]
             d = max(dist - L0[name], 1.0) / 1000.0
             raw = math.exp(min(a_ / (d + b_), 9.0)) - c_
@@ -214,8 +223,12 @@ class ZRobot:
         t = self.fw.time_ms()
         if self.button and t >= self.button_until:
             self.button = None
-        if self.hand and t >= self.hand_until:
-            self.hand = None
+        if self.hand.sensors and t < self.hand.until:
+            self.hand.cover([self.sensor_ray(n) for n in self.hand.sensors])
+        elif self.hand.sensors:
+            self.hand.sensors = ()
+            self.hand.away()
+        mujoco.mj_kinematics(self.model, self.data)
         dl, dr, en, fan = self.fw.step(self.encoders(), self.ir_signals(), self.gyro_dps(), self.battery_raw,
                                        BUTTON_RAW[self.button])
         self.data.ctrl[self.act['l']] = self._torque('l', dl, en)

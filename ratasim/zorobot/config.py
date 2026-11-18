@@ -55,3 +55,15 @@ GEAR_EFFICIENCY = 0.85
 MOTOR_FRICTION_NM = 1.5e-4                     # at the motor shaft
 TIRE_FRICTION = 1.1
 FAN_DOWNFORCE_N = 8.0                           # at 100 % duty, quadratic in it: its explore turns (~1.2 g) slid with less
+
+
+# ---- Its start (ratasim/start.py) ---------------------------------------------------------------------------------
+def start(run=False):
+    """Boots, its menu's run picked with its buttons (MODE, UP), a hand in front of its right front sensor: EXPLORE;
+    another in front of its left one right after: EXPLORE & RUN."""
+    steps = [('say', 'booting'), ('wait', 3500), ('press', 'mode'), ('wait', 400), ('press', 'up'), ('wait', 800),
+             ('say', 'a hand in front of the right front sensor: EXPLORE' + (' & RUN' if run else '')),
+             ('hand', ['FR'], 500), ('wait', 900)]
+    if run:
+        steps.append(('hand', ['FL'], 300))
+    return steps + [('wait', 2500)]

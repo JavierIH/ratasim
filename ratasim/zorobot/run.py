@@ -16,6 +16,8 @@ os.environ.setdefault('MUJOCO_GL', 'egl')
 from ..maze import Maze   # noqa: E402
 from ..run import maze_path   # noqa: E402
 from ..recorder import Recorder   # noqa: E402
+from ..start import play   # noqa: E402
+from . import config as Z   # noqa: E402
 from .robot import ZRobot   # noqa: E402
 
 
@@ -65,20 +67,12 @@ def main(argv=None):
                 rec.maybe_frame(fast=not race)
         return True
 
-    if rec:
-        rec.status = 'booting'
-    run(3500, fast=True)
-    r.press('mode')
-    run(400, fast=True)
-    r.press('up')
-    run(800, fast=True)
-    if rec:
-        rec.status = 'a hand in front of the right front sensor: EXPLORE' + (' & RUN' if a.run else '')
-    r.cover('FR', 500)
-    run(900, fast=True)
-    if a.run:
-        r.cover('FL', 300)
-    run(2500, fast=True)
+    def say(text):
+        print(f'[{r.fw.time_ms() / 1000:7.2f}] {text}')
+        if rec:
+            rec.status = text
+
+    play(r, Z.start(a.run), lambda ms: run(ms, fast=True), say)
     print(f'[{r.fw.time_ms() / 1000:7.2f}] started: {r.fw.race_started()}')
     if rec:
         rec.status = 'exploring' + (' then running' if a.run else '')

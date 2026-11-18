@@ -4,6 +4,7 @@ import json
 import os
 
 from .. import config as RC
+from ..hand import hand_xml
 from ..model import MM, ROBOT_GROUP, WALL_GROUP, _f, maze_xml
 from . import cad
 from . import config as Z
@@ -89,6 +90,7 @@ def scene_xml(maze):
     <light pos="{_f(centre - 1, centre - 2, 2)}" dir="0.3 0.6 -0.7" diffuse="0.35 0.35 0.35" castshadow="false"/>
     {maze_xml(maze)}
     {robot_xml()}
+    {hand_xml()}
   </worldbody>
   <actuator>
     <motor name="motor_l" joint="wheel_l"/>

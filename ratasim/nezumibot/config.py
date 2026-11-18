@@ -37,3 +37,17 @@ MOTOR_FRICTION_NM = 1.2e-4                      # at the motor shaft
 MOTOR_ROTOR_INERTIA = 1e-9                      # kg m^2
 GEAR_EFFICIENCY = 0.7
 TIRE_FRICTION = 0.8
+
+
+# ---- Its start (main.c at its OSHWDEM 2023 tag; ratasim/start.py) ------------------------------------------------
+def start(hand='left', party=False):
+    """Held in the air, a hand at a side sensor picks the party (left: it swaps walls every 30 s after 45 s; right:
+    no party), another the wall it follows; put down in the start cell, a hand in front: it starts 2 s later."""
+    side = {'left': 'SL', 'right': 'SR'}
+    return [('lift',), ('say', 'held in the air: booting'), ('wait', 1000),
+            ('say', 'a hand at its ' + ('left sensor: party' if party else 'right sensor: no party')),
+            ('hand', [side['left' if party else 'right']], 250), ('wait', 1200),
+            ('say', f'a hand at its {hand} sensor: it follows the {hand} wall'),
+            ('hand', [side[hand]], 250), ('wait', 1200),
+            ('say', 'put down in the start cell; a hand in front'), ('put_down', (0, 0), 0.0), ('wait', 500),
+            ('hand', ['FL', 'FR'], 300), ('wait', 2500)]

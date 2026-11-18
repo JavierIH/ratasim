@@ -14,9 +14,9 @@ os.environ.setdefault('MUJOCO_GL', 'egl')
 from ..maze import Maze   # noqa: E402
 from ..recorder import Recorder   # noqa: E402
 from ..run import maze_path   # noqa: E402
+from ..start import play   # noqa: E402
+from . import config as N   # noqa: E402
 from .robot import NRobot   # noqa: E402
-
-SIDE = {'left': 'SL', 'right': 'SR'}
 
 
 def main(argv=None):
@@ -60,20 +60,7 @@ def main(argv=None):
         if rec:
             rec.status = text
 
-    r.lift()
-    say('held in the air: booting')
-    run(1000, fast=True)
-    say('a hand at its ' + ('left sensor: party' if a.party else 'right sensor: no party'))
-    r.cover([SIDE['left' if a.party else 'right']], 250)
-    run(1200, fast=True)
-    say(f'a hand at its {a.hand} sensor: it follows the {a.hand} wall')
-    r.cover([SIDE[a.hand]], 250)
-    run(1200, fast=True)
-    say('put down in the start cell; a hand in front')
-    r.put_down((0, 0), 0.0)
-    run(500, fast=True)
-    r.cover(['FL', 'FR'], 300)
-    run(2500, fast=True)
+    play(r, N.start(a.hand, a.party), lambda ms: run(ms, fast=True), say)
     say(f'following the {a.hand} wall' + (', party on' if a.party else ''))
     started = r.fw.global_bool('iniciado')
     print(f'[{r.fw.time_ms() / 1000:7.2f}] started: {started}')

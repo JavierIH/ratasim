@@ -19,13 +19,13 @@ import numpy as np
 
 from .. import config as RC
 from ..firmware import Firmware as RatatronFirmware, build as build_ratatron
+from ..hand import Hand
 from ..model import MM, WALL_GROUP
 from ..robot import IR_FAR_MM, IR_NOISE_MM, IR_PERIOD_MS, IR_SPREAD_DEG
 from . import config as N
 from . import model
 
 FW_DIR = os.path.join(N.HERE, 'fw')
-HAND_MM = 30.0                  # a hand in front of a sensor
 LIFT_M = 0.08                   # held over the maze: its sensors see over the walls
 
 
@@ -117,16 +117,25 @@ class NRobot:
         self.tables, self.offset = sharp_tables()
         self.held = {n: IR_FAR_MM for n in N.SENSORS}
         self.phase = {n: self.rng.randrange(IR_PERIOD_MS) for n in N.SENSORS}
-        self.hands = {}             # sensor: until ms
+        self.hand = Hand(self.model, self.data)
         self.lifted = None          # the pose it is held at
         self.fw = NFirmware(build())
         self.enc_zero = {s: self.data.qpos[self.wheel_qpos[s]] for s in 'lr'}
 
     # ---- the operator ----------------------------------------------------------------------------------------
+    def press(self, button, ms=100):
+        raise ValueError('NezumiBot has no buttons: it is started with a hand')
+
     def cover(self, sensors, ms=300):
-        """A hand in front of these sensors for ms."""
-        for s in sensors:
-            self.hands[s] = self.fw.time_ms() + ms
+        """A hand in front of these sensors for ms (ratasim/hand.py)."""
+        self.hand.sensors, self.hand.until = tuple(sensors), self.fw.time_ms() + ms
+
+    def sensor_ray(self, name):
+        """A sensor's origin and direction in the world."""
+        deg = math.radians(RC.IR_SENSORS[name][3])
+        sid = self.sites[name]
+        rot = self.data.site_xmat[sid].reshape(3, 3)
+        return self.data.site_xpos[sid].copy(), rot @ np.array([math.cos(deg), math.sin(deg), 0.0])
 
     def lift(self):
         """Held in the hand over where it stands: its wheels free, its sensors over the walls."""
@@ -176,7 +185,7 @@ class NRobot:
         out = []
         for name in N.SENSORS:
             if (t + self.phase[name]) % IR_PERIOD_MS == 0:
-                beam = HAND_MM if self.hands.get(name, 0) > t else self.beam_mm(name)
+                beam = self.beam_mm(name)
                 self.held[name] = min(beam + self.offset[name], IR_FAR_MM) + self.rng.gauss(0.0, IR_NOISE_MM)
             out.append(self._counts(name, self.held[name]))
         return out
@@ -199,6 +208,12 @@ class NRobot:
 
     def step(self):
         t = self.fw.time_ms()
+        if self.hand.sensors and t < self.hand.until:
+            self.hand.cover([self.sensor_ray(n) for n in self.hand.sensors])
+        elif self.hand.sensors:
+            self.hand.sensors = ()
+            self.hand.away()
+        mujoco.mj_kinematics(self.model, self.data)
         dl, dr, en = self.fw.step(self.encoders(), self.sensors(t))
         self.data.ctrl[self.act['l']] = self._torque('l', dl, en)
         self.data.ctrl[self.act['r']] = self._torque('r', dr, en)
