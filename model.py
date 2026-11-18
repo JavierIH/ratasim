@@ -54,14 +54,19 @@ def robot_xml(start_xy=(0.5, 0.5)):
         v.append(_cyl(SILVER, (s * 12.8, my, mz), 4.25, 10, (0, 90, 0)))                    # 8520, through the bracket
         v.append(_cyl((0.85, 0.7, 0.3, 1), (s * Z.GEAR_X, my, mz), 2.4, 1.4, (0, 90, 0)))   # its pinion (8T)
         v.append(_mesh('enc_gear', BLUE, pos=(s * Z.GEAR_X, ey, ez), euler=(0, 0, 90)))      # encoder gear (22T)
-        v.append(_box((0.1, 0.25, 0.12, 1), (s * (Z.GEAR_X + 4.0), ey, ez - 1), (0.8, 6, 7.5)))   # AS5145B board
-    for name, (_, (x, y, z), deg) in Z.IR_SENSORS.items():     # sensor boards: emitter over receiver
+        (kx, ky) = Z.ENCODER_SLOT_KICAD[(s + 1) // 2]
+        bx, by = kx - Z.PCB_CENTRE_X, Z.AXLE_Y_KICAD - ky
+        v.append(_box(BLACK, (bx, by, PCB_TOP + 6.0), (0.5, 3.5, 6.8)))                       # its board, in a slot
+        v.append(_box((0.02, 0.02, 0.02, 1), (bx - s * 0.8, by, ez), (0.3, 2.6, 2.6)))       # AS5145B, facing the gear
+    for name, (_, (x, y, z), deg) in Z.IR_SENSORS.items():
+        # Each sensor board stands in a slot of the main board (its socket's pads on both sides): the receiver
+        # ST-1KL3A 4.7 mm over the board's edge, the emitter SFH-4550 11.2 mm, in a printed cover.
         a = math.radians(deg)
-        v.append(_box(BLACK, (x, y, PCB_TOP + 7.7), (3.5, 3.0, 7.7), zrot=deg - 90))
-        for dz, col in ((4, (0.85, 0.85, 0.9, 1)), (-2, (0.05, 0.05, 0.05, 1))):
+        v.append(_box(BLACK, (x, y, PCB_TOP + 7.65), (3.5, 3.7, 7.65), zrot=deg - 90))
+        for dz, col in ((11.2, (0.85, 0.85, 0.9, 1)), (4.7, (0.05, 0.05, 0.05, 1))):
             v.append(f'<geom class="zvisual" type="sphere" rgba="{_f(*col)}" size="{2.5 * MM:.6g}" '
-                     f'pos="{_f((x + 3.2 * math.cos(a)) * MM, (y + 3.2 * math.sin(a)) * MM, (PCB_TOP + 7.7 + dz) * MM)}"/>')
-    sites = ''.join(f'<site name="ir_{n}" pos="{_f(x * MM, y * MM, (PCB_TOP + 7.7) * MM)}" size="0.0015" group="4" '
+                     f'pos="{_f((x + 3.4 * math.cos(a)) * MM, (y + 3.4 * math.sin(a)) * MM, (PCB_TOP + dz) * MM)}"/>')
+    sites = ''.join(f'<site name="ir_{n}" pos="{_f(x * MM, y * MM, (PCB_TOP + 4.7) * MM)}" size="0.0015" group="4" '
                     f'rgba="1 0 0 0.6"/>' for n, (_, (x, y, z), _d) in Z.IR_SENSORS.items())
     wheels = ''
     for side, s in (('l', -1), ('r', 1)):

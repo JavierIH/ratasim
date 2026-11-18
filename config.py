@@ -49,8 +49,11 @@ STL_AXLE_Y = 0.07           # the bearing's y in the brackets' frame
 MOTOR_AXIS = (-11.68, -2.75)  # the 8520's axis (y, z) from the axle: the brackets' motor holes (pinion 8T on 40T)
 FAN_BRACKET_Z = 10.54       # the fan bracket's underside on the brackets' front tops, over the board
 FAN_HOLE_KICAD = (150.57, 79.36)    # the board's suction hole (r 10): fan and its motor centred on it
-GEAR_X = 26.2               # the wheel gear (40T) and the encoder gear (22T), inside the rim
-ENCODER_GEAR = (-14.05, 6.55)    # (y, z) from the axle: 15.5 mm (22T on 40T), behind, clear of the pinion
+GEAR_X = 26.2               # the gears' plane: wheel gear 40T, the motor's pinion 8T and the encoder gear 22T
+# Encoders: a small black board stands in a slot of the main board (footprint ZoroBot3_PCBmain_Encoder, 1.2 x 7.1
+# mm) beside the wheel, its AS5145B facing the magnet of a 22T gear driven by the motor's pinion (7.5 mm behind).
+ENCODER_SLOT_KICAD = ((119.03, 121.28), (182.105, 121.27))
+ENCODER_GEAR = (MOTOR_AXIS[0] - 7.5, MOTOR_AXIS[1])     # (y, z) from the axle
 
 # ---- Assumed physics (nothing measured) --------------------------------------------------------------------------
 MASS_KG = 0.070             # 2S 260 mAh LiPo, two 8520, a PCB chassis, printed brackets and fan
