@@ -1,5 +1,6 @@
-// The part of libopencm3 (STM32F4) that ZoroBot3's firmware uses, on the simulated chip of zchip.c: GPIO, timers,
-// the ADC's injected group, SPI, USART, flash and the cycle counter do something; the rest configures nothing.
+// The part of libopencm3 (STM32F1/F4) that the simulated robots' firmware uses (ZoroBot3: zorobot/fw/zchip.c,
+// NezumiBot: nezumibot/fw/nchip.c): GPIO, timers, the ADC's injected group, SPI, USART, flash and the cycle counter
+// do something there; the rest configures nothing.
 #ifndef FAKECM3_H
 #define FAKECM3_H
 
@@ -226,6 +227,7 @@ uint16_t spi_read(uint32_t spi);
 #define spi_enable_software_slave_management(...) ((void)0)
 #define spi_set_nss_high(...) ((void)0)
 #define spi_enable(...) ((void)0)
+#define USART1 1u
 #define USART3 3u
 #define USART_CR1(u) (*zsim_mmio32(0x40004800u + 0x0Cu))
 #define USART_CR1_RXNEIE (1u << 5)
