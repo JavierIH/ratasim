@@ -4,3 +4,6 @@
 [submodule "external/ZoroBot3"]
 	path = external/ZoroBot3
 	url = https://github.com/OPRobots/ZoroBot3
+[submodule "external/gamusino"]
+	path = external/gamusino
+	url = https://github.com/turmandreams/gamusino
