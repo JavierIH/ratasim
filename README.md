@@ -105,6 +105,7 @@ ratasim/gamusino/   Gamusino: its model from the GLB in its repository
 ratasim/bulebule/   Bulebule: its board from its layout, its parts from KiCad's 3D library
 ratasim/nezumibot/  NezumiBot: Ratatron's chassis in black, its cap and N20 wheels, its simulated chip (fw/), runner
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
+ratasim/start.py    starting a robot as its makers do (its config's sequence), with the hand of hand.py
 ratasim/scenes/     several robots: drag race, crash, loop, pictures
 ratasim/mazes/      competition mazes (micromouseonline text format)
 external/           the robots' repositories (submodules)

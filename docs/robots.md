@@ -2,8 +2,11 @@
 
 Every robot is a package of `ratasim/` with the same parts: its **model** (meshes from its CAD, collisions from simple
 shapes), its **physics** (mass, motors, tires; what was measured apart from what is assumed), its **sensors** (IR rays
-through its firmware's own calibration, encoders, gyro) and its **firmware**, compiled for the host from its
-repository (a submodule of `external/`) on a simulated chip. The pictures: `ratasim portraits`.
+through its firmware's own calibration, encoders, gyro), its **firmware**, compiled for the host from its
+repository (a submodule of `external/`) on a simulated chip, and its **start**: what its makers do to start it
+(buttons, a hand in front of a sensor, held in the air), a sequence in its config (`start()`) that
+`ratasim/start.py` plays with the hand of `ratasim/hand.py`, which every sensor sees. The pictures:
+`ratasim portraits`.
 
 ## Ratatron
 
