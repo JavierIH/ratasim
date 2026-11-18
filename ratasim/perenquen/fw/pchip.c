@@ -54,6 +54,12 @@ void psim_poll(void) {
   if (!in_isr && ipl() < 7 && ++calls >= YIELD_CALLS) yield();
 }
 
+// main() waiting for a peripheral (the UART's FIFO): the time passes
+void psim_wait(void) {
+  if (!in_isr) yield();
+}
+int psim_in_isr(void) { return in_isr; }
+
 void __delay32(unsigned long n) {
   if (in_isr) return;
   uint64_t until = cycles + n;

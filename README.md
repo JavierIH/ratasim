@@ -12,9 +12,9 @@ cells of 180 mm).
 |:-:|:-:|:-:|
 | by [JavierIH](https://github.com/JavierIH) · [repo](https://github.com/JavierIH/ratatron) | by [OPRobots](https://oprobots.org) · [repo](https://github.com/OPRobots/ZoroBot3) | by [turmandreams](https://github.com/turmandreams) · [repo](https://github.com/turmandreams/gamusino) |
 | STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · fan | ESP32 · 4 IR · gyro · fan<br>*model; firmware coming* |
-| [<img src="docs/images/robots/bulebule.jpg" width="250"><br>**Bulebule**](docs/robots.md#bulebule) | [<img src="docs/images/robots/nezumibot.jpg" width="250"><br>**NezumiBot**](docs/robots.md#nezumibot) | |
-| by [Bulebots](https://github.com/Bulebots) · [repo](https://github.com/Bulebots/bulebule) | by [OPRobots](https://oprobots.org) · [repo](https://github.com/OPRobots/NezumiBot) | |
-| STM32F103 · 4 IR · gyro · 4 wheels<br>*model; firmware coming* | STM32F401 · 4 Sharp IR · N20 motors<br>*its OSHWDEM 2023 wall follower* | |
+| [<img src="docs/images/robots/bulebule.jpg" width="250"><br>**Bulebule**](docs/robots.md#bulebule) | [<img src="docs/images/robots/nezumibot.jpg" width="250"><br>**NezumiBot**](docs/robots.md#nezumibot) | [<img src="docs/images/robots/perenquen.jpg" width="250"><br>**Perenquén**](docs/robots.md#perenquén) |
+| by [Bulebots](https://github.com/Bulebots) · [repo](https://github.com/Bulebots/bulebule) | by [OPRobots](https://oprobots.org) · [repo](https://github.com/OPRobots/NezumiBot) | by [supernudo](https://github.com/supernudo) · [repo](https://github.com/supernudo/perenquen) |
+| STM32F103 · 4 IR · gyro · 4 wheels<br>*model; firmware coming* | STM32F401 · 4 Sharp IR · N20 motors<br>*its OSHWDEM 2023 wall follower* | dsPIC33EP512MC806 · 4 IR · gyro · 4 wheels<br>*its wall follower, over Bluetooth* |
 
 Each robot's firmware comes from its own repository, a submodule of `external/` pinned to a commit; its authors are
 credited in [robots.md](docs/robots.md), with what was taken from where.
@@ -96,6 +96,19 @@ wall to follow, put down in the start cell, a hand in front; it starts 2 s later
 
 ![NezumiBot following the left wall](docs/images/maze-nezumibot.jpg)
 
+### Perenquén in a maze
+
+```sh
+ratasim perenquen --maze oshwdem2026 --side right --gain 30 --record perenquen.mp4
+```
+
+Its firmware's last commit on a simulated dsPIC: a command line over Bluetooth, and a wall follower. Started as its
+maker drove it: in the start cell, `start right 30` typed in its terminal (it reads its diagonal sensors there, the
+walls it will keep to), a hand in front of both front sensors, taken away: it goes. `--speed 1000` types
+`traj_speed distance 1000` first (2 m/s; it boots at 0.78), `--console` leaves its command line in the terminal.
+
+![Perenquén keeping to the right wall](docs/images/maze-perenquen.jpg)
+
 ## Layout
 
 ```text
@@ -104,6 +117,7 @@ ratasim/zorobot/    ZoroBot3: its model from its STEP, its simulated chip (fw/),
 ratasim/gamusino/   Gamusino: its model from the GLB in its repository
 ratasim/bulebule/   Bulebule: its board from its layout, its parts from KiCad's 3D library
 ratasim/nezumibot/  NezumiBot: its assembled 3D model (assets/), its simulated chip (fw/), runner
+ratasim/perenquen/  Perenquén: its meshes from its FreeCAD assembly (assets/, cad.py), its simulated dsPIC (fw/), runner
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
 ratasim/start.py    starting a robot as its makers do (its config's sequence), with the hand of hand.py
 ratasim/scenes/     several robots: drag race, crash, loop, pictures
@@ -130,5 +144,7 @@ ratasim portraits                   # the pictures above
 ## Credits and licences
 
 Every robot belongs to its authors (above); their repositories are submodules and nothing of them is copied here.
-ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's repository carries no licence. The meshes made from their CAD
-stay out of git.
+ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's repository carries no licence; Perenquén's design is CC BY-SA
+4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,
+Eurobotics Engineering) GPLv2+. The meshes made from ZoroBot3's, Gamusino's and Bulebule's CAD stay out of git;
+NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.

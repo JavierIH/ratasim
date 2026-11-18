@@ -18,7 +18,7 @@ In order; each step ends committed and pushed.
 5. **One way to start every robot.** Each robot starts as its makers start it (buttons, a hand in front of a
    sensor), and the simulator does it the same way for all: a hand (`ratasim/hand.py`, a mocap body every robot's
    sensor rays see, drawn in videos) and buttons, moved by the robot's start sequence (`start()` in its config, steps
-   `say`, `wait`, `press`, `hand`, `lift`, `put_down`) that `ratasim/start.py` plays. ZoroBot3 and NezumiBot on it;
+   `say`, `wait`, `press`, `send`, `hand`, `lift`, `put_down`) that `ratasim/start.py` plays. ZoroBot3 and NezumiBot on it;
    Ratatron keeps its console (`:start`, `:select`, its commands).
 6. **Bulebule firmware**: libopencm3 on an STM32F103, its library (mmlib) through its `platform.h`; in the maze.
 7. **Gamusino firmware**: its Arduino sketch for the ESP32 on a host Arduino shim (pins, PWM, ADC, SPI for the
@@ -32,5 +32,5 @@ In order; each step ends committed and pushed.
 
 ## Status
 
-- [x] 1 · [x] 2 · [x] 3 · [x] 4 · [x] 5 · [ ] 6 · [ ] 7 · [ ] 8 ·
+- [x] 1 · [x] 2 · [x] 3 · [x] 4 · [x] 5 · [ ] 6 · [ ] 7 · [x] 8 ·
   [ ] 9 · [ ] 10

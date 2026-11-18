@@ -1,0 +1,431 @@
+[
+ {
+  "file": "chassis_00.stl",
+  "body": "chassis",
+  "rgba": [
+   0.059,
+   0.4,
+   0.059,
+   1.0
+  ],
+  "faces": 338
+ },
+ {
+  "file": "chassis_01.stl",
+  "body": "chassis",
+  "rgba": [
+   0.082,
+   0.086,
+   0.094,
+   1.0
+  ],
+  "faces": 150
+ },
+ {
+  "file": "chassis_02.stl",
+  "body": "chassis",
+  "rgba": [
+   0.11,
+   0.11,
+   0.11,
+   1.0
+  ],
+  "faces": 66
+ },
+ {
+  "file": "chassis_03.stl",
+  "body": "chassis",
+  "rgba": [
+   0.149,
+   0.145,
+   0.145,
+   1.0
+  ],
+  "faces": 626
+ },
+ {
+  "file": "chassis_04.stl",
+  "body": "chassis",
+  "rgba": [
+   0.333,
+   1.0,
+   0.498,
+   1.0
+  ],
+  "faces": 156
+ },
+ {
+  "file": "chassis_05.stl",
+  "body": "chassis",
+  "rgba": [
+   0.38,
+   0.271,
+   0.216,
+   1.0
+  ],
+  "faces": 152
+ },
+ {
+  "file": "chassis_06.stl",
+  "body": "chassis",
+  "rgba": [
+   0.4,
+   0.4,
+   0.4,
+   1.0
+  ],
+  "faces": 6
+ },
+ {
+  "file": "chassis_07.stl",
+  "body": "chassis",
+  "rgba": [
+   0.647,
+   0.62,
+   0.584,
+   1.0
+  ],
+  "faces": 8
+ },
+ {
+  "file": "chassis_08.stl",
+  "body": "chassis",
+  "rgba": [
+   0.69,
+   0.663,
+   0.596,
+   1.0
+  ],
+  "faces": 33
+ },
+ {
+  "file": "chassis_09.stl",
+  "body": "chassis",
+  "rgba": [
+   0.69,
+   0.69,
+   0.69,
+   1.0
+  ],
+  "faces": 40
+ },
+ {
+  "file": "chassis_10.stl",
+  "body": "chassis",
+  "rgba": [
+   0.773,
+   0.773,
+   0.773,
+   1.0
+  ],
+  "faces": 72
+ },
+ {
+  "file": "chassis_11.stl",
+  "body": "chassis",
+  "rgba": [
+   0.776,
+   0.757,
+   0.737,
+   1.0
+  ],
+  "faces": 3740
+ },
+ {
+  "file": "chassis_12.stl",
+  "body": "chassis",
+  "rgba": [
+   0.78,
+   0.569,
+   0.114,
+   1.0
+  ],
+  "faces": 20
+ },
+ {
+  "file": "chassis_13.stl",
+  "body": "chassis",
+  "rgba": [
+   0.78,
+   0.761,
+   0.741,
+   1.0
+  ],
+  "faces": 50
+ },
+ {
+  "file": "chassis_14.stl",
+  "body": "chassis",
+  "rgba": [
+   0.792,
+   0.82,
+   0.933,
+   1.0
+  ],
+  "faces": 30
+ },
+ {
+  "file": "chassis_15.stl",
+  "body": "chassis",
+  "rgba": [
+   0.8,
+   0.8,
+   0.8,
+   1.0
+  ],
+  "faces": 232
+ },
+ {
+  "file": "chassis_16.stl",
+  "body": "chassis",
+  "rgba": [
+   0.808,
+   0.427,
+   0.149,
+   1.0
+  ],
+  "faces": 20
+ },
+ {
+  "file": "chassis_17.stl",
+  "body": "chassis",
+  "rgba": [
+   0.824,
+   0.82,
+   0.78,
+   1.0
+  ],
+  "faces": 2853
+ },
+ {
+  "file": "chassis_18.stl",
+  "body": "chassis",
+  "rgba": [
+   0.827,
+   0.667,
+   0.129,
+   1.0
+  ],
+  "faces": 150
+ },
+ {
+  "file": "chassis_19.stl",
+  "body": "chassis",
+  "rgba": [
+   0.831,
+   0.678,
+   0.067,
+   1.0
+  ],
+  "faces": 63
+ },
+ {
+  "file": "chassis_20.stl",
+  "body": "chassis",
+  "rgba": [
+   0.839,
+   0.467,
+   0.369,
+   1.0
+  ],
+  "faces": 28
+ },
+ {
+  "file": "chassis_21.stl",
+  "body": "chassis",
+  "rgba": [
+   0.859,
+   0.737,
+   0.494,
+   1.0
+  ],
+  "faces": 340
+ },
+ {
+  "file": "chassis_22.stl",
+  "body": "chassis",
+  "rgba": [
+   0.894,
+   0.89,
+   0.812,
+   1.0
+  ],
+  "faces": 149
+ },
+ {
+  "file": "wheel_fl_23.stl",
+  "body": "wheel_fl",
+  "rgba": [
+   0.333,
+   0.333,
+   0.333,
+   1.0
+  ],
+  "faces": 8
+ },
+ {
+  "file": "wheel_fl_24.stl",
+  "body": "wheel_fl",
+  "rgba": [
+   0.333,
+   1.0,
+   0.498,
+   1.0
+  ],
+  "faces": 8
+ },
+ {
+  "file": "wheel_fl_25.stl",
+  "body": "wheel_fl",
+  "rgba": [
+   0.69,
+   0.69,
+   0.69,
+   1.0
+  ],
+  "faces": 40
+ },
+ {
+  "file": "wheel_fl_26.stl",
+  "body": "wheel_fl",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "faces": 12
+ },
+ {
+  "file": "wheel_fr_27.stl",
+  "body": "wheel_fr",
+  "rgba": [
+   0.333,
+   0.333,
+   0.333,
+   1.0
+  ],
+  "faces": 8
+ },
+ {
+  "file": "wheel_fr_28.stl",
+  "body": "wheel_fr",
+  "rgba": [
+   0.333,
+   1.0,
+   0.498,
+   1.0
+  ],
+  "faces": 8
+ },
+ {
+  "file": "wheel_fr_29.stl",
+  "body": "wheel_fr",
+  "rgba": [
+   0.69,
+   0.69,
+   0.69,
+   1.0
+  ],
+  "faces": 40
+ },
+ {
+  "file": "wheel_fr_30.stl",
+  "body": "wheel_fr",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "faces": 12
+ },
+ {
+  "file": "wheel_rl_31.stl",
+  "body": "wheel_rl",
+  "rgba": [
+   0.333,
+   0.333,
+   0.333,
+   1.0
+  ],
+  "faces": 8
+ },
+ {
+  "file": "wheel_rl_32.stl",
+  "body": "wheel_rl",
+  "rgba": [
+   0.333,
+   1.0,
+   0.498,
+   1.0
+  ],
+  "faces": 8
+ },
+ {
+  "file": "wheel_rl_33.stl",
+  "body": "wheel_rl",
+  "rgba": [
+   0.8,
+   0.8,
+   0.8,
+   1.0
+  ],
+  "faces": 2
+ },
+ {
+  "file": "wheel_rl_34.stl",
+  "body": "wheel_rl",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "faces": 11
+ },
+ {
+  "file": "wheel_rr_35.stl",
+  "body": "wheel_rr",
+  "rgba": [
+   0.333,
+   0.333,
+   0.333,
+   1.0
+  ],
+  "faces": 8
+ },
+ {
+  "file": "wheel_rr_36.stl",
+  "body": "wheel_rr",
+  "rgba": [
+   0.333,
+   1.0,
+   0.498,
+   1.0
+  ],
+  "faces": 8
+ },
+ {
+  "file": "wheel_rr_37.stl",
+  "body": "wheel_rr",
+  "rgba": [
+   0.8,
+   0.8,
+   0.8,
+   1.0
+  ],
+  "faces": 2
+ },
+ {
+  "file": "wheel_rr_38.stl",
+  "body": "wheel_rr",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ],
+  "faces": 11
+ }
+]

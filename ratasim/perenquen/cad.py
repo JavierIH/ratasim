@@ -1,4 +1,4 @@
-"""Perenquen's 3D model from its FreeCAD assembly (external/perenquen/Mechanics, A2plus), to perenquen/build/cad:
+"""Perenquen's 3D model from its FreeCAD assembly (external/perenquen/Mechanics, A2plus), to perenquen/assets:
 
     ~/programs/FreeCAD_*.AppImage freecadcmd ratasim/perenquen/cad.py
 
@@ -9,7 +9,7 @@ gears) become bodies of their own. The main board's shape is a fusion of its KiC
 in one colour: its parts are taken from that file in theirs, placed as the assembly places the board. The left side
 is the right one mirrored (the assembly's `_mirror` constraints: its designer drew one side).
 
-Out: one STL per body and colour (assembly frame, mm) and manifest.json: [{file, body, rgba}], body in
+Out (perenquen/assets, committed: CC BY-SA 4.0, as its CAD): one STL per body and colour (assembly frame, mm) and manifest.json: [{file, body, rgba}], body in
 chassis, wheel_fr, wheel_rr, wheel_fl, wheel_rl.
 """
 import json
@@ -24,7 +24,7 @@ import Part
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MECH = os.path.join(os.path.dirname(os.path.dirname(HERE)), 'external', 'perenquen', 'Mechanics')
-OUT = os.path.join(HERE, 'build', 'cad')
+OUT = os.path.join(HERE, 'assets')
 ROBOT = os.path.join(MECH, 'assemblies', 'robot_assembly.fcstd')
 BLOCK = os.path.join(MECH, 'assemblies', 'motor_block_assembly.fcstd')
 BOARD = os.path.join(MECH, 'parts', 'mainboard.fcstd')
@@ -76,7 +76,7 @@ class Writer:
             os.unlink(os.path.join(OUT, f))
         manifest = []
         for i, ((body, rgba), faces) in enumerate(sorted(self.parts.items())):
-            mesh = MeshPart.meshFromShape(Shape=Part.Compound(faces), LinearDeflection=0.05, AngularDeflection=0.35,
+            mesh = MeshPart.meshFromShape(Shape=Part.Compound(faces), LinearDeflection=0.1, AngularDeflection=0.5,
                                           Relative=False)
             name = f'{body}_{i:02d}.stl'
             mesh.write(os.path.join(OUT, name))

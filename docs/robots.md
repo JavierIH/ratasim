@@ -4,7 +4,7 @@ Every robot is a package of `ratasim/` with the same parts: its **model** (meshe
 shapes), its **physics** (mass, motors, tires; what was measured apart from what is assumed), its **sensors** (IR rays
 through its firmware's own calibration, encoders, gyro), its **firmware**, compiled for the host from its
 repository (a submodule of `external/`) on a simulated chip, and its **start**: what its makers do to start it
-(buttons, a hand in front of a sensor, held in the air), a sequence in its config (`start()`) that
+(buttons, a hand in front of a sensor, held in the air, commands typed over its serial link), a sequence in its config (`start()`) that
 `ratasim/start.py` plays with the hand of `ratasim/hand.py`, which every sensor sees. The pictures:
 `ratasim portraits`.
 
@@ -96,3 +96,42 @@ Ratatron
   10 ohm) with 7-pulse encoders (its 78.37 um a tick on Ø30 tyres: 43:1).
 - **Run:** `ratasim nezumibot --maze oshwdem2026 [--hand left|right] [--party] [--record out.mp4]`: started as its
   makers do, with a hand in front of its sensors (held in the air for its menu, then put down).
+
+## Perenquén
+
+<img src="images/robots/perenquen.jpg" width="220" align="right">
+
+By [Javier Baliñas](https://github.com/supernudo) · [supernudo/perenquen](https://github.com/supernudo/perenquen)
+(CC BY-SA 4.0; its firmware GPLv2+) · its library
+[supernudo/aversive4dspic](https://github.com/supernudo/aversive4dspic) (GPLv2+)
+
+- **Firmware:** `external/perenquen/Software/perenquen-board` at its last commit (6fa4ad3, "works fine with start
+  gain 30"), the files of its MPLAB X project, unchanged, with aversive4dspic (`external/aversive4dspic`) at the
+  commit of the same week (786df7a, `dev-dspic33e-support`), for its dsPIC33EP512MC806 on a simulated chip
+  (`ratasim/perenquen/fw/`): its part header turned into host memory at build time (`gen_sfr.py`: every register a
+  word, its bit fields over it; the CPU's priority level and the ADC's control register seen as they are touched),
+  its `main()` in a coroutine, Timer1 every 250 us (aversive's scheduler: its control system every millisecond), the
+  ADC's manual sampling with each phototransistor lit or dark by its emitter's pin, the QEI counters, the high-speed
+  PWM's duties, the clock switch. Its UART (the HC-05 Bluetooth module, 921600 baud) is simulated in place of
+  aversive's dsPIC UART driver, which reaches its registers through pointers: the same API, its 128-byte FIFOs, its
+  receive event (ctrl-C, "pop"). What it runs: its command line, and `start left|right <gain>`, its wall follower
+  (`strat_follow_wall`).
+- **Model:** its FreeCAD assembly (`Mechanics/assemblies/robot_assembly.fcstd`, A2plus), exported with
+  `ratasim/perenquen/cad.py` (FreeCAD's `freecadcmd`) to `ratasim/perenquen/assets`: its main board's KiCad StepUp
+  parts in their colours, its right motor block split back into its parts (Pololu micro metal gearmotor, pinion, wheel
+  gears, Mini-Z wheels and tyres, magnet, supports), the left side its mirror (its designer drew one side).
+  Collisions: its board (a box and a half disc up to its motor blocks), its four tyres.
+- **Sensors:** where its board (`perenquen.kicad_pcb`, the board that was made; its `.net` is an older export with
+  left and right swapped) puts each SFH4545 emitter and TEFT4300 phototransistor: the front pairs at the sides
+  looking ahead, the diagonal pairs at the nose looking 60° out (their emitters in series, both lit by RD4). Its
+  firmware has no calibration for them: the light back as the inverse square of the distance along the beam,
+  assumed so that its own thresholds fall where a micromouse needs them (an obstacle, 350, at 100 mm; the end of a
+  turn, 150, at 153 mm; its start, 200, at 132 mm).
+- **Physics, assumed (from its design notes, `Design/design_notes.ods`):** 110 g, its centre of mass just behind its
+  front axle (it turns on its front wheels), Pololu HPCB 6 V 5:1 motors (6000 rpm free, 1.6 A stall at 6 V), its
+  gears as built (20:45, 11.2:1 in all), 2S, tyre friction 0.7; the wheels its firmware's 25.5 mm. Each side's two
+  wheels geared together; its encoders on the rear axles, 4096 counts a turn (AS5045B).
+- **Run:** `ratasim perenquen --maze oshwdem2026 [--side right|left] [--gain 30] [--speed N] [--record out.mp4]`:
+  started as its maker did, from a terminal: `start <side> <gain>` typed in its start cell, then a hand in front of
+  both front sensors, taken away. Its maker's notes in its code: "OK speed 1000 gain 100", "OK speed 1500 gain 200";
+  with these assumed sensors it weaves at 2 m/s and gain 100, and keeps to its wall at its boot speed and gain 30.
