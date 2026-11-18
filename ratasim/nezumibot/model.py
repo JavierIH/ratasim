@@ -24,7 +24,7 @@ FONT_URL = 'https://github.com/google/fonts/raw/main/apache/permanentmarker/Perm
 WORD, INK = 'MARINE', (30, 70, 200)
 BLACK_PLA = (0.07, 0.07, 0.08, 1)
 CHASSIS_TOP, CHASSIS_FRONT = 36.0, 45.0     # Ratatron's chassis in its CAD frame (mm): the cap sits there
-TEXT_DIR = np.array([0.0, 0.62, 0.78])      # the cap's front panel faces forward and up
+PANEL = np.array([0.0, 0.839, 0.544])       # the normal of the cap's flat front strip, over its peak (STL)
 
 
 def read_stl(path):
@@ -55,13 +55,13 @@ def cap():
 
 
 def write_cap(tris, obj, png):
-    """The cap as an OBJ whose front panel carries the word (planar projection along TEXT_DIR), the rest white."""
+    """The cap as an OBJ whose flat front strip (68 x 16 mm, over its peak) carries the word, centred, read from the
+    front (a planar projection on the strip); the rest white."""
     from PIL import Image, ImageDraw, ImageFont
     n = np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0])
     n /= np.linalg.norm(n, axis=1, keepdims=True) + 1e-12
-    panel = (n @ TEXT_DIR > 0.55) & (n[:, 1] > 0.3) & (tris.mean(axis=1)[:, 1] > CHASSIS_FRONT - 32)
-    up = np.cross(TEXT_DIR, [1.0, 0, 0])
-    up = -up / np.linalg.norm(up)
+    panel = n @ PANEL > 0.98
+    up = np.cross([1.0, 0, 0], PANEL)                                   # up the strip
     pts = tris[panel].reshape(-1, 3)
     u0, u1 = pts[:, 0].min(), pts[:, 0].max()
     w0, w1 = (pts @ up).min(), (pts @ up).max()
@@ -71,9 +71,14 @@ def write_cap(tris, obj, png):
     W, H = 1024, int(1024 * (w1 - w0) / (u1 - u0))
     im = Image.new('RGB', (W, H), (238, 238, 236))
     g = ImageDraw.Draw(im)
-    f = ImageFont.truetype(font, int(H * 0.42))
-    tw, th = g.textbbox((0, 0), WORD, font=f)[2:]
-    g.text(((W - tw) / 2, H * 0.12), WORD, font=f, fill=INK)          # high on the panel: its front edge curves away
+    size = int(H * 0.7)
+    while True:                                                         # as big as fits: 60 % of its width
+        f = ImageFont.truetype(font, size)
+        x0, y0, x1, y1 = g.textbbox((0, 0), WORD, font=f)
+        if x1 - x0 <= 0.6 * W and y1 - y0 <= 0.62 * H:
+            break
+        size -= 2
+    g.text((W / 2, H / 2), WORD, font=f, fill=INK, anchor='mm')
     im.save(png)
     with open(obj, 'w') as fh:
         for k, tri in enumerate(tris):
