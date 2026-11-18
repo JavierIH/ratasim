@@ -34,6 +34,9 @@ def run(args, timeout=1800):
     out = subprocess.run(cmd, cwd=REPO, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          text=True, timeout=timeout).stdout
     print('\n'.join(line for line in out.splitlines() if not line.startswith('@')), flush=True)
+    if 'Traceback' in out:    # the end of it on the run's page too (annotations: no log needed)
+        tail = out[out.find('Traceback'):]
+        note('error', ' '.join(args[:1]) + ':%0A' + '%0A'.join(tail.strip().splitlines()[-25:]))
     return out
 
 
