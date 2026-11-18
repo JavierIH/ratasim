@@ -1,0 +1,26 @@
+name: CI
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  robot:
+    # Each robot in the OSHWDEM 2026 maze with its own firmware, as tests/robots.py checks it (its docstring says what
+    # passes). ZoroBot3's STEP is not in the repository: there, only its firmware is built.
+    name: ${{ matrix.robot }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        robot: [ratatron, zorobot, gamusino, bulebule, nezumibot, perenquen]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # gmsh (Bulebule's parts from KiCad's STEP models) needs these X and GL libraries even without a screen
+      - run: sudo apt-get update -q && sudo apt-get install -y -q libglu1-mesa libxrender1 libxcursor1 libxft2 libxinerama1
+      - run: pip install -e ".[cad]"
+      - run: python tests/robots.py ${{ matrix.robot }}

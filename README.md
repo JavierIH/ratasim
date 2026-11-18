@@ -1,5 +1,7 @@
 # ratasim
 
+[![CI](https://github.com/JavierIH/ratasim/actions/workflows/ci.yml/badge.svg)](https://github.com/JavierIH/ratasim/actions/workflows/ci.yml)
+
 ![Gamusino, ZoroBot3 and Ratatron in the OSHWDEM 2026 maze](docs/images/maze.jpg)
 
 Micromouse robots in [MuJoCo](https://mujoco.org), each driven by **its own firmware**, compiled for the host and
@@ -136,6 +138,7 @@ ratasim/start.py    starting a robot as its makers do (its config's sequence), w
 ratasim/scenes/     several robots: drag race, crash, loop, pictures
 ratasim/mazes/      competition mazes (micromouseonline text format)
 external/           the robots' repositories (submodules)
+tests/robots.py    every robot in the maze, checked by what it prints (the CI: one job per robot)
 docs/               robots.md (each robot, its authors), simulator.md (Ratatron in detail), plan.md
 ```
 
