@@ -84,8 +84,71 @@ def _bbox(prims, name):
     return v.min(0), v.max(0)
 
 
+# The PCB's texture is its fabrication panel: beside the main board's middle column it carries the encoder boards
+# (AS5040, left) and two IR boards (right), and the model's PCB keeps them as wings. These are cut away (u, v of
+# both textures): on the robot they are broken off the panel.
+PANELS_UV = ((0.040, 0.390, 0.312, 0.560), (0.684, 0.385, 0.965, 0.565))
+
+
+def _cut_panels(g, prims):
+    """The PCB without the panel's wings, the edges they shared with the main board closed by new side walls."""
+    def key(p):
+        return tuple(np.round(p, 3))
+    out, boxes, kept, cut, top_y = [], [[] for _ in PANELS_UV], {}, set(), None
+    for name, pos, nrm, uv, faces, mat in prims:
+        face = g['materials'][mat]['name'] if mat >= 0 else ''
+        if name != 'PCB' or face not in ('pcbtop', 'pcbbot'):
+            out.append((name, pos, nrm, uv, faces, mat))
+            continue
+        c_uv = uv[faces].mean(axis=1)
+        which = np.full(len(faces), -1)
+        for i, (u0, v0, u1, v1) in enumerate(PANELS_UV):
+            which[(c_uv[:, 0] >= u0) & (c_uv[:, 0] <= u1) & (c_uv[:, 1] >= v0) & (c_uv[:, 1] <= v1)] = i
+        for i in range(len(PANELS_UV)):
+            boxes[i].append(pos[faces[which == i]][:, :, [0, 2]].reshape(-1, 2))
+        if face == 'pcbtop':
+            top_y = float(pos[:, 1].max())
+            for tri, w in zip(faces, which):
+                for a, b in ((0, 1), (1, 2), (2, 0)):
+                    e = frozenset((key(pos[tri[a]]), key(pos[tri[b]])))
+                    if w >= 0:
+                        cut.add(e)
+                    else:
+                        kept[e] = pos[tri].mean(axis=0)
+        out.append((name, pos, nrm, uv, faces[which < 0], mat))
+    boxes = [(np.concatenate(bx).min(axis=0) - 0.3, np.concatenate(bx).max(axis=0) + 0.3) for bx in boxes]
+    walls, normals = [], []
+    for name, pos, nrm, uv, faces, mat in out:
+        if name == 'PCB' and g['materials'][mat]['name'] == 'sideb':
+            bottom_y = float(pos[:, 1].min())
+    for e in set(kept) & cut:                       # the edges the main board shared with a wing: now its border
+        p1, p2 = (np.array(p) for p in e)
+        n = np.cross(p2 - p1, [0, 1, 0])
+        n = n / (np.linalg.norm(n) or 1)
+        if np.dot(n, (p1 + p2) / 2 - kept[e]) < 0:   # outward, away from the board
+            n, p1, p2 = -n, p2, p1
+        q1, q2 = p1.copy(), p2.copy()
+        p1[1] = p2[1] = top_y
+        q1[1] = q2[1] = bottom_y
+        walls += [p1, q1, q2, p1, q2, p2]
+        normals += [n] * 6
+    result = []
+    for name, pos, nrm, uv, faces, mat in out:
+        if name == 'PCB' and g['materials'][mat]['name'] == 'sideb':
+            c = pos[faces].mean(axis=1)[:, [0, 2]]
+            in_wing = np.any([np.all((c >= lo) & (c <= hi), axis=1) for lo, hi in boxes], axis=0)
+            faces = faces[~in_wing]
+            base = len(pos)
+            pos = np.vstack([pos, np.array(walls)])
+            nrm = np.vstack([nrm, np.array(normals)]) if nrm is not None else None
+            faces = np.vstack([faces, base + np.arange(len(walls)).reshape(-1, 3)])
+        result.append((name, pos, nrm, uv, faces, mat))
+    return result
+
+
 def build(glb=G.CAD_GLB, out=G.CAD_MESHES):
     g, b, prims = read(glb)
+    prims = _cut_panels(g, prims)
     tyres = sorted((_bbox(prims, n) for n in ('Tyre', 'Tyre.001')), key=lambda bb: bb[0][0])
     c = np.mean([(lo + hi) / 2 for lo, hi in tyres], axis=0)          # the axle's middle (file frame)
 
