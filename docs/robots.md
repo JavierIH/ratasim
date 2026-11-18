@@ -9,7 +9,7 @@ repository (a submodule of `external/`) on a simulated chip. The pictures: `rata
 
 <img src="images/robots/ratatron.jpg" width="220" align="right">
 
-By [Javier Isabel](https://github.com/JavierIH) · [JavierIH/ratatron](https://github.com/JavierIH/ratatron)
+By [JavierIH](https://github.com/JavierIH) · [JavierIH/ratatron](https://github.com/JavierIH/ratatron)
 
 - **Firmware:** `external/ratatron/firmware/src`, unchanged, on a fake STM32 HAL (`ratasim/fw/`): its application
   files and `gpio.c`/`infrared.c` as they are, the motors, encoders, UART, flash and clock simulated.
@@ -56,11 +56,15 @@ By [turmandreams](https://github.com/turmandreams) · [turmandreams/gamusino](ht
 By [Bulebots](https://github.com/Bulebots) (the Bulebule contributors) ·
 [Bulebots/bulebule](https://github.com/Bulebots/bulebule) (GPLv3; its board CC BY-SA)
 
-- **Coming:** its model (its board's outline and artwork from the screenshot of its Upverter layout in Bulebots'
-  [2018 talk](https://github.com/Bulebots/20180216-bulebule-making-of-presentation), its components from their published
-  3D models, its printed parts from its CadQuery scripts), then its firmware: libopencm3 on an STM32F103, its library
-  [mmlib](https://github.com/Bulebots/mmlib) through its `platform.h`. Four wheels, Faulhaber motors with IE2-512
-  encoders, an MPU-6500 gyro.
+- **Model** (`ratasim/bulebule`, an approximation: its design files went with Upverter): its board's outline fitted on
+  the screenshot of its Upverter layout in Bulebots'
+  [2018 talk](https://github.com/Bulebots/20180216-bulebule-making-of-presentation), its artwork recoloured from it; its
+  components from [KiCad's 3D library](https://gitlab.com/kicad/libraries/kicad-packages3D) (downloaded at build
+  time); its modules (Blue Pill, GY-6500, DRV8833, HC-05, DC-DC) on boards of their sizes; its mounts, motors, gears
+  and wheels from its CadQuery scripts and its firmware's geometry (110 g, 65 mm between wheels, 22.3 mm between
+  axles, 21.7 mm wheels). Each side's two wheels geared together.
+- **Coming:** its firmware, libopencm3 on an STM32F103, its library [mmlib](https://github.com/Bulebots/mmlib) through
+  its `platform.h`.
 
 ## NezumiBot
 
