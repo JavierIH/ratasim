@@ -8,9 +8,9 @@ cells of 180 mm), and scenes with several robots.
 
 ## Supported robots
 
-| [<img src="docs/images/robots/ratatron.jpg" width="300"><br>**Ratatron**](docs/robots.md#ratatron) | [<img src="docs/images/robots/zorobot3.jpg" width="300"><br>**ZoroBot3**](docs/robots.md#zorobot3) |
-|:-:|:-:|
-| STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · suction fan |
+| [<img src="docs/images/robots/ratatron.jpg" width="260"><br>**Ratatron**](docs/robots.md#ratatron) | [<img src="docs/images/robots/zorobot3.jpg" width="260"><br>**ZoroBot3**](docs/robots.md#zorobot3) | <img src="docs/images/robots/gamusino.jpg" width="260"><br>**Gamusino** |
+|:-:|:-:|:-:|
+| STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · suction fan | ESP32 · 4 IR · gyro · suction fan<br>*coming soon* |
 
 Each robot's firmware comes from its repository, a submodule of `external/` pinned to a commit
 ([robots.md](docs/robots.md)).

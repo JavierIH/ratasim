@@ -149,12 +149,16 @@ def build(step, out):
 def ensure(step, out):
     """The meshes' directory, built first if they are missing or older than the STEP."""
     m = os.path.join(out, 'manifest.json')
-    if not os.path.exists(m) or os.path.getmtime(m) < os.path.getmtime(step):
-        try:
-            import gmsh     # noqa: F401
-        except ImportError:
-            raise SystemExit(f'ZoroBot3 meshes missing: run python {__file__} {step} {out} with a Python that has gmsh')
-        build(step, out)
+    if os.path.exists(m) and (not os.path.exists(step) or os.path.getmtime(m) >= os.path.getmtime(step)):
+        return out
+    if not os.path.exists(step):
+        raise SystemExit(f'ZoroBot3: its STEP is missing. In Onshape, export its "Full Assembly" as one STEP file '
+                         f'to {step} (README: ZoroBot3 in a maze).')
+    try:
+        import gmsh     # noqa: F401
+    except ImportError:
+        raise SystemExit('ZoroBot3: gmsh is needed to make its meshes from its STEP (pip install -e .[cad]).')
+    build(step, out)
     return out
 
 

@@ -1,8 +1,8 @@
 # Supported robots
 
-| [<img src="images/robots/ratatron.jpg" width="300"><br>**Ratatron**](#ratatron) | [<img src="images/robots/zorobot3.jpg" width="300"><br>**ZoroBot3**](#zorobot3) |
-|:-:|:-:|
-| STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · suction fan |
+| [<img src="images/robots/ratatron.jpg" width="260"><br>**Ratatron**](#ratatron) | [<img src="images/robots/zorobot3.jpg" width="260"><br>**ZoroBot3**](#zorobot3) | <img src="images/robots/gamusino.jpg" width="260"><br>**Gamusino** |
+|:-:|:-:|:-:|
+| STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · suction fan | ESP32 · 4 IR · gyro · suction fan<br>*coming soon* |
 
 Every robot is a package of `ratasim/` with the same parts: its **model** (meshes from its CAD, collisions from simple
 shapes), its **physics** (mass, motors, tires; what was measured apart from what is assumed), its **sensors** (IR rays
