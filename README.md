@@ -84,6 +84,19 @@ front sensor, as on the real robot (`--run`: explore, then the speed run).
 
 ![ZoroBot3 exploring the OSHWDEM 2026 maze](docs/images/maze-zorobot3.jpg)
 
+### Gamusino in a maze
+
+```sh
+ratasim gamusino --maze oshwdem2026 --record gamusino.mp4
+```
+
+Its sketch (`src/gamusino/gamusino.ino`) on its ESP32, under a simulated Arduino core: 1.5 m ahead at 1.6 m/s,
+steering by its gyro and encoders, a stop, a 180 deg turn, a rest and back, over and over. It reads no wall sensor
+yet: it is put down at the start of the maze's longest straight (in the OSHWDEM 2026 maze, ten cells along its south
+wall) and switched on, as its maker starts it: green, its gyro measured, blue, it goes.
+
+![Gamusino on the maze's longest straight](docs/images/maze-gamusino.jpg)
+
 ### NezumiBot in a maze
 
 ```sh
@@ -114,7 +127,7 @@ walls it will keep to), a hand in front of both front sensors, taken away: it go
 ```text
 ratasim/            the simulator: the maze, the physics, Ratatron (its model, sensors, simulated chip in fw/)
 ratasim/zorobot/    ZoroBot3: its model from its STEP, its simulated chip (fw/), its runner
-ratasim/gamusino/   Gamusino: its model from the GLB in its repository
+ratasim/gamusino/   Gamusino: its model from the GLB in its repository, its ESP32 under an Arduino core (fw/), runner
 ratasim/bulebule/   Bulebule: its board from its layout, its parts from KiCad's 3D library
 ratasim/nezumibot/  NezumiBot: its assembled 3D model (assets/), its simulated chip (fw/), runner
 ratasim/perenquen/  Perenquén: its meshes from its FreeCAD assembly (assets/, cad.py), its simulated dsPIC (fw/), runner
@@ -146,5 +159,5 @@ ratasim portraits                   # the pictures above
 Every robot belongs to its authors (above); their repositories are submodules and nothing of them is copied here.
 ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's repository carries no licence; Perenquén's design is CC BY-SA
 4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,
-Eurobotics Engineering) GPLv2+. The meshes made from ZoroBot3's, Gamusino's and Bulebule's CAD stay out of git;
-NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
+Eurobotics Engineering) GPLv2+; Gamusino's gyro library, STM32duino LSM6DSR (STMicroelectronics, BSD-3), is
+downloaded at build time. The meshes made from ZoroBot3's, Gamusino's and Bulebule's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.

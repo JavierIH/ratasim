@@ -49,8 +49,24 @@ By [turmandreams](https://github.com/turmandreams) · [turmandreams/gamusino](ht
 - **Model:** the Blender export in its repository (`external/gamusino/gamusino_3d/gamusino.glb`), read at build time
   (`ratasim/gamusino/cad.py`): its parts per body and material, its PCB's silkscreen as a texture, its fabrication
   panel's mini boards cut off the main board. Collisions: a box over the PCB, the tyres, the two ball casters.
-- **Physics, assumed:** 90 g; its maker's top speed, 1.5 m/s.
-- **Coming:** its firmware, an Arduino sketch for the ESP32 (LSM6DSR gyro, encoders, NeoPixel LEDs, suction fan).
+- **Firmware:** its sketch, `external/gamusino/src/gamusino/gamusino.ino`, unchanged, for its ESP32-WROOM-32 under a
+  simulated Arduino core (`ratasim/gamusino/fw/`, arduino-esp32 2.x, the one its maker builds with): turned into
+  C++ as the Arduino IDE does (`gen_ino.py`: its functions' prototypes), its `setup()` and `loop()` in a coroutine,
+  on a simulated clock that moves when it waits and by what its calls cost on the chip (reading the clock, a pass of
+  `loop()`, each SPI byte at its bus clock, the NeoPixels' bits, an ADC conversion). Its peripherals: pins, the LEDC
+  PWM channels, the ADC, SPI to its LSM6DSR (a register file: its angular rates and accelerations latched at its
+  output data rate, a zero-rate offset and noise) read by the library its maker installs, STM32duino LSM6DSR
+  (unchanged, downloaded at build time, pinned), ESP32Encoder's counts at the time they are read (from its wheels'
+  angle and speed), the NeoPixels' colours, the serial port. What it runs: 1.5 m ahead at 1.6 m/s, steering to the
+  point by its gyro and encoders, a stop, a 180 deg turn, a rest, and back, over and over; no wall sensor yet.
+- **Physics, assumed:** 90 g; its motors at the speed its maker measured for each PWM duty with its wheels in the air
+  (`src/pruebas/pwmtovel/resultados.txt`, its sketch's tables), pushing 0.5 N for each m/s their wheel runs below
+  it; its H-bridge (its own, of MOSFETs) braking with both inputs equal; its odometry's 5.336 um a count on its
+  20 mm wheels (11776 counts a turn). In the maze it reaches 1.55 m/s and stops 0.27 m after its 1.5 m.
+- **Run:** `ratasim gamusino --maze oshwdem2026 [--record out.mp4] [--max-s 30] [--echo]`: put down at the start of
+  the maze's longest straight and switched on, as its maker starts it (green, its gyro measured after 3 s, blue: it
+  goes). The OSHWDEM 2026 maze's longest straight (ten cells, 1.8 m) leaves 1.70 m between its end walls; its 1.5 m
+  and its stop take 1.66 m: from its second run on, it touches the end walls.
 
 ## Bulebule
 
