@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """RATATRON in MuJoCo: the robot's firmware (firmware/src, unchanged) driving the CAD robot in a 16x16 maze.
 
-    ratatron sim                          # random maze (seed 1), viewer, console on stdin
-    ratatron sim --maze oshwdem2026                     # a maze of sim/mazes, or any maze file (micromouseonline)
-    ratatron sim --headless --speed 0 --cmd "MODE 1" --cmd START --until-idle
+    ratasim                               # random maze (seed 1), viewer, console on stdin
+    ratasim --maze oshwdem2026                     # a maze of ratasim/mazes, or any maze file (micromouseonline)
+    ratasim --headless --speed 0 --cmd "MODE 1" --cmd START --until-idle
 
 Console: every line goes to the firmware as over Bluetooth (MODE 1, START, STOP, MAP, STATUS, ...), except
     :start :select      press a button          :place x y [N|E|S|W]   put the robot at a cell centre
@@ -20,7 +20,7 @@ import sys
 import threading
 import time
 
-from .. import paths
+from . import paths
 from .firmware import STATE_NAMES, build
 from .maze import Maze
 from .robot import Robot

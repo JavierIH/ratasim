@@ -2,7 +2,7 @@
 """Every curve of a speed run measured against the cell geometry: lateral offset and heading error where the curve
 should begin (85.5 mm before the corner cell's centre) and where it should end (85.5 mm after), and the speed.
 
-    ratatron sim curves MAZE FLASH RACE [--lib LIB] [--csv OUT]
+    ratasim curves MAZE FLASH RACE [--lib LIB] [--csv OUT]
 
 FLASH: a flash image with the maze's map (a search's); RACE: the race menu entry (4, 5, 6).
 The route is taken from the firmware's own line; only the run to the goal is measured.

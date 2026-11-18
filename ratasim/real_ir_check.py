@@ -7,7 +7,7 @@ from the raw ADC through the firmware's own calibration, the prediction from the
 (docs/mazes.md) with the simulator's rays. Residuals (measured - predicted) are reported on straights and in
 curves, for the readings within the sensors' range.
 
-    ratatron sim real-ir LAYOUT run.csv ...     (LAYOUT: C, D, E, F of docs/mazes.md)
+    ratasim real-ir LAYOUT run.csv ...     (LAYOUT: C, D, E, F of docs/mazes.md)
 """
 import sys as _sys  # USAGE_GUARD
 if __name__ == "__main__" and (len(_sys.argv) < 3 or any(a in ("-h", "--help") for a in _sys.argv[1:])):

@@ -4,10 +4,10 @@ import math
 import os
 
 from .. import config as RC
-from ... import paths
+from .. import paths
 
-# The ZoroBot3 repository, cloned next to this one (its sources are not copied here).
-ZORO_DIR = os.environ.get('ZOROBOT3_DIR', os.path.join(os.path.dirname(paths.REPO), 'ZoroBot3'))
+# The ZoroBot3 repository: the submodule external/ZoroBot3 (its sources are not copied here).
+ZORO_DIR = os.environ.get('ZOROBOT3_DIR', paths.ZOROBOT3)
 ZORO_SRC = os.path.join(ZORO_DIR, 'source_code')
 HERE = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.join(HERE, 'build')             # generated meshes, the firmware library, flash images

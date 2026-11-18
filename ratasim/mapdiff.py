@@ -2,7 +2,7 @@
 """The firmware's map (from the telemetry of a run.py --log) against the real maze: walls it believes that are not
 there (phantoms) and walls it believes open that are there (missed), each with the pose it was first seen from.
 
-    ratatron sim mapdiff maze.txt run.log
+    ratasim mapdiff maze.txt run.log
 """
 import sys as _sys  # USAGE_GUARD
 if __name__ == "__main__" and (len(_sys.argv) < 3 or any(a in ("-h", "--help") for a in _sys.argv[1:])):

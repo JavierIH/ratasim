@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The failed runs of a batch (tools/batch.py OUT_DIR), one line each: phase, race, how far along its route, why.
 
-    ratatron sim failures OUT_DIR
+    ratasim failures OUT_DIR
 """
 import sys as _sys  # USAGE_GUARD
 if __name__ == "__main__" and (len(_sys.argv) < 2 or any(a in ("-h", "--help") for a in _sys.argv[1:])):

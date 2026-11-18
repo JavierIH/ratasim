@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ratasim"
+version = "0.1.0"
+description = "Micromouse robots in MuJoCo, each driven by its own firmware"
+requires-python = ">=3.10"
+dependencies = ["mujoco>=3.2", "numpy", "pillow"]
+
+[project.optional-dependencies]
+demo = ["pyte"]     # ratasim demo (and the ratatron tools: pip install -e external/ratatron/software)
+cad = ["gmsh"]      # ZoroBot3's meshes from its STEP
+
+[project.scripts]
+ratasim = "ratasim.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ratasim*"]

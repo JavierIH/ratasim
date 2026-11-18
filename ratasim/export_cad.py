@@ -1,6 +1,6 @@
-"""Exports the robot from mechanics/freecad/ratatron.fcstd to sim/assets (assembly frame, mm).
+"""Exports the robot from mechanics/freecad/ratatron.fcstd to ratasim/assets (assembly frame, mm).
 
-    ~/programs/FreeCAD_*.AppImage freecadcmd software/ratatron/sim/export_cad.py
+    ~/programs/FreeCAD_*.AppImage freecadcmd ratasim/export_cad.py
 
 Exports what the project shows: every solid visible with its containers, in FreeCAD's per-face colours.
 The faces of one colour become one STL per body (robot, wheel_l, wheel_r: the parts of the `wheels` group,
@@ -17,7 +17,7 @@ import MeshPart
 import Part
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))     # software/ratatron/sim -> the repo
+ROOT = os.path.join(os.path.dirname(HERE), 'external', 'ratatron')   # its CAD, in the submodule
 FCSTD = os.path.join(ROOT, 'mechanics', 'freecad', 'ratatron.fcstd')
 OUT = os.path.join(HERE, 'assets')
 WHEELS_GROUP = 'wheels'

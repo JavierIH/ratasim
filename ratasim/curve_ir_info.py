@@ -8,7 +8,7 @@ moved by a known error (along the corridor, across it, heading) and a least-squa
 (the maze's walls and posts ray-cast as the simulator does) against the measured ones tries to find it again.
 The spread of what it finds is how well the curve's readings fix the position.
 
-    ratatron sim ir-info MAZE FLASH RACE [--trials 20]
+    ratasim ir-info MAZE FLASH RACE [--trials 20]
 """
 import argparse
 import math

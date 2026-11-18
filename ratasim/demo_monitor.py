@@ -3,7 +3,7 @@
 monitor (software/ratatron/monitor/monitor.py, in a pseudo-terminal, read back by a terminal emulator) on the right. The
 commands are typed into the monitor's console: MODE 1, START (the search), then MODE 2 6, START (race 2.6).
 
-    ratatron sim demo demo.mp4      (needs pyte, pillow, ffmpeg)
+    ratasim demo demo.mp4      (needs pyte, pillow, ffmpeg)
 """
 import sys as _sys  # USAGE_GUARD
 if __name__ == "__main__" and (len(_sys.argv) < 1 or any(a in ("-h", "--help") for a in _sys.argv[1:])):
@@ -22,7 +22,7 @@ import mujoco
 import pyte
 from PIL import Image, ImageDraw, ImageFont
 
-from .. import paths
+from . import paths
 from . import run
 
 COLS, ROWS, CW, CH = 150, 48, 8, 15         # the monitor's terminal and its character cell in pixels
@@ -103,8 +103,10 @@ def main():
 
     pid, fd = pty.fork()
     if pid == 0:
-        os.chdir(paths.REPO)
-        os.environ.update(TERM='xterm-256color', COLORTERM='truecolor')
+        os.chdir(paths.RATATRON)            # its monitor, from the submodule's tools
+        sw = os.path.join(paths.RATATRON, 'software')
+        os.environ.update(TERM='xterm-256color', COLORTERM='truecolor',
+                          PYTHONPATH=os.pathsep.join(filter(None, (sw, os.environ.get('PYTHONPATH')))))
         os.execvp(sys.executable, [sys.executable, '-m', 'ratatron', 'monitor', '--port', args.port,
                                          '--no-record', '--full'])
     fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack('HHHH', ROWS, COLS, 0, 0))

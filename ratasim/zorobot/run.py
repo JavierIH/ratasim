@@ -1,8 +1,8 @@
 """ZoroBot3 in the simulator: boots its firmware, picks the run in its menu (buttons), starts it with a hand in front
 of a sensor as on the real robot, and runs it in a maze; optionally records a video.
 
-    python -m ratatron.sim.zorobot.run [--maze oshwdem2026] [--speed 0..5] [--explore-type 0..2] [--run]
-                                       [--record out.mp4] [--max-s 400]
+    ratasim zorobot [--maze oshwdem2026] [--speed 0..5] [--explore-type 0..2] [--run]
+                [--record out.mp4] [--max-s 400]
 
 --run: EXPLORE & RUN (explore, then the speed run at --speed); else only the exploration.
 """

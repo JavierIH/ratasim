@@ -2,7 +2,7 @@
 import os
 import re
 
-from .. import paths
+from . import paths
 
 FIRMWARE_SRC = os.path.join(paths.FIRMWARE, 'src')
 SIM_DIR = paths.SIM

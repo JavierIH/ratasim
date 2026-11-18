@@ -2,7 +2,7 @@
 """The firmware on many mazes: per maze a search, then races 2.4 and 2.6, in parallel; a summary per maze (CSV)
 and the incidents (pose lost, the hull touching a wall, failed runs, "!!" lines) for reading the logs.
 
-    ratatron sim batch OUT_DIR maze.txt ... [--workers 10] [--races "2 4,2 6"]
+    ratasim batch OUT_DIR maze.txt ... [--workers 10] [--races "2 4,2 6"]
 """
 import argparse
 import csv
@@ -14,14 +14,14 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-from .. import paths
+from . import paths
 
 
 def run_one(maze, out, races, max_s, maps=None, extra=()):
     name = os.path.splitext(os.path.basename(maze))[0]
     log = os.path.join(out, name + '.log')
     flash = os.path.join(out, name + '.bin')
-    cmd = [sys.executable, '-m', 'ratatron', 'sim', '--headless', '--speed', '0', '--no-pty', '--flash', flash,
+    cmd = [sys.executable, '-m', 'ratasim', '--headless', '--speed', '0', '--no-pty', '--flash', flash,
            '--maze', maze, '--timestamps', '--max-s', str(max_s), '--until-idle', *extra]
     if maps:        # the map a search saved before: only the races (for changes the search does not use)
         shutil.copy(os.path.join(maps, name + '.bin'), flash)
