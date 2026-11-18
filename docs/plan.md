@@ -15,13 +15,22 @@ In order; each step ends committed and pushed.
 4. **NezumiBot** ([OPRobots/NezumiBot](https://github.com/OPRobots/NezumiBot), GPLv3, based on Ratatron): a
    submodule; its model (its STLs and Ratatron's parts), its firmware (libopencm3 on an STM32F401: ZoroBot3's
    simulated chip, with Sharp sensors and N20 motors) in the maze.
-5. **Bulebule firmware**: libopencm3 on an STM32F103, its library (mmlib) through its `platform.h`; in the maze.
-6. **Gamusino firmware**: its Arduino sketch for the ESP32 on a host Arduino shim (pins, PWM, ADC, SPI for the
+5. **One way to start every robot.** Each robot starts as its makers start it (buttons, a hand in front of a
+   sensor), but the simulator drives it the same way for all: a hand (a mocap body every robot's IR model sees) and
+   buttons, moved by a per-robot start sequence (`START = [('hand', 'FR', 30 mm, 0.5 s), ('button', ...), ...]` in
+   its config) that `ratasim <robot> --start` plays after boot, and the console's `HAND <sensor> [mm]`, `HAND OFF`,
+   `PRESS <button>` for doing it by hand; the hand drawn in videos. Ratatron, ZoroBot3 and NezumiBot moved onto it.
+6. **Bulebule firmware**: libopencm3 on an STM32F103, its library (mmlib) through its `platform.h`; in the maze.
+7. **Gamusino firmware**: its Arduino sketch for the ESP32 on a host Arduino shim (pins, PWM, ADC, SPI for the
    LSM6DSR, encoders, NeoPixel, serial); in the maze.
-7. **Scenes with every robot**: the drag race, a maze race; robots added to scenes by name.
-8. **The ratatron repository without its simulator** (when ratasim is validated): `software/ratatron/sim` and its
+8. **Perenquen** ([supernudo/perenquen](https://github.com/supernudo/perenquen), by Javier Baliñas, CC BY-SA 4.0):
+   a submodule; its model from its FreeCAD assemblies and its KiCad board, its firmware (dsPIC33 with aversive4dspic)
+   on a simulated dsPIC; in the maze.
+9. **Scenes with every robot**: the drag race, a maze race; robots added to scenes by name.
+10. **The ratatron repository without its simulator** (when ratasim is validated): `software/ratatron/sim` and its
    commands removed there, its docs pointing here; the local branches `sim-zorobot` and `sim-gamusino` retired.
 
 ## Status
 
-- [x] 1 · [x] 2 · [x] 3 · [~] 4 (its model; next: its N20 wheels and its firmware) · [ ] 5 · [ ] 6 · [ ] 7 · [ ] 8
+- [x] 1 · [x] 2 · [x] 3 · [~] 4 (its model; next: its N20 wheels and its firmware) · [ ] 5 · [ ] 6 · [ ] 7 · [ ] 8 ·
+  [ ] 9 · [ ] 10
