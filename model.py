@@ -1,88 +1,46 @@
-"""The MuJoCo scene with ZoroBot3: the same maze as Ratatron's (sim/model.py) and the robot from its PCB and printed
-parts (zorobot/assets.py), the rest (tires, gears, motors, battery, sensor boards) as primitives."""
-import math
+"""The MuJoCo scene with ZoroBot3: the same maze as Ratatron's (sim/model.py) and the robot from its Onshape assembly
+(zorobot/cad.py: every part's mesh, merged per body and colour); simple shapes for its collisions."""
+import json
+import os
 
 from .. import config as RC
 from ..model import MM, ROBOT_GROUP, WALL_GROUP, _f, maze_xml
-from . import assets
+from . import cad
 from . import config as Z
 
-PCB_TOP = -Z.AXLE_OVER_PCB_MM                  # robot frame z of the board's top face
-PCB_BOT = PCB_TOP - Z.PCB_THICK_MM
-STL = (0.0, -Z.STL_AXLE_Y, PCB_TOP)             # the printed parts' frame in the robot's
-FAN_XY = (Z.FAN_HOLE_KICAD[0] - Z.PCB_CENTRE_X, Z.AXLE_Y_KICAD - Z.FAN_HOLE_KICAD[1])
-FAN_BRACKET_HOLE_X = 0.54                       # its motor hole in the brackets' frame (0.55 right of the board's)
-WHEEL_X = Z.ROBOT_WIDTH / 2 - Z.TIRE_WIDTH_MM / 2
-BATTERY_Y = Z.MOTOR_AXIS[0] + 4.25 + 5.5              # standing on the board, against the motors' front
-RIM_OUT_Y = -7.2                                # the wheel STL along its axis: rim face -7.2, hub end +4.3
+PCB_BOT = -Z.AXLE_OVER_PCB_MM - Z.PCB_THICK_MM
+TIRE_SCALE = Z.WHEEL_RADIUS_MM / Z.TIRE_CAD_RADIUS_MM
 
 
-def _mesh(name, rgba, pos=(0, 0, 0), euler=(0, 0, 0)):
-    return (f'<geom class="zvisual" mesh="z_{name}" rgba="{_f(*rgba)}" pos="{_f(*(v * MM for v in pos))}" '
-            f'euler="{_f(*euler)}"/>')
+def _meshes():
+    return json.load(open(os.path.join(cad.ensure(Z.CAD_STEP, Z.CAD_MESHES), 'manifest.json')))
 
 
-def _box(rgba, pos, half, zrot=0.0, name=None):
-    n = f'name="{name}" ' if name else ''
-    return (f'<geom {n}class="zvisual" type="box" rgba="{_f(*rgba)}" pos="{_f(*(v * MM for v in pos))}" '
-            f'size="{_f(*(v * MM for v in half))}" euler="0 0 {zrot:.6g}"/>')
-
-
-def _cyl(rgba, pos, r, half, euler=(0, 0, 0)):
-    return (f'<geom class="zvisual" type="cylinder" rgba="{_f(*rgba)}" pos="{_f(*(v * MM for v in pos))}" '
-            f'size="{_f(r * MM, half * MM)}" euler="{_f(*euler)}"/>')
-
-
-BLACK, PURPLE, WHITE = (0.06, 0.06, 0.07, 1), (0.45, 0.25, 0.85, 1), (0.92, 0.92, 0.9, 1)
-SILVER, YELLOW, BLUE = (0.75, 0.76, 0.78, 1), (0.95, 0.7, 0.15, 1), (0.6, 0.72, 0.95, 1)
+def _visual(entry, pos=(0, 0, 0)):
+    return (f'<geom class="zvisual" mesh="z_{entry["file"][:-4]}" rgba="{_f(*entry["rgba"])}" '
+            f'pos="{_f(*(v * MM for v in pos))}"/>')
 
 
 def robot_xml(start_xy=(0.5, 0.5)):
     r = Z.WHEEL_RADIUS_MM
-    my, mz = Z.MOTOR_AXIS
-    ey, ez = Z.ENCODER_GEAR
-    top = PCB_TOP + Z.FAN_BRACKET_Z
-    v = [_mesh('board', (0.04, 0.04, 0.045, 1)), _mesh('silk', WHITE, pos=(0, 0, 0.01)),
-         _mesh('bracket_l', BLACK, pos=STL), _mesh('bracket_r', BLACK, pos=STL),
-         _mesh('fan_bracket', BLACK, pos=(FAN_XY[0] - FAN_BRACKET_HOLE_X, STL[1], top)),
-         _mesh('fan', PURPLE, pos=(FAN_XY[0], FAN_XY[1], top - 1.84)),                       # under the bracket's boss
-         _cyl(SILVER, (FAN_XY[0], FAN_XY[1], top + 8), 4.25, 10),                           # the fan's motor
-         _box(YELLOW, (0, BATTERY_Y, PCB_TOP + 9.5), (14, 5.5, 9.5)),                       # 2S 260 mAh LiPo
-         _box((0.85, 0.85, 0.8, 1), (0, BATTERY_Y, PCB_TOP + 20.5), (5, 2.5, 1.5)),            # its connector
-         _box((0.9, 0.9, 0.9, 1), (0, Z.AXLE_Y_KICAD - 60.62, PCB_TOP + 0.8), (2.5, 2.5, 0.8), name='rgb')]
-    for s in (-1, 1):
-        v.append(_cyl(SILVER, (s * 12.8, my, mz), 4.25, 10, (0, 90, 0)))                    # 8520, through the bracket
-        v.append(_cyl((0.85, 0.7, 0.3, 1), (s * Z.GEAR_X, my, mz), 2.4, 1.4, (0, 90, 0)))   # its pinion (8T)
-        v.append(_mesh('enc_gear', BLUE, pos=(s * Z.GEAR_X, ey, ez), euler=(0, 0, 90)))      # encoder gear (22T)
-        (kx, ky) = Z.ENCODER_SLOT_KICAD[(s + 1) // 2]
-        bx, by = kx - Z.PCB_CENTRE_X, Z.AXLE_Y_KICAD - ky
-        v.append(_box(BLACK, (bx, by, PCB_TOP + 6.0), (0.5, 3.5, 6.8)))                       # its board, in a slot
-        v.append(_box((0.02, 0.02, 0.02, 1), (bx - s * 0.8, by, ez), (0.3, 2.6, 2.6)))       # AS5145B, facing the gear
-    for name, (_, (x, y, z), deg) in Z.IR_SENSORS.items():
-        # Each sensor board stands in a slot of the main board (its socket's pads on both sides): the receiver
-        # ST-1KL3A 4.7 mm over the board's edge, the emitter SFH-4550 11.2 mm, in a printed cover.
-        a = math.radians(deg)
-        v.append(_box(BLACK, (x, y, PCB_TOP + 7.65), (3.5, 3.7, 7.65), zrot=deg - 90))
-        for dz, col in ((11.2, (0.85, 0.85, 0.9, 1)), (4.7, (0.05, 0.05, 0.05, 1))):
-            v.append(f'<geom class="zvisual" type="sphere" rgba="{_f(*col)}" size="{2.5 * MM:.6g}" '
-                     f'pos="{_f((x + 3.4 * math.cos(a)) * MM, (y + 3.4 * math.sin(a)) * MM, (PCB_TOP + dz) * MM)}"/>')
-    sites = ''.join(f'<site name="ir_{n}" pos="{_f(x * MM, y * MM, (PCB_TOP + 4.7) * MM)}" size="0.0015" group="4" '
-                    f'rgba="1 0 0 0.6"/>' for n, (_, (x, y, z), _d) in Z.IR_SENSORS.items())
+    meshes = _meshes()
+    chassis = ''.join(_visual(e) for e in meshes if e['body'] == 'chassis')
+    sites = ''.join(f'<site name="ir_{n}" pos="{_f(x * MM, y * MM, Z.IR_Z_MM * MM)}" size="0.0015" group="4" '
+                    f'rgba="1 0 0 0.6"/>' for n, (_, (x, y), _d) in Z.IR_SENSORS.items())
     wheels = ''
     for side, s in (('l', -1), ('r', 1)):
+        x = s * Z.WHEELS_SEPARATION / 2
+        visual = ''.join(_visual(e, (-x, 0, 0)) for e in meshes if e['body'] == f'wheel_{side}')
         wheels += f'''
-      <body name="wheel_{side}" pos="{_f(s * Z.WHEELS_SEPARATION / 2 * MM, 0, 0)}">
+      <body name="wheel_{side}" pos="{_f(x * MM, 0, 0)}">
         <joint name="wheel_{side}" type="hinge" axis="-1 0 0" armature="{Z.MOTOR_ROTOR_INERTIA * Z.GEAR ** 2:.3g}"/>
         <geom name="tire_{side}" class="ztire" type="cylinder" size="{_f(r * MM, 1.0 * MM)}" euler="0 90 0" mass="0.004"/>
-        {_cyl(BLACK, (s * (WHEEL_X - Z.WHEELS_SEPARATION / 2), 0, 0), r, Z.TIRE_WIDTH_MM / 2, (0, 90, 0))}
-        {_mesh('wheel', PURPLE, pos=(s * (Z.ROBOT_WIDTH / 2 + RIM_OUT_Y + 0.2 - Z.WHEELS_SEPARATION / 2), 0, 0), euler=(0, 0, 90 * s))}
-        {_cyl(WHITE, (s * (Z.GEAR_X - Z.WHEELS_SEPARATION / 2), 0, 0), 10.5, 1.4, (0, 90, 0))}
+        {visual}
       </body>'''
     skids = ''.join(f'<geom name="skid_{n}" class="zskid" type="sphere" size="{1.5 * MM:.6g}" '
                     f'pos="{_f(0, y * MM, (-Z.AXLE_HEIGHT_MM + 0.3 + 1.5) * MM)}"/>' for n, y in (('front', 40), ('rear', -38)))
-    # Collisions with the walls: the board's outline (a semicircle in front, 40.7 behind the axle) up to the battery.
-    front = Z.AXLE_Y_KICAD - 50.93                  # the board's front edge from the axle
-    cy, back, top = front - Z.ROBOT_WIDTH / 2, -Z.ROBOT_BACK_LENGTH, 26.0
+    # Collisions with the walls: the board's outline (a semicircle in front, 40.7 behind the axle) up to the fan's motor.
+    cy, back, top = Z.BOARD_FRONT_MM - Z.ROBOT_WIDTH / 2, -Z.ROBOT_BACK_LENGTH, 18.0
     hull = (f'<geom name="hull" class="zhull" type="box" pos="{_f(0, (back + cy) / 2 * MM, (PCB_BOT + top) / 2 * MM)}" '
             f'size="{_f(Z.ROBOT_WIDTH / 2 * MM, (cy - back) / 2 * MM, (top - PCB_BOT) / 2 * MM)}"/>'
             f'<geom name="hull_front" class="zhull" type="cylinder" pos="{_f(0, cy * MM, (PCB_BOT + top) / 2 * MM)}" '
@@ -93,14 +51,15 @@ def robot_xml(start_xy=(0.5, 0.5)):
       <freejoint name="robot"/>
       <inertial pos="{_f(*(v * MM for v in Z.COM_MM))}" mass="{i:.4f}" diaginertia="{_f(6.4e-5 * i / 0.077, 4.1e-5 * i / 0.077, 9.2e-5 * i / 0.077)}"/>
       {hull}{skids}
-      {''.join(v)}{sites}{wheels}
+      {chassis}{sites}{wheels}
     </body>'''
 
 
 def scene_xml(maze):
-    a = assets.ensure()
-    names = ('board', 'silk', 'bracket_l', 'bracket_r', 'fan_bracket', 'fan', 'wheel', 'enc_gear')
-    mesh_assets = ''.join(f'<mesh name="z_{n}" file="{n}.stl" scale="0.001 0.001 0.001" inertia="shell"/>' for n in names)
+    a = Z.CAD_MESHES
+    mesh_assets = ''.join(
+        f'<mesh name="z_{e["file"][:-4]}" file="{e["file"]}" inertia="shell" '
+        f'scale="{_f(MM, *((MM * TIRE_SCALE,) * 2 if e["parts"] == ["Goma"] else (MM, MM)))}"/>' for e in _meshes())
     centre = maze.size * RC.CELL_MM * MM / 2
     return f'''<mujoco model="zorobot3_maze">
   <compiler meshdir="{a}" angle="degree" inertiafromgeom="auto"/>

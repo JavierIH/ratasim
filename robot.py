@@ -176,7 +176,7 @@ class ZRobot:
         calibration means (fronts: from the axle to a wall straight ahead; sides: from the axle to the side wall)."""
         sig = []
         for name, beam in self.beam_mm().items():
-            _, (x, y, _), deg = Z.IR_SENSORS[name]
+            _, (x, y), deg = Z.IR_SENSORS[name]
             a = math.radians(deg)
             if name in ('FL', 'FR'):
                 dist = beam * math.sin(a) + y
