@@ -61,15 +61,16 @@ By [Bulebots](https://github.com/Bulebots) (the Bulebule contributors) ·
 
 - **Model** (`ratasim/bulebule`, an approximation of its 2018 board: its design files went with Upverter): its board's
   outline fitted on the screenshot of its Upverter layout in Bulebots'
-  [2018 talk](https://github.com/Bulebots/20180216-bulebule-making-of-presentation), its artwork recoloured from it, its
-  parts where that layout's pads and the talk's photos put them; its components from
-  [KiCad's 3D library](https://gitlab.com/kicad/libraries/kicad-packages3D) (downloaded at build time), through-hole
-  ones on the board with their legs through it; its modules (Blue Pill, GY-6500, TB6612FNG, HC-05 in its socket, three
-  DC-DC converters) on boards of their sizes; its IR LEDs in heat-shrink, lying on the board and bent across their pads
-  as its build guide says: the side pairs, by the centre, look 25 deg ahead of sideways, the front pairs, on the
-  shoulders, straight ahead past the board's edge; its mounts, motors, gears and wheels from its CadQuery scripts and
-  its firmware's geometry (110 g, 65 mm between wheels, 22.3 mm between axles, 21.7 mm wheels). Each side's two wheels
-  geared together.
+  [2018 talk](https://github.com/Bulebots/20180216-bulebule-making-of-presentation), its artwork recoloured from it,
+  its parts where that layout's pads and the talk's photos put them; its components from [KiCad's 3D
+  library](https://gitlab.com/kicad/libraries/kicad-packages3D) (downloaded at build time), through-hole ones on the
+  board with their legs through it; its modules (Blue Pill, GY-6500, TB6612FNG, three DC-DC converters; the HC-05's
+  socket left empty) on boards of their sizes; its IR LEDs in heat-shrink, short, none past the board's edge, lying on
+  the board and bent across their pads as its build guide says: the side pairs, by the centre, look 25 deg ahead of
+  sideways, the front pairs, on the shoulders, straight ahead past the board's edge; its mounts, motors, gears and
+  wheels from its CadQuery scripts and its firmware's geometry (110 g, 65 mm between wheels, 22.3 mm between axles,
+  21.7 mm wheels); as its photos show, tires 10.5 mm wide, flush with the board's rear tabs, rims with 9 holes and M3
+  hex-head bolts. Each side's two wheels geared together.
 - **Coming:** its firmware, libopencm3 on an STM32F103, its library [mmlib](https://github.com/Bulebots/mmlib) through
   its `platform.h`.
 

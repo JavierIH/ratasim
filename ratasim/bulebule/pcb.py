@@ -21,8 +21,8 @@ CROP = (360, 470, 2490, 2830)                   # the board, with a margin (px)
 
 # The outline (mm, robot frame): its front an arc, shoulders, the waist where the mounts and wheels are, rear tabs.
 DOME_CY, DOME_R = 11.57, 45.54                  # the front: an arc (least squares on the outline's pixels)
-SHOULDER_X, SHOULDER_Y = 41.8, 24.9
-TAB_X, TAB_TOP, TAB_BOTTOM = 40.0, -25.3, -36.25
+SHOULDER_X, SHOULDER_Y = B.SHOULDER_X, 24.9
+TAB_X, TAB_TOP, TAB_BOTTOM = B.TAB_X, -25.3, -36.25
 CORNER = 1.5
 
 

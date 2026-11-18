@@ -27,11 +27,20 @@ MOTOR_D = 15.0                      # Faulhaber, with IE2-512 encoders
 MOTOR_SHIFT = 1.5                   # the motor's axis over the wheels' axles
 MOUNT = (6.0, 40.0, 15.0)           # x, y, z: on the board's waist edges, the motor through its middle
 RIM_D, RIM_W, HUB_D, HUB_W = 19.0, 5.0, 14.8, 3.0
-TIRE_W = 6.0
+CONTACT_W = 6.0                     # the tires' collision width, centred on the firmware's wheel separation
+BEARING_D = 6.2
+RIM_HOLES, RIM_HOLE_D = 9, 2.5      # MINIHOLES: its face's holes, on the circle between hub and bearing
+RIM_HOLE_R = (HUB_D + BEARING_D) / 4
+RIM_RECESS = 1.0                    # the rim's face inside the tire (photos)
+BOLT_HEAD = (5.5, 2.0)              # the wheels' M3 hex-head bolts (photos): across flats, height
+WASHER_D = 7.0
 
 # ---- From its board's layout (pcb.py) ----------------------------------------------------------------------------
 PCB_THICK = 1.6
 WAIST = 28.1                        # the board's waist, where the mounts stand: half width
+SHOULDER_X, TAB_X = 41.8, 40.0      # the board's shoulders and rear tabs (pcb.py): half width
+TIRE_X = WAIST + 1.4                # the tires' inner side, past the gears
+TIRE_W = TAB_X - TIRE_X             # 10.5: the tires flush with the board's edge by them (photos)
 AXLE_Z = WHEEL_RADIUS               # the wheels' axles over the floor
 MOTOR_Z = AXLE_Z + MOTOR_SHIFT      # its motors' axis
 PCB_TOP = MOTOR_Z - MOUNT[2] / 2    # the mounts stand on the board
