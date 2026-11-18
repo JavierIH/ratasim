@@ -3,6 +3,7 @@
     ratasim [options]               Ratatron in a maze (ratasim --help)
     ratasim batch|curves|failures|mapdiff|demo|ir-info|real-ir ...   Ratatron's studies
     ratasim zorobot [options]       ZoroBot3 in a maze
+    ratasim nezumibot [options]     NezumiBot in a maze
     ratasim crash|loop|drag-race OUT.mp4 [options]   scenes with both robots (videos)
     ratasim portraits [DIR]         a square picture of each robot
     ratasim help                    this
@@ -18,6 +19,7 @@ COMMANDS = {
     'demo': 'ratasim.demo_monitor',
     'ir-info': 'ratasim.curve_ir_info',
     'real-ir': 'ratasim.real_ir_check',
+    'nezumibot': 'ratasim.nezumibot.run',
     'zorobot': 'ratasim.zorobot.run',
     'crash': 'ratasim.scenes.crash',
     'loop': 'ratasim.scenes.loop',

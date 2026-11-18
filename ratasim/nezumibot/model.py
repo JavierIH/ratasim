@@ -1,6 +1,6 @@
 """NezumiBot (OPRobots, github.com/OPRobots/NezumiBot): Ratatron's printed chassis in black (it is based on Ratatron)
 with its own cap (3d_model/stl_files/gorra.stl in its repository) and the word written on it in blue marker, as in
-its photos, and the two screws standing on it. Collisions and wheels: Ratatron's for now (its N20 wheels: coming).
+its photos, the two screws standing on it, its N20 wheels (Rueda.stl). Collisions: Ratatron's hull and skids.
 
     python -m ratasim.nezumibot.model        (builds its meshes into build/)
 """
@@ -13,13 +13,15 @@ import urllib.request
 import numpy as np
 
 from .. import config as C, paths
-from ..model import MM, ROBOT_GROUP, _f
+from ..model import MM, ROBOT_GROUP, WALL_GROUP, _f, maze_xml
+from . import config as N
 from ..bulebule.model import cylinder, place
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, 'build')
-REPO = os.path.join(paths.EXTERNAL, 'NezumiBot')
+OUT = N.BUILD
+REPO = N.NEZUMI_DIR
 CAP_STL = os.path.join(REPO, '3d_model', 'stl_files', 'gorra.stl')
+WHEEL_STL = os.path.join(REPO, '3d_model', 'stl_files', 'Rueda.stl')
+WHEEL_AXIS = (207.1, 15.1)                  # Rueda.stl: its axis (x, y), along z, its outer face at z 0
 FONT_URL = 'https://github.com/google/fonts/raw/main/apache/permanentmarker/PermanentMarker-Regular.ttf'
 WORD, INK = 'MARINE', (30, 70, 200)
 BLACK_PLA = (0.07, 0.07, 0.08, 1)
@@ -97,8 +99,15 @@ def build():
     from ..model import PARTS
     manifest = []
     for p in PARTS:                                     # Ratatron's meshes; its yellow chassis printed in black
+        if p['body'] != 'robot':
+            continue                                    # Ratatron's wheels: NezumiBot has its own
         rgba = BLACK_PLA if tuple(p['rgba'][:3]) == (1.0, 1.0, 0.0) else p['rgba']
         manifest.append({'file': os.path.join(C.ASSETS, p['mesh'] + '.stl'), 'body': p['body'], 'rgba': list(rgba)})
+    w = read_stl(WHEEL_STL) - [WHEEL_AXIS[0], WHEEL_AXIS[1], 0.0]
+    for side, s in (('l', -1), ('r', 1)):               # in its wheel body's frame: its outer face outwards
+        t = np.stack([-s * w[..., 2] + s * (N.WHEEL_OUTER_X_MM - N.CONTACT_X_MM), w[..., 1], s * w[..., 0]], axis=-1)
+        write_stl(os.path.join(OUT, f'wheel_{side}.stl'), t)
+        manifest.append({'file': os.path.join(OUT, f'wheel_{side}.stl'), 'body': f'wheel_{side}', 'rgba': [0.09, 0.09, 0.1, 1]})
     write_cap(cap(), os.path.join(OUT, 'cap.obj'), os.path.join(OUT, 'cap.png'))
     manifest.append({'file': os.path.join(OUT, 'cap.obj'), 'body': 'robot', 'rgba': [1, 1, 1, 1], 'texture': 'cap.png'})
     screws = []
@@ -124,7 +133,8 @@ def defaults_xml():
     return (f'<default class="nvisual"><geom type="mesh" group="{ROBOT_GROUP}" contype="0" conaffinity="0" mass="0"/></default>'
             '<default class="nhull"><geom group="3" contype="2" conaffinity="1" rgba="0 0 1 0.1" mass="0" friction="0.3"/></default>'
             '<default class="nskid"><geom group="3" contype="2" conaffinity="1" rgba="0 0 1 0.3" mass="0" friction="0.05 0.001 0.0001"/></default>'
-            '<default class="ntire"><geom group="3" contype="2" conaffinity="1" rgba="0 0 0 0.3" friction="0.6 0.005 0.0001" condim="3" solref="0.004 1"/></default>')
+            '<default class="ntire"><geom group="3" contype="2" conaffinity="1" rgba="0 0 0 0.3" condim="3" solref="0.004 1" '
+            f'friction="{N.TIRE_FRICTION} 0.005 0.0001"/></default>')
 
 
 def assets_xml():
@@ -142,27 +152,64 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
         look = 'material="n_cap"' if e.get('texture') else f'rgba="{_f(*e["rgba"])}"'
         return f'<geom class="nvisual" mesh="n_{k:02d}" {look} pos="{_f(*(v * MM for v in at))}"/>'
     chassis = ''.join(visual(k, e) for k, e in enumerate(man) if e['body'] == 'robot')
-    r = C.TIRE_RADIUS_MM * MM
+    r = N.WHEEL_RADIUS_MM * MM
     wheels = ''
     for side, sign in (('l', -1), ('r', 1)):
-        cx = sign * C.CONTACT_X_MM
-        vis = ''.join(visual(k, e, (-cx, 0, -C.AXLE_Z_MM)) for k, e in enumerate(man) if e['body'] == f'wheel_{side}')
+        vis = ''.join(visual(k, e) for k, e in enumerate(man) if e['body'] == f'wheel_{side}')
         wheels += f'''
-      <body name="{p}wheel_{side}" pos="{_f(cx * MM, 0, C.AXLE_Z_MM * MM)}">
-        <joint name="{p}wheel_{side}" type="hinge" axis="-1 0 0" armature="2e-6"/>
+      <body name="{p}wheel_{side}" pos="{_f(sign * N.CONTACT_X_MM * MM, 0, N.AXLE_Z_MM * MM)}">
+        <joint name="{p}wheel_{side}" type="hinge" axis="-1 0 0" armature="{N.MOTOR_ROTOR_INERTIA * N.GEAR ** 2:.3g}"/>
         <geom name="{p}tire_{side}" class="ntire" type="cylinder" size="{_f(r, 0.001)}" euler="0 90 0" mass="0.004"/>
         {vis}
       </body>'''
+    sites = ''.join(f'<site name="{p}ir_{n}" pos="{_f(*(v * MM for v in xyz))}" size="0.0015" group="4" rgba="1 0 0 0.6"/>'
+                    for n, (_, _, xyz, _) in C.IR_SENSORS.items())
     skids = ''.join(f'<geom name="{p}skid_{n}" class="nskid" type="sphere" pos="{_f(0, y * MM, (C.SKID_Z_MM + C.SKID_R_MM) * MM)}" '
                     f'size="{C.SKID_R_MM * MM:.6g}"/>' for n, y in zip(('front', 'rear'), C.SKID_Y_MM))
     return f'''
     <body name="{p}robot" pos="{_f(start_xy[0] * C.CELL_MM * MM, start_xy[1] * C.CELL_MM * MM, -C.GROUND_Z_MM * MM)}">
       <freejoint name="{p}robot"/>
-      <inertial pos="{_f(*(v * MM for v in C.COM_MM))}" mass="0.0920" diaginertia="5e-5 4e-5 7e-5"/>
+      <inertial pos="{_f(*(v * MM for v in C.COM_MM))}" mass="{N.MASS_KG - 0.008:.4f}" diaginertia="5e-5 4e-5 7e-5"/>
       <geom name="{p}hull" class="nhull" type="box" pos="{_f(0, 8 * MM, 15 * MM)}" size="{_f(36 * MM, 37 * MM, 20 * MM)}"/>
       {skids}
-      {chassis}{wheels}
+      {chassis}{sites}{wheels}
     </body>'''
+
+
+def scene_xml(maze):
+    """The maze (Ratatron's, sim/model.py) with NezumiBot alone, for its firmware's runs."""
+    centre = maze.size * C.CELL_MM * MM / 2
+    return f'''<mujoco model="nezumibot_maze">
+  <compiler angle="degree" inertiafromgeom="auto"/>
+  <option timestep="0.0005" integrator="implicitfast" cone="elliptic" impratio="10" noslip_iterations="4"/>
+  <visual>
+    <global offwidth="1920" offheight="1080" azimuth="90" elevation="-55"/>
+    <quality shadowsize="4096"/>
+    <headlight ambient="0.35 0.35 0.35" diffuse="0.5 0.5 0.5"/>
+  </visual>
+  <default>
+    <default class="wall"><geom type="box" group="{WALL_GROUP}" rgba="0.95 0.95 0.95 1" contype="1" conaffinity="2"/></default>
+    <default class="wall_top"><geom type="box" group="0" rgba="0.85 0.05 0.05 1" contype="0" conaffinity="0"/></default>
+    <default class="post"><geom type="box" group="{WALL_GROUP}" rgba="0.72 0.72 0.75 1" contype="1" conaffinity="2"/></default>
+    <default class="post_top"><geom type="box" group="0" rgba="0.45 0.02 0.02 1" contype="0" conaffinity="0"/></default>
+    {defaults_xml()}
+  </default>
+  <asset>
+    <texture name="sky" type="skybox" builtin="gradient" rgb1="0.25 0.27 0.3" rgb2="0.05 0.05 0.06" width="256" height="256"/>
+    <material name="floor" rgba="0.02 0.02 0.02 1" specular="0.1" shininess="0.1"/>
+    {assets_xml()}
+  </asset>
+  <worldbody>
+    <light pos="{_f(centre, centre, 3)}" dir="0 0 -1" diffuse="0.7 0.7 0.7" castshadow="true"/>
+    <light pos="{_f(centre - 1, centre - 2, 2)}" dir="0.3 0.6 -0.7" diffuse="0.35 0.35 0.35" castshadow="false"/>
+    {maze_xml(maze)}
+    {robot_xml()}
+  </worldbody>
+  <actuator>
+    <motor name="motor_l" joint="wheel_l"/>
+    <motor name="motor_r" joint="wheel_r"/>
+  </actuator>
+</mujoco>'''
 
 
 if __name__ == '__main__':
