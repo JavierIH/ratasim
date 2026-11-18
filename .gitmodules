@@ -1,0 +1,6 @@
+[submodule "external/ratatron"]
+	path = external/ratatron
+	url = https://github.com/JavierIH/ratatron
+[submodule "external/ZoroBot3"]
+	path = external/ZoroBot3
+	url = https://github.com/OPRobots/ZoroBot3

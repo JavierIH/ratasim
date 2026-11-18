@@ -1,0 +1,9 @@
+.venv/
+*.egg-info/
+__pycache__/
+MUJOCO_LOG.TXT
+# generated: firmware libraries, flash images, meshes from CAD; CAD sources not committed
+ratasim/build/
+ratasim/fw/build/
+ratasim/zorobot/build/
+ratasim/zorobot/cad/
