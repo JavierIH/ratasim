@@ -34,9 +34,10 @@ def run(args, timeout=1800):
     out = subprocess.run(cmd, cwd=REPO, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          text=True, timeout=timeout).stdout
     print('\n'.join(line for line in out.splitlines() if not line.startswith('@')), flush=True)
-    if 'Traceback' in out:    # the end of it on the run's page too (annotations: no log needed)
-        tail = out[out.find('Traceback'):]
-        note('error', ' '.join(args[:1]) + ':%0A' + '%0A'.join(tail.strip().splitlines()[-25:]))
+    if 'Traceback' in out:    # on the run's page too (annotations: no log needed): what came before (a build's
+        before, _, after = out.partition('Traceback')    # errors) and the exception
+        lines = before.strip().splitlines()[-20:] + ['...'] + after.strip().splitlines()[-2:]
+        note('error', ' '.join(args[:1]) + ':%0A' + '%0A'.join(lines))
     return out
 
 
