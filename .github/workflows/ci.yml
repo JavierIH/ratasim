@@ -24,7 +24,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      # gmsh (Bulebule's parts from KiCad's STEP models) needs these X and GL libraries even without a screen
-      - run: sudo apt-get update -q && sudo apt-get install -y -q libglu1-mesa libxrender1 libxcursor1 libxft2 libxinerama1
+      # gmsh (Bulebule's parts from KiCad's STEP models) needs these X and GL libraries even without a screen; EGL:
+      # the runners of ZoroBot3, Gamusino, NezumiBot and Perenquén pick MuJoCo's EGL renderer, loaded on import
+      - run: >-
+          sudo apt-get update -q && sudo apt-get install -y -q libglu1-mesa libxrender1 libxcursor1 libxft2
+          libxinerama1 libegl1 libgl1
       - run: pip install -e ".[cad]"
       - run: python tests/robots.py ${{ matrix.robot }}
