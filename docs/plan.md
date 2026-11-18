@@ -33,4 +33,4 @@ In order; each step ends committed and pushed.
 ## Status
 
 - [x] 1 · [x] 2 · [x] 3 · [x] 4 · [x] 5 · [ ] 6 · [ ] 7 · [x] 8 ·
-  [ ] 9 · [ ] 10
+  [ ] 9 · [x] 10 (its branches `sim-zorobot`, `sim-gamusino` still to retire)
