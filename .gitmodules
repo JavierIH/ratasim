@@ -10,3 +10,12 @@
 [submodule "external/NezumiBot"]
 	path = external/NezumiBot
 	url = https://github.com/OPRobots/NezumiBot
+[submodule "external/bulebule"]
+	path = external/bulebule
+	url = https://github.com/Bulebots/bulebule
+[submodule "external/perenquen"]
+	path = external/perenquen
+	url = https://github.com/supernudo/perenquen
+[submodule "external/aversive4dspic"]
+	path = external/aversive4dspic
+	url = https://github.com/supernudo/aversive4dspic
