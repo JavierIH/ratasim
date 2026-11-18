@@ -22,7 +22,7 @@ CELL_MM = RC.CELL_MM
 
 # ---- From its PCB (pcb_files/kicad_project/ZoroBot3.kicad_pcb) --------------------------------------------------
 PCB_CENTRE_X = 150.58       # KiCad x of the centre line (USB, MCU, RGB LED)
-AXLE_Y_KICAD = 99.0         # KiCad y of the axle: the front edge (50.93) + ROBOT_FRONT_LENGTH
+AXLE_Y_KICAD = 102.16       # KiCad y of the axle: the brackets' bearing over their screw holes (40.7 to the back edge)
 PCB_KEEP_X = (115.5, 185.5)  # the main board; the sensor boards are panelised beside it
 # IR sensors: vertical boards in the sockets SEN_FRONT_I/D and SEN_PARED_I/D (emitter over receiver). The wall
 # sensors are crossed: the one for the right wall stands on the left. (x, y) mm in the robot frame, direction deg
@@ -40,18 +40,27 @@ ENCODER_COUNTS_PER_WHEEL_REV = 4096 * 40 / 22
 WHEEL_RADIUS_MM = ENCODER_COUNTS_PER_WHEEL_REV * MICROMETERS_PER_TICK / 1000 / (2 * math.pi)   # 12.44
 TIRE_WIDTH_MM = 7.0
 AXLE_HEIGHT_MM = WHEEL_RADIUS_MM
-PCB_BOTTOM_MM = 2.5         # assumed: the board's height above the floor (a suction robot rides low)
-PCB_THICK_MM = 0.7
+PCB_THICK_MM = 0.71
+AXLE_OVER_PCB_MM = 9.09      # the bearing's centre over the board's top face (motor brackets)
+PCB_BOTTOM_MM = AXLE_HEIGHT_MM - AXLE_OVER_PCB_MM - PCB_THICK_MM     # 2.64 mm over the floor
+
+# ---- Printed parts (3d_model/stl_files): the brackets' frame is the robot's with y - 0.07 and z from the board's top
+STL_AXLE_Y = 0.07           # the bearing's y in the brackets' frame
+MOTOR_AXIS = (-11.68, -2.75)  # the 8520's axis (y, z) from the axle: the brackets' motor holes (pinion 8T on 40T)
+FAN_BRACKET_Z = 10.54       # the fan bracket's underside on the brackets' front tops, over the board
+FAN_HOLE_KICAD = (150.57, 79.36)    # the board's suction hole (r 10): fan and its motor centred on it
+GEAR_X = 26.2               # the wheel gear (40T) and the encoder gear (22T), inside the rim
+ENCODER_GEAR = (-14.05, 6.55)    # (y, z) from the axle: 15.5 mm (22T on 40T), behind, clear of the pinion
 
 # ---- Assumed physics (nothing measured) --------------------------------------------------------------------------
-MASS_KG = 0.085             # 2S 260 mAh LiPo, two 8520, a PCB chassis, printed brackets and fan
+MASS_KG = 0.070             # 2S 260 mAh LiPo, two 8520, a PCB chassis, printed brackets and fan
 COM_MM = (0.0, 4.0, 2.0)
 BATTERY_V = 8.0
-# 8520 coreless at 7.4 V: ~45000 rpm free, ~1.8 A stall
-MOTOR_R_OHM = 4.0
+# 8520 coreless at 7.4 V: ~45000 rpm free, ~3.7 A stall (R 4 ohm turned 5-16 deg too far in its explore turns)
+MOTOR_R_OHM = 2.0
 MOTOR_KE = 7.4 / (45000 * 2 * math.pi / 60)    # V s/rad = N m/A
 MOTOR_ROTOR_INERTIA = 6e-9                     # kg m^2 (on the motor shaft)
 GEAR_EFFICIENCY = 0.85
 MOTOR_FRICTION_NM = 1.5e-4                     # at the motor shaft
-TIRE_FRICTION = 0.9
-FAN_DOWNFORCE_N = 3.0                           # at 100 % duty; quadratic in the duty
+TIRE_FRICTION = 1.1
+FAN_DOWNFORCE_N = 8.0                           # at 100 % duty, quadratic in it: its explore turns (~1.2 g) slid with less
