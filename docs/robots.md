@@ -43,8 +43,11 @@ By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OP
 By [turmandreams](https://github.com/turmandreams) · [turmandreams/gamusino](https://github.com/turmandreams/gamusino)
 (no licence file)
 
-- **Coming:** its model from the GLB in its repository (its fabrication panel's mini boards cut off the main board),
-  then its firmware: an Arduino sketch for the ESP32 (LSM6DSR gyro, encoders, NeoPixel LEDs, suction fan).
+- **Model:** the Blender export in its repository (`external/gamusino/gamusino_3d/gamusino.glb`), read at build time
+  (`ratasim/gamusino/cad.py`): its parts per body and material, its PCB's silkscreen as a texture, its fabrication
+  panel's mini boards cut off the main board. Collisions: a box over the PCB, the tyres, the two ball casters.
+- **Physics, assumed:** 90 g; its maker's top speed, 1.5 m/s.
+- **Coming:** its firmware, an Arduino sketch for the ESP32 (LSM6DSR gyro, encoders, NeoPixel LEDs, suction fan).
 
 ## Bulebule
 

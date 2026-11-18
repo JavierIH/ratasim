@@ -1,6 +1,6 @@
 # ratasim
 
-![Ratatron and ZoroBot3 in the OSHWDEM 2026 maze](docs/images/maze.jpg)
+![Gamusino, ZoroBot3 and Ratatron in the OSHWDEM 2026 maze](docs/images/maze.jpg)
 
 Micromouse robots in [MuJoCo](https://mujoco.org), each driven by **its own firmware**, compiled for the host and
 unchanged, on a simulated chip (motors, encoders, IR sensors, gyro, flash, serial port), in mazes by the rules (16x16
@@ -11,7 +11,7 @@ cells of 180 mm).
 | [<img src="docs/images/robots/ratatron.jpg" width="250"><br>**Ratatron**](docs/robots.md#ratatron) | [<img src="docs/images/robots/zorobot3.jpg" width="250"><br>**ZoroBot3**](docs/robots.md#zorobot3) | [<img src="docs/images/robots/gamusino.jpg" width="250"><br>**Gamusino**](docs/robots.md#gamusino) |
 |:-:|:-:|:-:|
 | by [Javier Isabel](https://github.com/JavierIH) · [repo](https://github.com/JavierIH/ratatron) | by [OPRobots](https://oprobots.org) · [repo](https://github.com/OPRobots/ZoroBot3) | by [turmandreams](https://github.com/turmandreams) · [repo](https://github.com/turmandreams/gamusino) |
-| STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · fan | ESP32 · 4 IR · gyro · fan<br>*coming soon* |
+| STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · fan | ESP32 · 4 IR · gyro · fan<br>*model; firmware coming* |
 | [<img src="docs/images/robots/bulebule.jpg" width="250"><br>**Bulebule**](docs/robots.md#bulebule) | [<img src="docs/images/robots/nezumibot.jpg" width="250"><br>**NezumiBot**](docs/robots.md#nezumibot) | |
 | by [Bulebots](https://github.com/Bulebots) · [repo](https://github.com/Bulebots/bulebule) | by [OPRobots](https://oprobots.org) · [repo](https://github.com/OPRobots/NezumiBot) | |
 | STM32F103 · 4 IR · gyro · 4 wheels<br>*coming soon* | STM32F401 · 4 Sharp IR · N20 motors<br>*coming soon* | |
@@ -89,6 +89,7 @@ front sensor, as on the real robot (`--run`: explore, then the speed run).
 ```text
 ratasim/            the simulator: the maze, the physics, Ratatron (its model, sensors, simulated chip in fw/)
 ratasim/zorobot/    ZoroBot3: its model from its STEP, its simulated chip (fw/), its runner
+ratasim/gamusino/   Gamusino: its model from the GLB in its repository
 ratasim/scenes/     several robots: drag race, crash, loop, pictures
 ratasim/mazes/      competition mazes (micromouseonline text format)
 external/           the robots' repositories (submodules)

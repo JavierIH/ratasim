@@ -3,7 +3,7 @@ the model puts it, merged per moving body and material, in the robot frame (mm: 
 the axle between the wheels, found from the two tyres), the PCB's silkscreen as a texture. Also what the physics
 needs (geometry.json): wheels, casters, the hull's box.
 
-    python -m ratatron.sim.gamusino.cad
+    python -m ratasim.gamusino.cad
 """
 import json
 import os

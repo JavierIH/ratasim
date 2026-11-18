@@ -18,6 +18,7 @@ SIZE = 900
 ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation
     'ratatron': ('', 0.20, 215, -30),
     'zorobot3': ('z_', 0.18, 215, -32),
+    'gamusino': ('g_', 0.17, 215, -32),
 }
 SKY = 'rgb1="0.17 0.18 0.21" rgb2="0.04 0.04 0.05"'          # a dark studio
 STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.10 0.11 0.13 1" condim="3" friction="0.05 0.001 0.0001"/>'
@@ -27,15 +28,15 @@ STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.10 0.11 0.13 1
 
 def maze_picture(out):
     """The robots side by side in the maze's first cells, from above at three quarters."""
-    m, d = K.compile(K.scene_xml(Maze.load(maze_path('oshwdem2026'))))
+    m, d = K.compile(K.scene_xml(Maze.load(maze_path('oshwdem2026')), gamusino=True))
     cell = K.C.CELL_MM * K.MM
-    for (x, y), prefix in zip(((0.5, 1.5), (1.5, 1.5)), ('', 'z_')):
+    for (x, y), prefix in zip(((0.5, 1.5), (1.5, 1.5), (2.5, 1.5)), ('', 'z_', 'g_')):
         K.Bot(m, d, prefix).place(x * cell, y * cell, 1.5708)
     for _ in range(600):
         mujoco.mj_step(m, d)
     ren, cam = mujoco.Renderer(m, 720, 1280), mujoco.MjvCamera()
-    cam.lookat[:] = (1.0 * cell, 1.5 * cell, 0.012)
-    cam.distance, cam.azimuth, cam.elevation = 0.40, 245, -30
+    cam.lookat[:] = (1.5 * cell, 1.5 * cell, 0.012)
+    cam.distance, cam.azimuth, cam.elevation = 0.47, 240, -27
     ren.update_scene(d, cam)
     Image.fromarray(ren.render()).save(out, quality=90)
     print('->', out)
@@ -47,7 +48,7 @@ def main(argv=None):
     a = p.parse_args(argv)
     os.makedirs(os.path.join(a.dir, 'robots'), exist_ok=True)
     maze_picture(os.path.join(a.dir, 'maze.jpg'))
-    xml = K.scene_xml(Maze.load(maze_path('oshwdem2026')), with_maze=False)
+    xml = K.scene_xml(Maze.load(maze_path('oshwdem2026')), with_maze=False, gamusino=True)
     xml = xml.replace('<texture name="sky" type="skybox" builtin="gradient" rgb1="0.25 0.27 0.3" rgb2="0.05 0.05 0.06"',
                       f'<texture name="sky" type="skybox" builtin="gradient" {SKY}')
     m, d = K.compile(xml.replace('</worldbody>', STUDIO + '</worldbody>', 1))
