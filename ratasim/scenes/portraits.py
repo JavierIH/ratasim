@@ -1,6 +1,7 @@
-"""A square picture of each robot, alone in a slate studio (the README's grid of supported robots).
+"""A square picture of each robot, alone in a dark studio (the README's grid of supported robots), and the README's
+picture of them in a maze.
 
-    ratasim portraits [DIR]         (default docs/images/robots)
+    ratasim portraits [DIR]         (default docs/images: robots/NAME.jpg, maze.jpg)
 """
 import argparse
 import os
@@ -18,17 +19,34 @@ ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation
     'ratatron': ('', 0.20, 215, -30),
     'zorobot3': ('z_', 0.18, 215, -32),
 }
-SKY = 'rgb1="0.50 0.53 0.58" rgb2="0.30 0.32 0.36"'          # a slate studio
-STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.40 0.43 0.48 1" condim="3" friction="0.05 0.001 0.0001"/>'
-          '<light directional="true" pos="0 -1 2" dir="0.3 0.5 -1" diffuse="0.8 0.8 0.8" castshadow="true"/>'
-          '<light directional="true" pos="0 1 2" dir="-0.3 -0.4 -1" diffuse="0.35 0.35 0.35" castshadow="false"/>')
+SKY = 'rgb1="0.17 0.18 0.21" rgb2="0.04 0.04 0.05"'          # a dark studio
+STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.10 0.11 0.13 1" condim="3" friction="0.05 0.001 0.0001"/>'
+          '<light directional="true" pos="0 -1 2" dir="0.3 0.5 -1" diffuse="0.85 0.85 0.85" castshadow="true"/>'
+          '<light directional="true" pos="0 1 2" dir="-0.2 -0.6 -0.6" diffuse="0.45 0.45 0.5" castshadow="false"/>')
+
+
+def maze_picture(out):
+    """The robots side by side in the maze's first cells, from above at three quarters."""
+    m, d = K.compile(K.scene_xml(Maze.load(maze_path('oshwdem2026'))))
+    cell = K.C.CELL_MM * K.MM
+    for (x, y), prefix in zip(((0.5, 1.5), (1.5, 1.5)), ('', 'z_')):
+        K.Bot(m, d, prefix).place(x * cell, y * cell, 1.5708)
+    for _ in range(600):
+        mujoco.mj_step(m, d)
+    ren, cam = mujoco.Renderer(m, 720, 1280), mujoco.MjvCamera()
+    cam.lookat[:] = (1.0 * cell, 1.5 * cell, 0.012)
+    cam.distance, cam.azimuth, cam.elevation = 0.40, 245, -30
+    ren.update_scene(d, cam)
+    Image.fromarray(ren.render()).save(out, quality=90)
+    print('->', out)
 
 
 def main(argv=None):
     p = argparse.ArgumentParser(prog='ratasim portraits', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('dir', nargs='?', default=os.path.join(paths.REPO, 'docs', 'images', 'robots'))
+    p.add_argument('dir', nargs='?', default=os.path.join(paths.REPO, 'docs', 'images'))
     a = p.parse_args(argv)
-    os.makedirs(a.dir, exist_ok=True)
+    os.makedirs(os.path.join(a.dir, 'robots'), exist_ok=True)
+    maze_picture(os.path.join(a.dir, 'maze.jpg'))
     xml = K.scene_xml(Maze.load(maze_path('oshwdem2026')), with_maze=False)
     xml = xml.replace('<texture name="sky" type="skybox" builtin="gradient" rgb1="0.25 0.27 0.3" rgb2="0.05 0.05 0.06"',
                       f'<texture name="sky" type="skybox" builtin="gradient" {SKY}')
@@ -43,7 +61,7 @@ def main(argv=None):
         cam.lookat[:] = (0.0, 0.004, 0.012)
         cam.distance, cam.azimuth, cam.elevation = dist, az, el
         ren.update_scene(d, cam)
-        out = os.path.join(a.dir, f'{name}.jpg')
+        out = os.path.join(a.dir, 'robots', f'{name}.jpg')
         Image.fromarray(ren.render()).save(out, quality=90)
         print('->', out)
 

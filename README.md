@@ -1,19 +1,23 @@
 # ratasim
 
-![Ratatron and ZoroBot3 at the start line](docs/images/start.jpg)
+![Ratatron and ZoroBot3 in the OSHWDEM 2026 maze](docs/images/maze.jpg)
 
 Micromouse robots in [MuJoCo](https://mujoco.org), each driven by **its own firmware**, compiled for the host and
-unchanged, on a simulated chip (motors, encoders, IR sensors, gyro, flash, serial port). Mazes by the rules (16x16
-cells of 180 mm), and scenes with several robots.
+unchanged, on a simulated chip (motors, encoders, IR sensors, gyro, flash, serial port), in mazes by the rules (16x16
+cells of 180 mm).
 
-## Supported robots
+## Robots
 
-| [<img src="docs/images/robots/ratatron.jpg" width="260"><br>**Ratatron**](docs/robots.md#ratatron) | [<img src="docs/images/robots/zorobot3.jpg" width="260"><br>**ZoroBot3**](docs/robots.md#zorobot3) | <img src="docs/images/robots/gamusino.jpg" width="260"><br>**Gamusino** |
+| [<img src="docs/images/robots/ratatron.jpg" width="250"><br>**Ratatron**](docs/robots.md#ratatron) | [<img src="docs/images/robots/zorobot3.jpg" width="250"><br>**ZoroBot3**](docs/robots.md#zorobot3) | [<img src="docs/images/robots/gamusino.jpg" width="250"><br>**Gamusino**](docs/robots.md#gamusino) |
 |:-:|:-:|:-:|
-| STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · suction fan | ESP32 · 4 IR · gyro · suction fan<br>*coming soon* |
+| by [Javier Isabel](https://github.com/JavierIH) · [repo](https://github.com/JavierIH/ratatron) | by [OPRobots](https://oprobots.org) · [repo](https://github.com/OPRobots/ZoroBot3) | by [turmandreams](https://github.com/turmandreams) · [repo](https://github.com/turmandreams/gamusino) |
+| STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · fan | ESP32 · 4 IR · gyro · fan<br>*coming soon* |
+| [<img src="docs/images/robots/bulebule.jpg" width="250"><br>**Bulebule**](docs/robots.md#bulebule) | [<img src="docs/images/robots/nezumibot.jpg" width="250"><br>**NezumiBot**](docs/robots.md#nezumibot) | |
+| by [Bulebots](https://github.com/Bulebots) · [repo](https://github.com/Bulebots/bulebule) | by [OPRobots](https://oprobots.org) · [repo](https://github.com/OPRobots/NezumiBot) | |
+| STM32F103 · 4 IR · gyro · 4 wheels<br>*coming soon* | STM32F401 · 4 Sharp IR · N20 motors<br>*coming soon* | |
 
-Each robot's firmware comes from its repository, a submodule of `external/` pinned to a commit
-([robots.md](docs/robots.md)).
+Each robot's firmware comes from its own repository, a submodule of `external/` pinned to a commit; its authors are
+credited in [robots.md](docs/robots.md), with what was taken from where.
 
 ## Getting started
 
@@ -80,33 +84,34 @@ front sensor, as on the real robot (`--run`: explore, then the speed run).
 
 ![ZoroBot3 exploring the OSHWDEM 2026 maze](docs/images/maze-zorobot3.jpg)
 
-### Scenes with both robots
-
-No firmware here: each robot follows its own speed profile (Ratatron's race preset, ZoroBot3's `SPEED_HAKI`) and
-keeps its lane.
-
-```sh
-ratasim drag-race race.mp4          # 3 m: start lights, lanes, a checkered finish
-ratasim crash crash.mp4 --ramp      # head-on on the maze's longest straight, over a ramp
-ratasim loop loop.mp4               # a loop-the-loop beside the maze
-ratasim portraits                   # the pictures of the robots above
-```
-
-| ![Drag race](docs/images/drag-race.jpg) | ![Head-on on a ramp](docs/images/crash-ramp.jpg) | ![Loop-the-loop](docs/images/loop.jpg) |
-|:-:|:-:|:-:|
-
 ## Layout
 
 ```text
 ratasim/            the simulator: the maze, the physics, Ratatron (its model, sensors, simulated chip in fw/)
 ratasim/zorobot/    ZoroBot3: its model from its STEP, its simulated chip (fw/), its runner
-ratasim/scenes/     several robots: drag race, crash, loop, portraits
+ratasim/scenes/     several robots: drag race, crash, loop, pictures
 ratasim/mazes/      competition mazes (micromouseonline text format)
-external/           the robots' repositories (submodules): ratatron, ZoroBot3
-docs/               simulator.md (Ratatron in detail), robots.md
+external/           the robots' repositories (submodules)
+docs/               robots.md (each robot, its authors), simulator.md (Ratatron in detail), plan.md
 ```
 
-## Licences
+## Off the maze
 
-ZoroBot3 is by [OPRobots](https://github.com/OPRobots/ZoroBot3) (GPLv3): its repository is a submodule and nothing of it
-is copied here; its STEP and the meshes made from it stay out of git.
+Scenes with several robots, no firmware: each robot follows its own speed profile (Ratatron's race preset,
+ZoroBot3's `SPEED_HAKI`) and keeps its lane.
+
+```sh
+ratasim drag-race race.mp4          # 3 m: start lights, lanes, a checkered finish
+ratasim crash crash.mp4 --ramp      # head-on on the maze's longest straight, over a ramp
+ratasim loop loop.mp4               # a loop-the-loop beside the maze
+ratasim portraits                   # the pictures above
+```
+
+| ![Drag race](docs/images/drag-race.jpg) | ![Head-on on a ramp](docs/images/crash-ramp.jpg) | ![Loop-the-loop](docs/images/loop.jpg) |
+|:-:|:-:|:-:|
+
+## Credits and licences
+
+Every robot belongs to its authors (above); their repositories are submodules and nothing of them is copied here.
+ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's repository carries no licence. The meshes made from their CAD
+stay out of git.
