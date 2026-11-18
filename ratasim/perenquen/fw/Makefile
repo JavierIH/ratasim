@@ -38,7 +38,10 @@ LIBSRC := $(foreach f,cirbuf_get_tail cirbuf cirbuf_add_buf_head cirbuf_add_buf_
 SIM  := pchip.c puart.c $(GEN)/sfr.c
 INC  := -I$(GEN) -Iinclude -I$(SRC) -I$(AVERSIVE_DIR)/include -I$(AVERSIVE_DIR)/include/aversive \
         $(addprefix -I$(M)/,$(MODS)) -I$(M)/comm/dspic/uart -I$(M)/debug/diagnostic -I$(M)/debug -I$(M)/base -I$(M)
+# gcc 14+ makes errors of what older ones warned about (its sensor.c: NULL for an unsigned char): warnings again.
 CFLAGS := -std=gnu11 -O2 -g -fPIC -w -fno-toplevel-reorder -fcommon $(INC) \
+          -Wno-error=int-conversion -Wno-error=incompatible-pointer-types -Wno-error=implicit-function-declaration \
+          -Wno-error=implicit-int \
           -DDSPIC -D__dsPIC33E__ -D__dsPIC33EP512MC806__ -include pdspic.h \
           -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Dmain=firmware_main -Dprintf=psim_printf -Dvfprintf=psim_vfprintf
 
