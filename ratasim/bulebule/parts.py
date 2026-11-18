@@ -1,6 +1,6 @@
 """The 3D models of Bulebule's components from KiCad's library (kicad-packages3D, CC BY-SA 4.0 with an exception for
-the designs that use them), downloaded and tessellated at build time (gmsh, `pip install -e .[cad]`), normalised:
-centred in x and y, standing on z = 0, mm.
+the designs that use them), downloaded and tessellated at build time (gmsh, `pip install -e .[cad]`), centred in x and y, mm. KiCad's z is kept:
+z = 0 is the board's surface, so through-hole parts sit on it with their legs through the board.
 """
 import os
 import urllib.request
@@ -17,21 +17,23 @@ PARTS = {
     'usb': 'Connector_USB.3dshapes/USB_Micro-B_Molex_47346-0001.step',
     'sot223': 'Package_TO_SOT_SMD.3dshapes/SOT-223.step',
     'hdr20': 'Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x20_P2.54mm_Vertical.step',
-    'hdr2x3': 'Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x03_P2.54mm_Vertical.step',
-    'hdr6a': 'Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x06_P2.54mm_Horizontal.step',
     'hdr8': 'Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x08_P2.54mm_Vertical.step',
+    'hdr4': 'Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x04_P2.54mm_Vertical.step',
+    'hdr3': 'Connector_PinHeader_2.54mm.3dshapes/PinHeader_1x03_P2.54mm_Vertical.step',
+    'hdr2x3': 'Connector_PinHeader_2.54mm.3dshapes/PinHeader_2x03_P2.54mm_Vertical.step',
+    'sock6': 'Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x06_P2.54mm_Vertical.step',
     'tl3342': 'Button_Switch_SMD.3dshapes/SW_SPST_TL3342.step',
-    'htssop16': 'Package_SO.3dshapes/HTSSOP-16-1EP_4.4x5mm_P0.65mm_EP3.4x5mm.step',    # DRV8833
+    'pts810': 'Button_Switch_SMD.3dshapes/SW_SPST_PTS810.step',
+    'ssop24': 'Package_SO.3dshapes/SSOP-24_5.3x8.2mm_P0.65mm.step',       # TB6612FNG
     'qfn24': 'Package_DFN_QFN.3dshapes/QFN-24-1EP_3x3mm_P0.4mm_EP1.75x1.6mm.step',      # MPU-6500
     'jst2': 'Connector_JST.3dshapes/JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical.step',
-    'slide': 'Button_Switch_THT.3dshapes/SW_Slide_SPDT_Angled_CK_OS102011MA1Q.step',
-    'push6': 'Button_Switch_THT.3dshapes/SW_PUSH_6mm.step',
-    'buzzer': 'Buzzer_Beeper.3dshapes/Buzzer_12x9.5RM7.6.step',
     'sot23': 'Package_TO_SOT_SMD.3dshapes/SOT-23.step',
     'sot23_6': 'Package_TO_SOT_SMD.3dshapes/SOT-23-6.step',
     'r0805': 'Resistor_SMD.3dshapes/R_0805_2012Metric.step',
+    'r1206': 'Resistor_SMD.3dshapes/R_1206_3216Metric.step',
     'c0805': 'Capacitor_SMD.3dshapes/C_0805_2012Metric.step',
     'led0805': 'LED_SMD.3dshapes/LED_0805_2012Metric.step',
+    'led1206': 'LED_SMD.3dshapes/LED_1206_3216Metric.step',
     'srn4018': 'Inductor_SMD.3dshapes/L_Bourns-SRN4018.step',
 }
 CACHE = os.path.join(B.BUILD, 'parts')
@@ -71,8 +73,8 @@ def tessellate(step):
 
 
 def load(name):
-    """[(rgb, triangles (n, 3, 3) mm)] of a part, normalised."""
-    npz = os.path.join(CACHE, name + '.npz')
+    """[(rgb, triangles (n, 3, 3) mm)] of a part, centred in x and y, z = 0 on the board."""
+    npz = os.path.join(CACHE, name + '.z0.npz')
     if not os.path.exists(npz):
         os.makedirs(CACHE, exist_ok=True)
         step = os.path.join(CACHE, name + '.step')
@@ -81,7 +83,7 @@ def load(name):
         groups = tessellate(step)
         allv = np.concatenate([t.reshape(-1, 3) for _, t in groups])
         lo, hi = allv.min(axis=0), allv.max(axis=0)
-        shift = np.array([(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, lo[2]])
+        shift = np.array([(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, 0.0])
         np.savez_compressed(npz, rgb=np.array([c for c, _ in groups]),
                             **{f't{i}': t - shift for i, (_, t) in enumerate(groups)})
     z = np.load(npz)
