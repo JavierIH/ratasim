@@ -24,8 +24,11 @@ ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation
 }
 SKY = 'rgb1="0.17 0.18 0.21" rgb2="0.04 0.04 0.05"'          # a dark studio
 STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.10 0.11 0.13 1" condim="3" friction="0.05 0.001 0.0001"/>'
-          '<light directional="true" pos="0 -1 2" dir="0.3 0.5 -1" diffuse="0.85 0.85 0.85" castshadow="true"/>'
-          '<light directional="true" pos="0 1 2" dir="-0.2 -0.6 -0.6" diffuse="0.45 0.45 0.5" castshadow="false"/>')
+          # the camera looks from +x +y (azimuth 215): the key light from its upper left (the shadow falls behind the
+          # robot, to the right), a soft fill from its right, a faint rim from behind to lift the edges off the dark
+          '<light directional="true" pos="1 0 2" dir="-1 0.05 -1.3" diffuse="0.8 0.8 0.78" castshadow="true"/>'
+          '<light directional="true" pos="0 1 2" dir="-0.3 -0.95 -0.8" diffuse="0.3 0.3 0.33" castshadow="false"/>'
+          '<light directional="true" pos="-1 -1 2" dir="0.8 0.6 -0.6" diffuse="0.25 0.25 0.28" castshadow="false"/>')
 
 
 def maze_picture(out):
