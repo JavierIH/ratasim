@@ -15,10 +15,12 @@ jobs:
         robot: [ratatron, zorobot, gamusino, bulebule, nezumibot, perenquen]
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: true     # not recursive: perenquen's has a submodule with no URL (KiCad_BOM_Wizard)
-      # Bulebule's firmware needs two of its own submodules (not its libopencm3: the simulator brings its own)
-      - run: git -C external/bulebule submodule update --init --depth 1 src/mmlib src/printf
+      # The submodules one level deep, by hand: perenquen's has a submodule with no URL (KiCad_BOM_Wizard), on which
+      # actions/checkout's own recursion fails. Bulebule's firmware needs two of its own (not its libopencm3: the
+      # simulator brings its own).
+      - run: |
+          git submodule update --init
+          git -C external/bulebule submodule update --init src/mmlib src/printf
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
