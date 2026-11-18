@@ -15,6 +15,7 @@ from ..robot import TAU_S   # noqa: E402
 from ..zorobot import config as Z, model as ZM   # noqa: E402
 from ..gamusino import model as GM   # noqa: E402
 from ..bulebule import model as BM   # noqa: E402
+from ..nezumibot import model as NM   # noqa: E402
 
 MM = 0.001
 RAT_V, RAT_A = 0.9, 2.0                 # Ratatron's race preset: FAST_FULL_SPEED, RACE_ACCEL_MM_S2
@@ -22,7 +23,7 @@ HAKI = dict(v=6.5, a_hard=30.0, v_hard=4.5, a_soft=25.0, fan=0.90)   # ZoroBot3'
 FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans{}.ttf'
 
 
-def scene_xml(maze, with_maze=True, rat_mass=0.200, hull_solref=None, gamusino=False, bulebule=False):
+def scene_xml(maze, with_maze=True, rat_mass=0.200, hull_solref=None, gamusino=False, bulebule=False, nezumibot=False):
     """Ratatron's scene (its maze, unless with_maze is False) with ZoroBot3 added (and Gamusino, prefixed g_): the
     robots' hulls hit each other (and stiffer, bouncier with hull_solref, e.g. "0.002 0.3")."""
     C.MASS_KG = rat_mass
@@ -55,6 +56,12 @@ def scene_xml(maze, with_maze=True, rat_mass=0.200, hull_solref=None, gamusino=F
         xml = xml.replace('</actuator>', '<motor name="b_motor_l" joint="b_wheel_l"/>'
                           '<motor name="b_motor_r" joint="b_wheel_r"/></actuator>'
                           f'<equality>{BM.equality_xml("b_")}</equality>')
+    if nezumibot:
+        xml = re.sub(r'(</default>\s*<asset>)', lambda m: NM.defaults_xml() + m.group(1), xml, count=1)
+        xml = xml.replace('</asset>', NM.assets_xml() + '</asset>', 1)
+        xml = xml.replace('</worldbody>', NM.robot_xml(prefix='n_') + '</worldbody>', 1)
+        xml = xml.replace('</actuator>', '<motor name="n_motor_l" joint="n_wheel_l"/>'
+                          '<motor name="n_motor_r" joint="n_wheel_r"/></actuator>', 1)
     return xml
 
 

@@ -7,3 +7,6 @@
 [submodule "external/gamusino"]
 	path = external/gamusino
 	url = https://github.com/turmandreams/gamusino
+[submodule "external/NezumiBot"]
+	path = external/NezumiBot
+	url = https://github.com/OPRobots/NezumiBot

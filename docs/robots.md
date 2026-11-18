@@ -73,5 +73,8 @@ By [Bulebots](https://github.com/Bulebots) (the Bulebule contributors) ·
 By [OPRobots](https://oprobots.org) · [OPRobots/NezumiBot](https://github.com/OPRobots/NezumiBot) (GPLv3), based on
 Ratatron
 
-- **Coming:** its model (its STLs and Ratatron's parts), its firmware: libopencm3 on an STM32F401 (BlackPill),
-  Sharp GP2Y0A51SK0F sensors, N20 motors.
+- **Model** (`ratasim/nezumibot`): Ratatron's chassis printed in black, with its own cap
+  (`external/NezumiBot/3d_model/stl_files/gorra.stl`), the word its photos show written on it in blue marker
+  ([Permanent Marker](https://fonts.google.com/specimen/Permanent+Marker), downloaded at build time) and its two
+  screws. Wheels and collisions: Ratatron's for now.
+- **Coming:** its N20 wheels, its firmware: libopencm3 on an STM32F401 (BlackPill), Sharp GP2Y0A51SK0F sensors.
