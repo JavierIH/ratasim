@@ -1,0 +1,121 @@
+{
+ "robot": "NezumiBot",
+ "frame": "mm; x a la derecha, y hacia delante, z arriba; origen en el punto medio del eje de las ruedas, a su altura (igual que ratatron/software/ratatron/sim/assets, que tiene el origen 5 mm por debajo de su eje)",
+ "tire_radius_mm": 15.0,
+ "tire_width_mm": 11.0,
+ "tire_center_x_mm": 35.22,
+ "track_mm": 70.44,
+ "wheel_outer_x_mm": 41.02,
+ "axle_z_mm": 0.0,
+ "ground_z_mm": -15.0,
+ "base_bottom_z_mm": -12.0,
+ "hull_box_mm": {
+  "min": [
+   -36.0,
+   -29.0,
+   -12.0
+  ],
+  "max": [
+   36.0,
+   45.0,
+   23.15
+  ]
+ },
+ "overall_box_mm": {
+  "min": [
+   -41.02,
+   -29.0,
+   -15.0
+  ],
+  "max": [
+   41.02,
+   47.51,
+   38.57
+  ]
+ },
+ "skids": {
+  "foam_front": {
+   "min": [
+    -9.0,
+    31.0,
+    -15.0
+   ],
+   "max": [
+    9.0,
+    42.0,
+    -12.0
+   ],
+   "note": "espuma fina con cinta de doble cara, toca el suelo"
+  },
+  "foam_rear": {
+   "min": [
+    -15.0,
+    -27.5,
+    -15.0
+   ],
+   "max": [
+    15.0,
+    -18.5,
+    -12.0
+   ],
+   "note": "espuma fina con cinta de doble cara, toca el suelo"
+  }
+ },
+ "ir_sensors": {
+  "FL": {
+   "pos_mm": [
+    -27.5,
+    29.1,
+    4.0
+   ],
+   "dir_deg": 90.0,
+   "model": "Sharp GP2Y0A51SK0F (2-15 cm)",
+   "adc_pin": "PA2",
+   "firmware_name": "SENSOR centro izquierda (asignación supuesta)"
+  },
+  "FR": {
+   "pos_mm": [
+    27.5,
+    29.1,
+    4.0
+   ],
+   "dir_deg": 90.0,
+   "model": "Sharp GP2Y0A51SK0F (2-15 cm)",
+   "adc_pin": "PA1",
+   "firmware_name": "SENSOR centro derecha (asignación supuesta)"
+  },
+  "SL": {
+   "pos_mm": [
+    -15.19,
+    37.32,
+    4.0
+   ],
+   "dir_deg": 165.0,
+   "model": "Sharp GP2Y0A51SK0F (2-15 cm)",
+   "adc_pin": "PA3",
+   "firmware_name": "SENSOR izquierda (asignación supuesta)"
+  },
+  "SR": {
+   "pos_mm": [
+    15.19,
+    37.32,
+    4.0
+   ],
+   "dir_deg": 15.0,
+   "model": "Sharp GP2Y0A51SK0F (2-15 cm)",
+   "adc_pin": "PA0",
+   "firmware_name": "SENSOR derecha (asignación supuesta)"
+  }
+ },
+ "mass_kg_estimate": 0.128,
+ "com_mm_estimate": [
+  0.33,
+  2.06,
+  4.52
+ ],
+ "notes": [
+  "Masa y centro de masas estimados por piezas (LiPo 2S ~20 g, N20 ~10.5 g, PLA por volumen); pesar el robot.",
+  "Ruedas: llanta impresa Rueda.stl con la copa sobre la reductora del N20; neumático Ø30 medido.",
+  "Sensores: mismas posiciones que en Ratatron (la base de Nezumi es la de Ratatron +97 mm en y y +7 mm en z)."
+ ]
+}

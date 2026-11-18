@@ -86,11 +86,12 @@ Ratatron
   pins, the encoders (TIM3, TIM4), the sensors' ADC1 sequence that DMA copies into `sensors_raw`, USART1.
 - **Sensors:** Sharp GP2Y0A51SK0F where Ratatron has them (its chassis): Ratatron's rays, hold and noise, and the
   counts for a distance from Ratatron's measured calibration; NezumiBot's own offsets (+50, +95) on top, its own.
-- **Model** (`ratasim/nezumibot`): Ratatron's chassis printed in black, with its own cap
-  (`external/NezumiBot/3d_model/stl_files/gorra.stl`), the word its photos show written on it in blue marker
-  ([Permanent Marker](https://fonts.google.com/specimen/Permanent+Marker), downloaded at build time), its two
-  screws and its N20 wheels (`Rueda.stl`, 22.1 mm). Collisions: Ratatron's hull and skids.
-- **Physics, assumed:** 100 g, 2S, N20 6 V 30:1 (30 000 rpm free at 6 V, 10 ohm) with 7-pulse encoders (its
-  78.37 um a tick on these wheels).
+- **Model** (`ratasim/nezumibot/assets`, from `nezumi_3d`): NezumiBot assembled. Its printed parts from its
+  repository (base, lid, white cap with MARINE in blue, rims, its `Ratatron/` rear cover and motor supports), its
+  electronics as its photos show them (Blackpill, TB6612FNG, N20s with encoders, Sharps, 2S LiPo, start module,
+  IMU), its Ø30 tyres (measured) 70.4 mm apart, its two foam pads on the floor. Collisions: a box around its body,
+  the foam pads, the tyres.
+- **Physics, assumed:** 128 g and its centre of mass estimated by parts, 2S, N20 6 V (30 000 rpm free at 6 V,
+  10 ohm) with 7-pulse encoders (its 78.37 um a tick on Ø30 tyres: 43:1).
 - **Run:** `ratasim nezumibot --maze oshwdem2026 [--hand left|right] [--party] [--record out.mp4]`: started as its
   makers do, with a hand in front of its sensors (held in the air for its menu, then put down).

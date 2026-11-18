@@ -132,7 +132,7 @@ class NRobot:
 
     def sensor_ray(self, name):
         """A sensor's origin and direction in the world."""
-        deg = math.radians(RC.IR_SENSORS[name][3])
+        deg = math.radians(N.IR_SENSORS[name][1])
         sid = self.sites[name]
         rot = self.data.site_xmat[sid].reshape(3, 3)
         return self.data.site_xpos[sid].copy(), rot @ np.array([math.cos(deg), math.sin(deg), 0.0])
@@ -147,7 +147,7 @@ class NRobot:
         """Down in a cell's centre, facing heading_deg (0 north, positive to the left), still."""
         q = self.data.qpos
         a = self.free_qpos
-        q[a:a + 3] = ((cell[0] + 0.5) * RC.CELL_MM * MM, (cell[1] + 0.5) * RC.CELL_MM * MM, -RC.GROUND_Z_MM * MM + 0.0002)
+        q[a:a + 3] = ((cell[0] + 0.5) * RC.CELL_MM * MM, (cell[1] + 0.5) * RC.CELL_MM * MM, -N.GROUND_Z_MM * MM + 0.0002)
         h = math.radians(heading_deg) / 2
         q[a + 3:a + 7] = (math.cos(h), 0, 0, math.sin(h))
         self.data.qvel[self.free_dof:self.free_dof + 6] = 0
@@ -160,7 +160,7 @@ class NRobot:
         return d / MM if d >= 0 else IR_FAR_MM
 
     def beam_mm(self, name):
-        deg = RC.IR_SENSORS[name][3]
+        deg = N.IR_SENSORS[name][1]
         sid = self.sites[name]
         p = self.data.site_xpos[sid]
         rot = self.data.site_xmat[sid].reshape(3, 3)

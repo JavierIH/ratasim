@@ -20,7 +20,7 @@ ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation
     'zorobot3': ('z_', 0.18, 215, -32),
     'gamusino': ('g_', 0.17, 215, -32),
     'bulebule': ('b_', 0.22, 215, -30),
-    'nezumibot': ('n_', 0.24, 215, -24),
+    'nezumibot': ('n_', 0.20, 215, -28),
 }
 SKY = 'rgb1="0.17 0.18 0.21" rgb2="0.04 0.04 0.05"'          # a dark studio
 STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.10 0.11 0.13 1" condim="3" friction="0.05 0.001 0.0001"/>'
