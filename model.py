@@ -13,6 +13,7 @@ STL = (0.0, -Z.STL_AXLE_Y, PCB_TOP)             # the printed parts' frame in th
 FAN_XY = (Z.FAN_HOLE_KICAD[0] - Z.PCB_CENTRE_X, Z.AXLE_Y_KICAD - Z.FAN_HOLE_KICAD[1])
 FAN_BRACKET_HOLE_X = 0.54                       # its motor hole in the brackets' frame (0.55 right of the board's)
 WHEEL_X = Z.ROBOT_WIDTH / 2 - Z.TIRE_WIDTH_MM / 2
+BATTERY_Y = Z.MOTOR_AXIS[0] + 4.25 + 5.5              # standing on the board, against the motors' front
 RIM_OUT_Y = -7.2                                # the wheel STL along its axis: rim face -7.2, hub end +4.3
 
 
@@ -46,8 +47,8 @@ def robot_xml(start_xy=(0.5, 0.5)):
          _mesh('fan_bracket', BLACK, pos=(FAN_XY[0] - FAN_BRACKET_HOLE_X, STL[1], top)),
          _mesh('fan', PURPLE, pos=(FAN_XY[0], FAN_XY[1], top - 1.84)),                       # under the bracket's boss
          _cyl(SILVER, (FAN_XY[0], FAN_XY[1], top + 8), 4.25, 10),                           # the fan's motor
-         _box(YELLOW, (0, -10, PCB_TOP + 14.2 + 6.2), (19, 9, 6)),                           # 2S 260 mAh LiPo on top
-         _box((0.85, 0.85, 0.8, 1), (0, -21, PCB_TOP + 14.2 + 4), (5, 2.5, 3)),                # its connector
+         _box(YELLOW, (0, BATTERY_Y, PCB_TOP + 9.5), (14, 5.5, 9.5)),                       # 2S 260 mAh LiPo
+         _box((0.85, 0.85, 0.8, 1), (0, BATTERY_Y, PCB_TOP + 20.5), (5, 2.5, 1.5)),            # its connector
          _box((0.9, 0.9, 0.9, 1), (0, Z.AXLE_Y_KICAD - 60.62, PCB_TOP + 0.8), (2.5, 2.5, 0.8), name='rgb')]
     for s in (-1, 1):
         v.append(_cyl(SILVER, (s * 12.8, my, mz), 4.25, 10, (0, 90, 0)))                    # 8520, through the bracket
@@ -74,11 +75,13 @@ def robot_xml(start_xy=(0.5, 0.5)):
       </body>'''
     skids = ''.join(f'<geom name="skid_{n}" class="zskid" type="sphere" size="{1.5 * MM:.6g}" '
                     f'pos="{_f(0, y * MM, (-Z.AXLE_HEIGHT_MM + 0.3 + 1.5) * MM)}"/>' for n, y in (('front', 40), ('rear', -38)))
-    top = 26.0
-    hull = (f'<geom name="hull" class="zhull" type="box" pos="{_f(0, (-43.9 + 13) / 2 * MM, (PCB_BOT + top) / 2 * MM)}" '
-            f'size="{_f(35.1 * MM, (13 + 43.9) / 2 * MM, (top - PCB_BOT) / 2 * MM)}"/>'
-            f'<geom name="hull_front" class="zhull" type="cylinder" pos="{_f(0, 13 * MM, (PCB_BOT + top) / 2 * MM)}" '
-            f'size="{_f(35.0 * MM, (top - PCB_BOT) / 2 * MM)}"/>')
+    # Collisions with the walls: the board's outline (a semicircle in front, 40.7 behind the axle) up to the battery.
+    front = Z.AXLE_Y_KICAD - 50.93                  # the board's front edge from the axle
+    cy, back, top = front - Z.ROBOT_WIDTH / 2, -Z.ROBOT_BACK_LENGTH, 26.0
+    hull = (f'<geom name="hull" class="zhull" type="box" pos="{_f(0, (back + cy) / 2 * MM, (PCB_BOT + top) / 2 * MM)}" '
+            f'size="{_f(Z.ROBOT_WIDTH / 2 * MM, (cy - back) / 2 * MM, (top - PCB_BOT) / 2 * MM)}"/>'
+            f'<geom name="hull_front" class="zhull" type="cylinder" pos="{_f(0, cy * MM, (PCB_BOT + top) / 2 * MM)}" '
+            f'size="{_f(Z.ROBOT_WIDTH / 2 * MM, (top - PCB_BOT) / 2 * MM)}"/>')
     i = Z.MASS_KG - 0.008
     return f'''
     <body name="robot" pos="{_f(start_xy[0] * RC.CELL_MM * MM, start_xy[1] * RC.CELL_MM * MM, Z.AXLE_HEIGHT_MM * MM)}">
