@@ -3,6 +3,8 @@
     ratasim [options]               Ratatron in a maze (ratasim --help)
     ratasim batch|curves|failures|mapdiff|demo|ir-info|real-ir ...   Ratatron's studies
     ratasim zorobot [options]       ZoroBot3 in a maze
+    ratasim crash|loop|drag-race OUT.mp4 [options]   scenes with both robots (videos)
+    ratasim portraits [DIR]         a square picture of each robot
     ratasim help                    this
 """
 import runpy
@@ -17,6 +19,10 @@ COMMANDS = {
     'ir-info': 'ratasim.curve_ir_info',
     'real-ir': 'ratasim.real_ir_check',
     'zorobot': 'ratasim.zorobot.run',
+    'crash': 'ratasim.scenes.crash',
+    'loop': 'ratasim.scenes.loop',
+    'drag-race': 'ratasim.scenes.drag_race',
+    'portraits': 'ratasim.scenes.portraits',
 }
 
 
