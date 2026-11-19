@@ -8,6 +8,9 @@ and its photos (docs/source/figures). The board's design files are gone with Upv
 import math
 import os
 
+from .. import paths
+
+BULEBULE_DIR = os.environ.get('BULEBULE_DIR', os.path.join(paths.EXTERNAL, 'bulebule'))
 HERE = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.join(HERE, 'build')
 
@@ -20,6 +23,17 @@ HEAD, TAIL = 57.0, 37.0             # MOUSE_MOTOR_HEAD, MOUSE_MOTOR_TAIL: from t
 MICROMETERS_PER_COUNT = 8.32        # config.h; IE2-512 encoders (2048 counts a turn), gears 15:60
 GEAR = 60 / 15
 WHEEL_RADIUS = 2048 * GEAR * MICROMETERS_PER_COUNT / 1000 / (2 * math.pi)     # 10.85
+
+REFERENCE_Y = AXIS_SEPARATION / 2   # its position's point: MOUSE_TAIL = MOUSE_MOTOR_TAIL + MOUSE_AXIS_SEPARATION / 2
+COUNTS_PER_REV = 2048               # IE2-512, both edges of both channels
+PWM_PERIOD = 1024                   # DRIVER_PWM_PERIOD
+MOTOR_DRIVER_V = 9.0                # MOTOR_DRIVER_INPUT_VOLTAGE: its DC-DC converters' output
+WALL_WIDTH = 12.0                   # WALL_WIDTH
+# Its sensors' calibration (config.h): distance (m, from its position's point) = A / ln(lit - dark) - B. Its side
+# distances to the walls' faces (MIDDLE_MAZE_DISTANCE, centred: 84 mm), its front ones to the walls' middle
+# (keep_front_wall_distance(CELL_DIMENSION / 2) stops it centred in a cell): its own frame.
+SENSOR_AB = {'SL': (2.806, 0.287), 'SR': (2.327, 0.231), 'FL': (2.609, 0.242), 'FR': (2.713, 0.258)}
+GYRO_LSB_PER_DPS = 16.4             # MPU_GYRO_SENSITIVITY_2000_DPS
 
 # ---- From its CadQuery parts ------------------------------------------------------------------------------------
 MODULE, Z_PINION, Z_GEAR = 0.3, 15, 60
@@ -48,4 +62,48 @@ PCB_BOTTOM = PCB_TOP - PCB_THICK    # 3.25 mm over the floor
 
 # ---- Assumed (nothing measured) ---------------------------------------------------------------------------------
 TIRE_FRICTION = 1.0
-BATTERY = (38.0, 30.0, 8.0)         # a 2S LiPo on its motors (photos)
+BATTERY = (38.0, 30.0, 8.0)         # a LiPo on its motors (photos); 1S by its firmware's limits (3.3 V)
+BATTERY_V = 3.9                     # read by ADC2 through its divider by 2 (voltage.c)
+# Its motors: Faulhaber 15 mm coreless with IE2-512 encoders (its docs name the maker and the encoder, not the
+# motor): a 6 V one, 10 000 rpm free and 1.5 A stall at 6 V, 30 mA free; driven from its 9 V converters.
+MOTOR_KE = 6.0 / (10000 * 2 * math.pi / 60)    # V s/rad
+MOTOR_R_OHM = 6.0 / 1.5
+MOTOR_FRICTION_NM = MOTOR_KE * 0.030
+MOTOR_ROTOR_INERTIA = 6.5e-8                    # kg m^2
+GEAR_EFFICIENCY = 0.8
+# Its IR pairs: lit minus dark, its calibration inverted for each ray's hit (the distance its firmware would give
+# it), the beam's mean: a wall filling the beam reads as its calibration says, a post less, as it fills less of it
+IR_DARK = 120                       # counts, emitter off (the maze's lighting)
+IR_NOISE = 0.01                     # of the light back (gaussian), and 3 counts on every reading
+IR_FAR_MM = 400.0
+IR_BEAM_DEG = 4.0                   # its beam's profile, gaussian: rays at 0, +-1, +-2 sigma, weighed by it
+GYRO_NOISE_LSB = 2.6                # 0.01 dps/sqrt(Hz) over its 250 Hz band
+
+
+# ---- Its start (main.c, mmlib's hmi.c; ratasim/start.py) ----------------------------------------------------------
+SHORT_MS, LONG_MS = 150, 700        # its button: a press under 0.3 s is short, from 0.3 s long (hmi.c)
+
+
+def start(run=False, saved=False, force_steps=3):
+    """As its makers do, with its button and a hand: a press wakes it; with a maze saved, short reuses it (a run),
+    long discards it; then long picks the classic goal (the maze's centre), short presses raise the force (0.1 N,
+    +0.05 a press) and long takes it; it blinks for 2 s and waits 5 s more, its LEDs on: a hand in front, taken
+    away; 2 s later it calibrates (in its start cell, its back to the wall) and goes."""
+    s = [('say', 'switched on, in its start cell, its back to the wall'), ('wait', 500),
+         ('say', 'its button: wake'), ('press', 'user', SHORT_MS), ('wait', 400)]
+    if saved:
+        if run:
+            s += [('say', 'short: the saved maze, a run'), ('press', 'user', SHORT_MS), ('wait', 400)]
+        else:
+            s += [('say', 'long: the saved maze discarded'), ('press', 'user', LONG_MS), ('wait', 1200)]
+    elif run:
+        raise ValueError('no maze saved: explore first')
+    if not run:
+        s += [('say', 'long: the classic goal'), ('press', 'user', LONG_MS), ('wait', 3500)]
+    s += [('wait', 600)]
+    for _ in range(force_steps):
+        s += [('press', 'user', SHORT_MS), ('wait', 400)]
+    s += [('say', f'force {0.1 + 0.05 * force_steps:.2f} N: long'), ('press', 'user', LONG_MS), ('wait', 1500),
+          ('say', 'it blinks, then waits'), ('wait', 7600),
+          ('say', 'a hand in front, then away'), ('hand', ['FL', 'FR'], 400), ('wait', 2600)]
+    return s

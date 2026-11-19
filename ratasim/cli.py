@@ -6,6 +6,7 @@
     ratasim gamusino [options]      Gamusino in a maze
     ratasim nezumibot [options]     NezumiBot in a maze
     ratasim perenquen [options]     Perenquen in a maze
+    ratasim bulebule [options]      Bulebule in a maze
     ratasim crash|loop|drag-race OUT.mp4 [options]   scenes with both robots (videos)
     ratasim portraits [DIR]         a square picture of each robot
     ratasim help                    this
@@ -25,6 +26,7 @@ COMMANDS = {
     'gamusino': 'ratasim.gamusino.run',
     'nezumibot': 'ratasim.nezumibot.run',
     'perenquen': 'ratasim.perenquen.run',
+    'bulebule': 'ratasim.bulebule.run',
     'zorobot': 'ratasim.zorobot.run',
     'crash': 'ratasim.scenes.crash',
     'loop': 'ratasim.scenes.loop',

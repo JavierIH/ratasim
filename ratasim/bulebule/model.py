@@ -13,7 +13,8 @@ import struct
 import numpy as np
 
 from .. import config as RC
-from ..model import MM, ROBOT_GROUP, _f
+from ..hand import hand_xml
+from ..model import MM, ROBOT_GROUP, WALL_GROUP, _f, maze_xml
 from . import config as B, parts, pcb
 
 OUT = os.path.join(B.BUILD, 'cad')
@@ -30,6 +31,25 @@ IR_LEDS = [(-4.00, 49.85, 155.0, 'rx', 0.6), (-14.02, 46.85, 153.8, 'tx', 0.6),
            (-30.03, 38.82, 100.9, 'rx', -0.6), (-34.03, 29.84, 100.0, 'tx', 0.6)]
 IR_AXIS_Z = 3.0                     # their axis over the board: their heat-shrink sleeves (r 3) lie on it
 IR_BODY = 6.0                       # their bodies, flange to lens tip (KiCad's 8.6: photos show them shorter)
+
+
+def ir_sensors():
+    """Its four sensors (detection.h's ids: left side, right side, front left, front right): each pair's beam from
+    between its two lenses (pads + bend + body along where they look), where they look (deg from +x, counter-
+    clockwise). {name: (id, (x, y, z) mm, deg)}."""
+    out = {}
+    for name, k, pair in (('SL', 0, IR_LEDS[0:2]), ('FL', 2, IR_LEDS[2:4])):
+        tips, degs = [], []
+        for x, y, deg, _, bend in pair:
+            d = (math.cos(math.radians(deg)), math.sin(math.radians(deg)))
+            tips.append((x + (bend + IR_BODY) * d[0], y + (bend + IR_BODY) * d[1]))
+            degs.append(deg)
+        x, y = np.mean(tips, axis=0)
+        deg = float(np.mean(degs))
+        z = PT + IR_AXIS_Z
+        out[name] = (k, (float(x), float(y), z), deg)
+        out[name[0] + 'R'] = (k + 1, (-float(x), float(y), z), 180.0 - deg)
+    return dict(sorted(out.items(), key=lambda kv: kv[1][0]))
 IR_SLEEVE = 4.8                     # their heat-shrink sleeves, the lens out of them (photos)
 LEGS = B.PCB_THICK + 1.0            # through-hole legs under a board's surface, trimmed
 
@@ -350,18 +370,58 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
         {vis}
       </body>'''
     m = B.MASS_KG - 0.016
+    sites = ''.join(f'<site name="{p}ir_{n}" pos="{_f(*(v * MM for v in xyz))}" size="0.0015" group="4" rgba="1 0 0 0.6"/>'
+                    for n, (_, xyz, _) in ir_sensors().items())
     return f'''
     <body name="{p}robot" pos="{_f(start_xy[0] * RC.CELL_MM * MM, start_xy[1] * RC.CELL_MM * MM, 0)}">
       <freejoint name="{p}robot"/>
       <inertial pos="{_f(0, 0.004, 0.012)}" mass="{m:.4f}" diaginertia="{_f(9e-5, 6e-5, B.INERTIA_Z)}"/>
       <geom name="{p}hull" class="bhull" type="mesh" mesh="b_hull"/>
-      {chassis}{wheels}
+      {chassis}{sites}{wheels}
     </body>'''
 
 
 def equality_xml(prefix=''):
     """Each side's rear wheel geared to its front one."""
     return ''.join(f'<joint joint1="{prefix}wheel_{s}2" joint2="{prefix}wheel_{s}"/>' for s in 'lr')
+
+
+def scene_xml(maze):
+    """The maze with Bulebule alone, for its firmware's runs."""
+    centre = maze.size * RC.CELL_MM * MM / 2
+    return f'''<mujoco model="bulebule_maze">
+  <compiler angle="degree" inertiafromgeom="auto"/>
+  <option timestep="0.0005" integrator="implicitfast" cone="elliptic" impratio="10" noslip_iterations="4"/>
+  <visual>
+    <global offwidth="1920" offheight="1080" azimuth="90" elevation="-55"/>
+    <quality shadowsize="4096"/>
+    <headlight ambient="0.35 0.35 0.35" diffuse="0.5 0.5 0.5"/>
+  </visual>
+  <default>
+    <default class="wall"><geom type="box" group="{WALL_GROUP}" rgba="0.95 0.95 0.95 1" contype="1" conaffinity="2"/></default>
+    <default class="wall_top"><geom type="box" group="0" rgba="0.85 0.05 0.05 1" contype="0" conaffinity="0"/></default>
+    <default class="post"><geom type="box" group="{WALL_GROUP}" rgba="0.72 0.72 0.75 1" contype="1" conaffinity="2"/></default>
+    <default class="post_top"><geom type="box" group="0" rgba="0.45 0.02 0.02 1" contype="0" conaffinity="0"/></default>
+    {defaults_xml()}
+  </default>
+  <asset>
+    <texture name="sky" type="skybox" builtin="gradient" rgb1="0.25 0.27 0.3" rgb2="0.05 0.05 0.06" width="256" height="256"/>
+    <material name="floor" rgba="0.02 0.02 0.02 1" specular="0.1" shininess="0.1"/>
+    {assets_xml()}
+  </asset>
+  <worldbody>
+    <light pos="{_f(centre, centre, 3)}" dir="0 0 -1" diffuse="0.7 0.7 0.7" castshadow="true"/>
+    <light pos="{_f(centre - 1, centre - 2, 2)}" dir="0.3 0.6 -0.7" diffuse="0.35 0.35 0.35" castshadow="false"/>
+    {maze_xml(maze)}
+    {robot_xml()}
+    {hand_xml()}
+  </worldbody>
+  <equality>{equality_xml()}</equality>
+  <actuator>
+    <motor name="motor_l" joint="wheel_l"/>
+    <motor name="motor_r" joint="wheel_r"/>
+  </actuator>
+</mujoco>'''
 
 
 if __name__ == '__main__':
