@@ -8,7 +8,8 @@ fastest robot's run in slow motion (x4), the rest in real time; a finish camera 
 Their profiles (ROBOTS): Ratatron's race preset, ZoroBot3's SPEED_HAKI (and its fan), Fujin's "super" forward
 (movement_params.cpp, its fan on), UKMARSBOT's FAST_RUN_SPEED_MAX and FAST_RUN_ACCELERATION (ORION), Bulebule's
 LINEAR_SPEED_LIMIT at 2 F / MOUSE_MASS (its runner's 0.25 N), Futura's 2 m/s at 6 m/s^2, Perenquen's traj_speed
-1000 at its ACC_DIST, Gamusino's 1.6 m/s at 3 m/s^2, NezumiBot's 40 % PWM (velBase: no profile, its motors' step).
+1000 at its ACC_DIST, Gamusino's 1.6 m/s at 3 m/s^2, NezumiBot's 40 % PWM (velBase: no profile, its motors' step),
+Miniskybot's servos at full (its program's, ratasim's: 0.14 m/s).
 Their motors: Ratatron's and ZoroBot3's models, the others a speed servo as quick as Ratatron's (WheelServo).
 """
 import argparse
@@ -43,6 +44,7 @@ ROBOTS = {      # speed profile, brake after the line (m/s^2), fan (N down, or Z
     'fujin': dict(profile=ramp(6.5, 35.0), brake=35.0, fan=K.FC.FAN_DOWNFORCE_N),
     'futura': dict(profile=ramp(2.0, 6.0), brake=6.0),
     'ukmarsbot': dict(profile=ramp(2.5, 3.0), brake=3.0),
+    'miniskybot': dict(profile=ramp(K.MC.SERVO_FREE_RAD_S * K.MC.WHEEL_RADIUS_MM * K.MM, 2.0), brake=2.0),
 }
 for _k, _spec in ROBOTS.items():
     _spec.update(name=K.ROBOTS[_k]['name'], colour=K.ROBOTS[_k]['colour'], prefix=K.ROBOTS[_k]['prefix'])

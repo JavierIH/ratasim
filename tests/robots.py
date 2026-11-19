@@ -1,7 +1,7 @@
 """Every robot in the OSHWDEM 2026 maze, each run as its makers start it, checked by what it prints. The CI runs one
 robot per job, in the short check; locally, any of them or all, short or full:
 
-    python tests/robots.py [--full] [ratatron zorobot gamusino bulebule nezumibot perenquen fujin futura ukmarsbot]
+    python tests/robots.py [--full] [ratatron zorobot gamusino bulebule nezumibot perenquen fujin futura ukmarsbot miniskybot]
 
 The short check (the default, the CI's) asks each robot only the basics: its firmware builds, it is started as its
 makers start it (its start sequence printed: Ratatron's search, ZoroBot3's and Fujin's "started: True", Bulebule's
@@ -18,7 +18,7 @@ does not do its run (Ratatron: the search to the goal and back, then race 2.4 on
 to the goal; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
 the goal and back; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
 following, away from the start; Gamusino: its 1.5 m and back; Futura: its controller sample's cells and pivots, up
-to the maze's north rows). Wall touches as in the short check. The stopwatch's times are reported; Ratatron,
+to the maze's north rows; Miniskybot, whose program is ours: through 10 cells, not toppled). Wall touches as in the short check. The stopwatch's times are reported; Ratatron,
 ZoroBot3, Fujin and UKMARSBOT, which reach the goal, fail without one.
 
 A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
@@ -39,7 +39,7 @@ CI = os.environ.get('GITHUB_ACTIONS') == 'true'
 # cell take in the OSHWDEM 2026 maze (the stopwatch's start: Futura 1.4 s, Perenquén 2.9, UKMARSBOT 3.7, Gamusino 4.4,
 # NezumiBot 6.2, Ratatron 6.8, ZoroBot3 8.9, Fujin 11.0, Bulebule 18.0)
 SHORT_S = {'ratatron': 12, 'zorobot': 14, 'gamusino': 10, 'bulebule': 23, 'nezumibot': 11, 'perenquen': 8,
-           'fujin': 16, 'futura': 6, 'ukmarsbot': 9}
+           'fujin': 16, 'futura': 6, 'ukmarsbot': 9, 'miniskybot': 10}
 
 
 def note(kind, text):
@@ -253,6 +253,27 @@ def ukmarsbot(full):
     return fails
 
 
+def miniskybot(full):
+    """Its program is ratasim's (its authors publish none for a maze): straight on, a turn at each wall. Short check:
+    it says go and leaves the start cell. Full: in 120 s it also does not topple and goes through at least 10 of the
+    maze's cells."""
+    if not full:
+        return short(['miniskybot'], SHORT_S['miniskybot'], clean=False, started='it says: go')
+    fails = []
+    out = run(['miniskybot', '--headless', '--maze', MAZE, '--max-s', '120'])
+    common(out, fails, clean=False)
+    if 'it says: go' not in out:
+        fails.append('not started')
+    if not re.search(r'stopwatch: run \d+ started', out):
+        fails.append('it did not leave the start cell')
+    if 'toppled' in out:
+        fails.append('it toppled')
+    m = re.search(r'(\d+) cells visited', out)
+    if not m or int(m[1]) < 10:
+        fails.append(f'{m[1] if m else "no"} cells visited (at least 10)')
+    return fails
+
+
 def model(name):
     """A robot with no firmware yet: its model builds, and after 2 s on a floor it still stands where it was put."""
     import importlib
@@ -324,7 +345,7 @@ def fujin(full):
 
 ROBOTS = {'ratatron': ratatron, 'zorobot': zorobot, 'gamusino': gamusino, 'bulebule': bulebule,
           'nezumibot': nezumibot, 'perenquen': perenquen, 'fujin': fujin,
-          'futura': futura, 'ukmarsbot': ukmarsbot}
+          'futura': futura, 'ukmarsbot': ukmarsbot, 'miniskybot': miniskybot}
 
 
 def main(args):

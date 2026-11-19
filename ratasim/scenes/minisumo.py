@@ -17,7 +17,7 @@ tyres and power as they are. The fans of ZoroBot3 and Fujin are off: minisumo's 
 "any device to fix the robot to the dohyo", vacuum in most).
 
 The dohyo (minisumo's rules: Fuji Soft's, the Unified Sumo Robot Rules): 77 cm across including its white border,
-2.5 cm wide, 2.5 cm high, black; the shikiri lines are left out (nine robots start round the edge, not behind them).
+2.5 cm wide, 2.5 cm high, black; the shikiri lines are left out (the robots start round the edge, not behind them).
 A robot is out when its centre leaves the dohyo (beyond its edge, 38.5 cm from the centre: by then it falls), or
 when it lies toppled (more than 70 degrees off upright) for 0.5 s, out from when it toppled. Two out in the same
 millisecond: the one farther from the centre first (if they were the last two, the nearer one stays and wins). At

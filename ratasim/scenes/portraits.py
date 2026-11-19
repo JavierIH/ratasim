@@ -15,7 +15,7 @@ from ..run import maze_path
 from . import common as K
 
 SIZE = 900
-ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation
+ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation[, the height it looks at (m): 0.012]
     'ratatron': ('', 0.20, 215, -30),
     'zorobot3': ('z_', 0.18, 215, -32),
     'gamusino': ('g_', 0.17, 215, -32),
@@ -25,6 +25,7 @@ ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation
     'fujin': ('f_', 0.20, 215, -30),
     'futura': ('u_', 0.18, 215, -32),
     'ukmarsbot': ('k_', 0.22, 215, -32),
+    'miniskybot': ('m_', 0.27, 215, -26, 0.03),
 }
 SKY = 'rgb1="0.17 0.18 0.21" rgb2="0.04 0.04 0.05"'          # a dark studio
 STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.10 0.11 0.13 1" condim="3" friction="0.05 0.001 0.0001"/>'
@@ -58,18 +59,18 @@ def main(argv=None):
     os.makedirs(os.path.join(a.dir, 'robots'), exist_ok=True)
     maze_picture(os.path.join(a.dir, 'maze.jpg'))
     xml = K.scene_xml(Maze.load(maze_path('oshwdem2026')), with_maze=False, gamusino=True, bulebule=True, nezumibot=True,
-                       perenquen=True, fujin=True, futura=True, ukmarsbot=True)
+                       perenquen=True, fujin=True, futura=True, ukmarsbot=True, miniskybot=True)
     xml = xml.replace('<texture name="sky" type="skybox" builtin="gradient" rgb1="0.25 0.27 0.3" rgb2="0.05 0.05 0.06"',
                       f'<texture name="sky" type="skybox" builtin="gradient" {SKY}')
     m, d = K.compile(xml.replace('</worldbody>', STUDIO + '</worldbody>', 1))
     bots = {prefix: K.Bot(m, d, prefix) for prefix, *_ in ROBOTS.values()}
     ren, cam = mujoco.Renderer(m, SIZE, SIZE), mujoco.MjvCamera()
-    for name, (prefix, dist, az, el) in ROBOTS.items():
+    for name, (prefix, dist, az, el, *z) in ROBOTS.items():
         for other, bot in bots.items():
             bot.place(0.0 if other == prefix else 5.0, 0.0, 1.5708)     # the others out of the picture
         for _ in range(600):                                             # settle on the floor
             mujoco.mj_step(m, d)
-        cam.lookat[:] = (0.0, 0.004, 0.012)
+        cam.lookat[:] = (0.0, 0.004, z[0] if z else 0.012)
         cam.distance, cam.azimuth, cam.elevation = dist, az, el
         ren.update_scene(d, cam)
         out = os.path.join(a.dir, 'robots', f'{name}.jpg')
