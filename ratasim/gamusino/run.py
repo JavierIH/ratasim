@@ -1,7 +1,7 @@
 """Gamusino in the simulator: its sketch (src/gamusino/gamusino.ino) on its simulated ESP32. What it runs: 1.5 m
 ahead at 1.6 m/s steering to the point (1.5, 0) by its gyro and encoders, a stop, a 180 deg turn, a rest, and back;
-over and over. It reads no wall sensor: it is put down at the start of the maze's longest straight (in the OSHWDEM
-2026 maze, ten cells along its south wall) and switched on, as its maker starts it.
+over and over. It reads no wall sensor: it is put down in the start cell, facing the maze's first straight (in the OSHWDEM
+2026 maze, sixteen cells along its west wall) and switched on, as its maker starts it.
 
     ratasim gamusino [--maze oshwdem2026] [--headless] [--record out.mp4] [--max-s 30] [--echo]
 """
@@ -15,16 +15,9 @@ os.environ.setdefault('MUJOCO_GL', 'egl')
 from ..maze import Maze   # noqa: E402
 from ..recorder import add_view_args, make_view   # noqa: E402
 from ..run import maze_path   # noqa: E402
-from ..scenes.crash import longest_straight   # noqa: E402
 from ..start import play   # noqa: E402
 from . import config as G   # noqa: E402
 from .robot import GRobot   # noqa: E402
-
-
-def start_cell(maze):
-    """The first cell of the maze's longest straight, facing along it: (cell, heading deg, cells)."""
-    n, horizontal, k, i0, _ = longest_straight(maze)
-    return ((i0, k), -90.0, n) if horizontal else ((k, i0), 0.0, n)
 
 
 def main(argv=None):
@@ -71,9 +64,9 @@ def main(argv=None):
         if rec:
             rec.status = text
 
-    cell, heading, cells = start_cell(maze)
-    say(f'put down in cell {cell}, at the start of a straight of {cells} cells ({cells * 0.18:.2f} m)')
-    play(r, G.start(cell, heading), lambda ms: run(ms, fast=True), say)
+    cell = (0, 0)       # the start cell, facing north: the column along the maze's west wall (16 cells, 2.88 m)
+    say(f'put down in cell {cell}, the start cell')
+    play(r, G.start(cell, 0.0), lambda ms: run(ms, fast=True), say)
     say('blue: 1.5 m ahead, a 180 deg turn, back')
     while r.fw.time_ms() < a.max_s * 1000:
         if not run(500):

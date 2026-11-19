@@ -63,10 +63,10 @@ By [turmandreams](https://github.com/turmandreams) · [turmandreams/gamusino](ht
   (`src/pruebas/pwmtovel/resultados.txt`, its sketch's tables), pushing 0.5 N for each m/s their wheel runs below
   it; its H-bridge (its own, of MOSFETs) braking with both inputs equal; its odometry's 5.336 um a count on its
   20 mm wheels (11776 counts a turn). In the maze it reaches 1.55 m/s and stops 0.27 m after its 1.5 m.
-- **Run:** `ratasim gamusino --maze oshwdem2026 [--record out.mp4] [--max-s 30] [--echo]`: put down at the start of
-  the maze's longest straight and switched on, as its maker starts it (green, its gyro measured after 3 s, blue: it
-  goes). The OSHWDEM 2026 maze's longest straight (ten cells, 1.8 m) leaves 1.70 m between its end walls; its 1.5 m
-  and its stop take 1.66 m: from its second run on, it touches the end walls.
+- **Run:** `ratasim gamusino --maze oshwdem2026 [--headless] [--record out.mp4] [--max-s 30] [--echo]`: put down in the
+  start cell, facing north, and switched on, as its maker starts it (green, its gyro measured after 3 s, blue: it
+  goes). In the OSHWDEM 2026 maze the column along the west wall is open for 16 cells (2.88 m): its 1.5 m and its
+  stop (1.77 m) fit. Coming back it stops 0.27 m past its start, so it touches the start cell's south wall once.
 
 ## Bulebule
 
