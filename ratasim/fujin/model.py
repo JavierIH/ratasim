@@ -1,6 +1,7 @@
 """The MuJoCo scene with Fujin: the same maze as Ratatron's (ratasim/model.py) and the robot from its STEP
-(fujin/cad.py: every part's mesh, merged per body and colour); simple shapes for its collisions: boxes over its
-board's outline (walls only: its board rides 2 mm over the floor), its two tyres, two skids under its nose and tail."""
+(fujin/cad.py: every part's mesh, merged per body and colour, its board's faces textured with its photos, its
+sensors' caps); simple shapes for its collisions: boxes over its board's outline (walls only: its board rides 2 mm
+over the floor), its two tyres, two skids under its nose and tail."""
 import json
 import os
 import re
@@ -19,8 +20,8 @@ def _meshes():
 
 
 def _visual(entry, pos=(0, 0, 0)):
-    return (f'<geom class="fvisual" mesh="f_{entry["file"][:-4]}" rgba="{_f(*entry["rgba"])}" '
-            f'pos="{_f(*(v * MM for v in pos))}"/>')
+    look = f'material="f_{entry["file"][:-4]}"' if 'texture' in entry else f'rgba="{_f(*entry["rgba"])}"'
+    return f'<geom class="fvisual" mesh="f_{entry["file"][:-4]}" {look} pos="{_f(*(v * MM for v in pos))}"/>'
 
 
 def defaults_xml():
@@ -37,6 +38,9 @@ def assets_xml():
         tyre = any(cad.TYRE in p for p in e['parts']) and e['body'] != 'chassis'
         scale = (MM, MM * TIRE_SCALE, MM * TIRE_SCALE) if tyre else (MM, MM, MM)
         out += f'<mesh name="f_{e["file"][:-4]}" file="{d}/{e["file"]}" scale="{_f(*scale)}" inertia="shell"/>'
+        if 'texture' in e:          # its board's faces (board.py)
+            out += (f'<texture name="f_{e["file"][:-4]}" type="2d" file="{d}/{e["texture"]}"/>'
+                    f'<material name="f_{e["file"][:-4]}" texture="f_{e["file"][:-4]}" specular="0.3" shininess="0.4"/>')
     return out
 
 

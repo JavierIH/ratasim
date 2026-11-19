@@ -251,7 +251,7 @@ ratasim/gamusino/   Gamusino: its model from the GLB in its repository, its ESP3
 ratasim/bulebule/   Bulebule: its board from its layout, its parts from KiCad's library, its simulated chip (fw/), runner
 ratasim/nezumibot/  NezumiBot: its assembled 3D model (assets/), its simulated chip (fw/), runner
 ratasim/perenquen/  Perenquén: its meshes from its FreeCAD assembly (assets/, cad.py), its simulated dsPIC (fw/), runner
-ratasim/fujin/      Fujin: its model from its STEP (cad.py), its firmware on our BSP and simulated STM32G474 (fw/), runner
+ratasim/fujin/      Fujin: its model from its STEP and its board's photos (cad.py, board.py), its firmware on our BSP and simulated STM32G474 (fw/), runner
 ratasim/futura/     Futura: its files downloaded at build time, its model, its simulated STM32F405 and ST library (fw/)
 ratasim/ukmarsbot/  UKMARSBOT: its model from its KiCad boards and Gerbers (cad.py, pcb.py), its Nano's ATmega328P (fw/)
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
@@ -287,5 +287,6 @@ ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's and Fujin's repositories 
 Eurobotics Engineering) GPLv2+; Gamusino's gyro library, STM32duino LSM6DSR (STMicroelectronics, BSD-3), is
 downloaded at build time. Futura's page (Green Ye, micromouseusa.com) gives no licence: its firmware template, its
 board's Gerber files and its printed parts are downloaded at build time, pinned by their SHA-256, and stay out of git; ST's library is not used
-(`ratasim/futura/fw` simulates the part of its API the template calls).
+(`ratasim/futura/fw` simulates the part of its API the template calls). Fujin's team's photos of its board
+(raiju.team), its art's only source, are downloaded at build time, pinned by their SHA-256, and stay out of git.
 The meshes made from ZoroBot3's, Gamusino's, Bulebule's and Fujin's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
