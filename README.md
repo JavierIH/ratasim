@@ -10,13 +10,38 @@ cells of 180 mm).
 
 ## Robots
 
-| [<img src="docs/images/robots/ratatron.jpg" width="250"><br>**Ratatron**](docs/robots.md#ratatron) | [<img src="docs/images/robots/zorobot3.jpg" width="250"><br>**ZoroBot3**](docs/robots.md#zorobot3) | [<img src="docs/images/robots/gamusino.jpg" width="250"><br>**Gamusino**](docs/robots.md#gamusino) |
-|:-:|:-:|:-:|
-| by [JavierIH](https://github.com/JavierIH) · [repo](https://github.com/JavierIH/ratatron) | by [OPRobots](https://oprobots.org) · [repo](https://github.com/OPRobots/ZoroBot3) | by [turmandreams](https://github.com/turmandreams) · [repo](https://github.com/turmandreams/gamusino) |
-| STM32F103 · 4 Sharp IR · no gyro | STM32F405 · 4 IR · gyro · fan | ESP32 · 4 IR · gyro · fan |
-| [<img src="docs/images/robots/bulebule.jpg" width="250"><br>**Bulebule**](docs/robots.md#bulebule) | [<img src="docs/images/robots/nezumibot.jpg" width="250"><br>**NezumiBot**](docs/robots.md#nezumibot) | [<img src="docs/images/robots/perenquen.jpg" width="250"><br>**Perenquén**](docs/robots.md#perenquén) |
-| by [Bulebots](https://github.com/Bulebots) · [repo](https://github.com/Bulebots/bulebule) | by [OPRobots](https://oprobots.org) · [repo](https://github.com/OPRobots/NezumiBot) | by [supernudo](https://github.com/supernudo) · [repo](https://github.com/supernudo/perenquen) |
-| STM32F103 · 4 IR · gyro · 4 wheels | STM32F401 · 4 Sharp IR · N20 motors | dsPIC33EP512MC806 · 4 IR · gyro · 4 wheels |
+<table>
+<tr>
+<td align="center" width="33%"><a href="docs/robots.md#ratatron"><img src="docs/images/robots/ratatron.jpg" width="250"><br><b>Ratatron</b></a></td>
+<td align="center" width="33%"><a href="docs/robots.md#zorobot3"><img src="docs/images/robots/zorobot3.jpg" width="250"><br><b>ZoroBot3</b></a></td>
+<td align="center" width="33%"><a href="docs/robots.md#gamusino"><img src="docs/images/robots/gamusino.jpg" width="250"><br><b>Gamusino</b></a></td>
+</tr>
+<tr>
+<td align="center">by <a href="https://github.com/JavierIH">JavierIH</a> · <a href="https://github.com/JavierIH/ratatron">repo</a></td>
+<td align="center">by <a href="https://oprobots.org">OPRobots</a> · <a href="https://github.com/OPRobots/ZoroBot3">repo</a></td>
+<td align="center">by <a href="https://github.com/turmandreams">turmandreams</a> · <a href="https://github.com/turmandreams/gamusino">repo</a></td>
+</tr>
+<tr>
+<td align="center">STM32F103 · 4 Sharp IR · no gyro</td>
+<td align="center">STM32F405 · 4 IR · gyro · fan</td>
+<td align="center">ESP32 · 4 IR · gyro · fan</td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="docs/robots.md#bulebule"><img src="docs/images/robots/bulebule.jpg" width="250"><br><b>Bulebule</b></a></td>
+<td align="center" width="33%"><a href="docs/robots.md#nezumibot"><img src="docs/images/robots/nezumibot.jpg" width="250"><br><b>NezumiBot</b></a></td>
+<td align="center" width="33%"><a href="docs/robots.md#perenquén"><img src="docs/images/robots/perenquen.jpg" width="250"><br><b>Perenquén</b></a></td>
+</tr>
+<tr>
+<td align="center">by <a href="https://github.com/Bulebots">Bulebots</a> · <a href="https://github.com/Bulebots/bulebule">repo</a></td>
+<td align="center">by <a href="https://oprobots.org">OPRobots</a> · <a href="https://github.com/OPRobots/NezumiBot">repo</a></td>
+<td align="center">by <a href="https://github.com/supernudo">supernudo</a> · <a href="https://github.com/supernudo/perenquen">repo</a></td>
+</tr>
+<tr>
+<td align="center">STM32F103 · 4 IR · gyro · 4 wheels</td>
+<td align="center">STM32F401 · 4 Sharp IR · N20 motors</td>
+<td align="center">dsPIC33EP512MC806 · 4 IR · gyro · 4 wheels</td>
+</tr>
+</table>
 
 Each robot's firmware comes from its own repository, a submodule of `external/` pinned to a commit; its authors are
 credited in [robots.md](docs/robots.md), with what was taken from where.
