@@ -2,7 +2,7 @@
 STM32F405. What it runs (main.c): a beep, then over and over its sensors read and printed on its serial port (the
 four IR pairs, the gyro, the battery, the encoders), "mous" on its display, both motors at 100 of 999 and a second's
 wait. It has no start and steers by nothing: put down in the start cell, facing north, and switched on, it rolls
-ahead at a tenth of its battery until the column ends (in the OSHWDEM 2026 maze, sixteen cells along its west wall)
+ahead at a tenth of its battery until the column ends (in the OSHWDEM 2026 maze, ten cells along its west wall)
 and stays against the wall, its front sensors printing it.
 
     ratasim futura [--maze oshwdem2026] [--headless] [--record out.mp4] [--max-s N] [--echo]
