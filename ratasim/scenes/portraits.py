@@ -22,6 +22,7 @@ ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation
     'bulebule': ('b_', 0.22, 215, -30),
     'nezumibot': ('n_', 0.20, 215, -28),
     'perenquen': ('p_', 0.20, 215, -30),
+    'fujin': ('f_', 0.20, 215, -30),
 }
 SKY = 'rgb1="0.17 0.18 0.21" rgb2="0.04 0.04 0.05"'          # a dark studio
 STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.10 0.11 0.13 1" condim="3" friction="0.05 0.001 0.0001"/>'
@@ -55,7 +56,7 @@ def main(argv=None):
     os.makedirs(os.path.join(a.dir, 'robots'), exist_ok=True)
     maze_picture(os.path.join(a.dir, 'maze.jpg'))
     xml = K.scene_xml(Maze.load(maze_path('oshwdem2026')), with_maze=False, gamusino=True, bulebule=True, nezumibot=True,
-                       perenquen=True)
+                       perenquen=True, fujin=True)
     xml = xml.replace('<texture name="sky" type="skybox" builtin="gradient" rgb1="0.25 0.27 0.3" rgb2="0.05 0.05 0.06"',
                       f'<texture name="sky" type="skybox" builtin="gradient" {SKY}')
     m, d = K.compile(xml.replace('</worldbody>', STUDIO + '</worldbody>', 1))

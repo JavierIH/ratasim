@@ -1,14 +1,14 @@
 """Every robot in the OSHWDEM 2026 maze, each run as its makers start it, checked by what it prints. The CI runs one
 robot per job; locally, any of them or all:
 
-    python tests/robots.py [ratatron zorobot gamusino bulebule nezumibot perenquen]
+    python tests/robots.py [ratatron zorobot gamusino bulebule nezumibot perenquen fujin]
 
 A check fails when the firmware does not build, stops, or the robot does not do its run (Ratatron: the search to
 the goal and back, then race 2.4 on its map; ZoroBot3: its exploration to the goal; Bulebule: its exploration, to
-the goal and back to its start cell, its path saved; NezumiBot and Perenquén: their wall following, away from the
-start; Gamusino: its 1.5 m and back). Wall touches fail the robots that run clean (Ratatron, NezumiBot); for the
-others, whose touches are known (robots.md), they are only reported.
-The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron and ZoroBot3, which reach the goal, fail
+the goal and back to its start cell, its path saved; Fujin: its search to the goal and back; NezumiBot and
+Perenquén: their wall following, away from the start; Gamusino: its 1.5 m and back). Wall touches fail the robots
+that run clean (Ratatron, NezumiBot); for the others, whose touches are known (robots.md), they are only reported.
+The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron, ZoroBot3 and Fujin, which reach the goal, fail
 without one.
 A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
 ZoroBot3's meshes need its STEP (not in the repository, README): without it only its firmware is built.
@@ -206,8 +206,23 @@ def bulebule():
     return fails
 
 
+def fujin():
+    fails = []
+    out = run(['fujin', '--headless', '--maze', MAZE, '--max-s', '400'])
+    pose = common(out, fails, clean=False)
+    if 'started: True' not in out:
+        fails.append('not started')
+    if not goal_times(out):
+        fails.append('the goal not reached (no time from the stopwatch)')
+    if 'its search over' not in out:
+        fails.append('its search did not end')
+    elif far_from(pose, (90, 90), 120):
+        fails.append(f'not back at the start ({pose})')
+    return fails
+
+
 ROBOTS = {'ratatron': ratatron, 'zorobot': zorobot, 'gamusino': gamusino, 'bulebule': bulebule,
-          'nezumibot': nezumibot, 'perenquen': perenquen}
+          'nezumibot': nezumibot, 'perenquen': perenquen, 'fujin': fujin}
 
 
 def main(names):

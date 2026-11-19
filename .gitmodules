@@ -19,3 +19,6 @@
 [submodule "external/aversive4dspic"]
 	path = external/aversive4dspic
 	url = https://github.com/supernudo/aversive4dspic
+[submodule "external/fujin"]
+	path = external/fujin
+	url = https://github.com/team-raiju/fujin

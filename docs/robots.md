@@ -177,3 +177,43 @@ By [Javier Baliñas](https://github.com/supernudo) · [supernudo/perenquen](http
   started as its maker did, from a terminal: `start <side> <gain>` typed in its start cell, then a hand in front of
   both front sensors, taken away. Its maker's notes in its code: "OK speed 1000 gain 100", "OK speed 1500 gain 200";
   with these assumed sensors it weaves at 2 m/s and gain 100, and keeps to its wall at its boot speed and gain 30.
+
+## Fujin
+
+<img src="images/robots/fujin.jpg" width="220" align="right">
+
+By [Team Raiju](https://raiju.team/robot/fujin/v1) ([marcoabensur](https://github.com/marcoabensur),
+[d-nery](https://github.com/d-nery), [sadikneipp](https://github.com/sadikneipp)) ·
+[team-raiju/fujin](https://github.com/team-raiju/fujin) (no licence file: nothing of it is copied here, everything is
+made from the submodule at build time)
+
+- **Firmware:** `external/fujin/firmware` at its `RCX_2026` tag, C++23: its application (main loop, state machine,
+  services, flood fill, movement profiles and control) compiled unchanged, its `main()` renamed. Its firmware is split
+  into a BSP interface (`inc/bsp/*.hpp`) and its implementations; none of these is used (neither its STM32G474 one
+  nor its PC one, which needs their unpublished simulator bridge). Ours, `ratasim/fujin/fw/fbsp.cpp`, implements its
+  interface on the simulated board: its motors' and fan's duties, its AS5047P encoders' counts (1024 a turn) at the
+  time they are read, its LSM6DSR's z rate (less the bias its firmware sets), the four IR sensors' ADC counts through
+  its own conversion (`a / ln(raw + c) - b`, both ways), its wall readings at its own thresholds (230 mm at the
+  sides, 205 mm ahead, its 30 mm wall confirmation and its wall breaks), its buttons' short and long presses, its
+  EEPROM (erased at each boot), its LEDs and buzzer; its BLE sends nothing. `fchip.cpp` runs its loop in a coroutine
+  on a simulated clock, SysTick at 2 kHz (its soft timer, its control loop's tick). What it runs: its search, from
+  the start to the goal and back, its map in its EEPROM.
+- **Model:** its STEP, `boards/Fujin_V1/Fujin_Body_Full.step` (its board with every component, its printed frame,
+  motors, gears, Mini-Z wheels and fan), tessellated with gmsh at build time (`ratasim/fujin/cad.py`, as ZoroBot3's)
+  and merged per body and colour; the axle found from its tyres. Collisions: boxes over its board's outline, its
+  tyres, two skids. Its tyres are drawn at its firmware's radius (13.25 mm; 12.6 in its CAD).
+- **Sensors:** where its STEP puts the emitters: the front pair looking ahead, the side pair crossed, 50 deg off
+  ahead. The side readings scaled to its firmware's references with the robot centred in a cell (180 mm left,
+  165 mm right; its mm are not the beam's), the front ones the beam. Its firmware's side sensor angle (56.5 deg, for
+  its lateral corrections, which it leaves off) is not the STEP's: with it the side sensors would read, entering a
+  cell, the walls of the next one.
+- **Physics, assumed (its web page: 105 g, 3S, 650 gf of suction; 1022 coreless motors, 68:9):** its motors fitted
+  to its control loop's feed-forward (its own motor model, in volts); its gears' friction, its 0.13 A of Coulomb
+  feed-forward; its tyres' scrub turning in place, a yaw torque against the turn (its firmware gives 0.12 A more for
+  it; 0.08 A of it makes its 180.7 deg turn-around profile turn 180.5 deg: without it, 186, and its search got lost
+  after its dead ends). Fan downforce 6.4 N at its rated 10 V.
+- **Run:** `ratasim fujin --maze oshwdem2026 [--mode slow|medium|fast] [--headless] [--record out.mp4]`: started as
+  its makers do, with its two buttons (button 2: search; button 1 held: its speeds, stepped with button 2; held: its
+  exploration; held: it waits) and a hand in front of its front sensors, read for 0.4 s; two seconds' beep and it
+  goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 105.7 s, back at 175 s. Medium and
+  fast (its fan on) touch walls after their first turns: their curves land 10 to 15 mm off.

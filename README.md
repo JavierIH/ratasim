@@ -41,6 +41,21 @@ cells of 180 mm).
 <td align="center">STM32F401 · 4 Sharp IR · N20 motors</td>
 <td align="center">dsPIC33<wbr>EP512<wbr>MC806 · 4 IR · gyro · 4 wheels</td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="docs/robots.md#fujin"><img src="docs/images/robots/fujin.jpg" width="250"><br><b>Fujin</b></a></td>
+<td width="33%"></td>
+<td width="33%"></td>
+</tr>
+<tr>
+<td align="center">by <a href="https://raiju.team">Team Raiju</a> · <a href="https://github.com/team-raiju/fujin">repo</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">STM32G474 · 4 IR · gyro · fan</td>
+<td></td>
+<td></td>
+</tr>
 </table>
 
 Each robot's firmware comes from its own repository, a submodule of `external/` pinned to a commit; its authors are
@@ -79,7 +94,7 @@ The console stays open meanwhile: `MODE 2 6` and `START` (or `:select`, `:start`
 `--console`: not started, only the console. In the viewer, Page Up is its SELECT button, Page Down its START and
 End puts it back at the start.
 
-The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen`) also open MuJoCo's window, at real time
+The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen|fujin`) also open MuJoCo's window, at real time
 (`--record-speed 2` for twice that); with `--headless`, or `--record out.mp4` (a video instead of the window), or no
 screen, they run without it.
 
@@ -170,6 +185,20 @@ walls it will keep to), a hand in front of both front sensors, taken away: it go
 
 ![Perenquén keeping to the right wall](docs/images/maze-perenquen.jpg)
 
+### Fujin in a maze
+
+```sh
+pip install -e .[cad]           # gmsh, to make its meshes from its STEP once
+ratasim fujin --maze oshwdem2026 --record fujin.mp4
+```
+
+Its firmware (its RCX 2026 tag), C++23, on a board support package of ours behind its own BSP interface: its search,
+to the goal and back, its map in its EEPROM. Started as its makers start it: button 2 (search), its speeds picked
+with its buttons (`--mode slow`: 0.3 m/s, no fan; medium and fast do not finish yet), its exploration, and a hand in
+front of its front sensors; two seconds' beep and it goes. It needs g++ 13 or clang++ 15 or later.
+
+![Fujin searching the OSHWDEM 2026 maze](docs/images/maze-fujin.jpg)
+
 ## The stopwatch
 
 Every runner times the robot's runs as at a competition: the stopwatch starts when the robot's centre leaves the
@@ -193,6 +222,7 @@ ratasim/gamusino/   Gamusino: its model from the GLB in its repository, its ESP3
 ratasim/bulebule/   Bulebule: its board from its layout, its parts from KiCad's library, its simulated chip (fw/), runner
 ratasim/nezumibot/  NezumiBot: its assembled 3D model (assets/), its simulated chip (fw/), runner
 ratasim/perenquen/  Perenquén: its meshes from its FreeCAD assembly (assets/, cad.py), its simulated dsPIC (fw/), runner
+ratasim/fujin/      Fujin: its model from its STEP (cad.py), its firmware on our BSP and simulated STM32G474 (fw/), runner
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
 ratasim/start.py    starting a robot as its makers do (its config's sequence), with the hand of hand.py
 ratasim/stopwatch.py the runs' times, from the start cell to the goal (every robot)
@@ -221,7 +251,7 @@ ratasim portraits                   # the pictures above
 ## Credits and licences
 
 Every robot belongs to its authors (above); their repositories are submodules and nothing of them is copied here.
-ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's repository carries no licence; Perenquén's design is CC BY-SA
+ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's and Fujin's repositories carry no licence; Perenquén's design is CC BY-SA
 4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,
 Eurobotics Engineering) GPLv2+; Gamusino's gyro library, STM32duino LSM6DSR (STMicroelectronics, BSD-3), is
-downloaded at build time. The meshes made from ZoroBot3's, Gamusino's and Bulebule's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
+downloaded at build time. The meshes made from ZoroBot3's, Gamusino's, Bulebule's and Fujin's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.

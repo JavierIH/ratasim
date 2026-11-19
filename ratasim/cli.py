@@ -7,6 +7,7 @@
     ratasim nezumibot [options]     NezumiBot in a maze
     ratasim perenquen [options]     Perenquen in a maze
     ratasim bulebule [options]      Bulebule in a maze
+    ratasim fujin [options]         Fujin in a maze
     ratasim crash|loop|drag-race OUT.mp4 [options]   scenes with both robots (videos)
     ratasim portraits [DIR]         a square picture of each robot
     ratasim help                    this
@@ -23,6 +24,7 @@ COMMANDS = {
     'ir-info': 'ratasim.curve_ir_info',
     'real-ir': 'ratasim.real_ir_check',
     'ratatron': 'ratasim.run',
+    'fujin': 'ratasim.fujin.run',
     'gamusino': 'ratasim.gamusino.run',
     'nezumibot': 'ratasim.nezumibot.run',
     'perenquen': 'ratasim.perenquen.run',
