@@ -1,10 +1,12 @@
 """Minisumo, a battle royale: the robots on a minisumo dohyo, all at once, evenly spaced round its edge facing its
 centre; at the start they all charge to the centre at their top speed, then each goes for the nearest robot left;
 the last one left on the dohyo wins. A video: the countdown, the charge in slow motion (x4), the rest in real time,
-who is out and when, the winner.
+who is out and when, the winner; then a fade to black and the podium (podium.py): its first three on their
+blocks, the camera on each from the 3rd to the 1st, the whole podium and fireworks.
 
     ratasim minisumo out.mp4 [--robots all]       # --robots ratatron,zorobot,fujin: any, by name
     ratasim minisumo --still out.jpg [--at 0.35]   # a picture of the fight, --at s after the start
+    ratasim minisumo --still out.jpg --podium      # a picture of the podium after the bout, with its fireworks
 
 No firmware: the robots' firmwares solve mazes and know no sumo. The scene drives them with a control of its own,
 the same for every robot: full speed at its target (the centre, then the nearest robot), turning towards it, and a
@@ -37,6 +39,7 @@ from ..maze import Maze
 from ..run import maze_path
 from . import common as K
 from . import drag_race as DR
+from . import podium as P
 
 R_DOHYO, BORDER, H_DOHYO = 0.385, 0.025, 0.025      # m
 R_BLACK = R_DOHYO - BORDER
@@ -189,7 +192,12 @@ class Bout:
                 print(f'{b.place_no}. {b.name:9s} still on the dohyo at the limit, {b.r() * 100:.1f} cm from the centre')
             how = 'last one left' if len(st) == 1 else f'nearest the centre at the {self.limit:g} s limit'
             print(f'1. {self.winner.name:9s} wins at {t:.3f} s ({how})')
+            print('Podium:', '  '.join(f'{p}. {b.name}' for p, b in P.ranked(self.bots)))
             self.end = t
+
+    def podium(self):
+        """[(place, key, name, colour)] of the first three (or two), the 1st first."""
+        return [(p, b.key, b.name, b.colour) for p, b in P.ranked(self.bots)]
 
     def control(self):
         t = self.t
@@ -249,19 +257,6 @@ class Bout:
             self.step()
 
 
-def project(m, ren, w, h, p):
-    """World point p as (x, y) pixels of the renderer's last scene (its free camera), or None behind it."""
-    c = ren.scene.camera[0]
-    fwd, up = np.array(c.forward), np.array(c.up)
-    right = np.cross(fwd, up)
-    v = np.asarray(p) - np.array(c.pos)
-    z = float(v @ fwd)
-    if z <= 1e-6:
-        return None
-    f = h / 2 / math.tan(math.radians(m.vis.global_.fovy) / 2)     # pixels per unit at depth 1
-    return w / 2 + f * float(v @ right) / z, h / 2 - f * float(v @ up) / z
-
-
 class Screen:
     def __init__(self, bout, w, h):
         self.b, self.w, self.h = bout, w, h
@@ -279,7 +274,7 @@ class Screen:
         img = Image.fromarray(self.ren.render())
         g = ImageDraw.Draw(img)
         for f in b.bots:                    # the names over the robots
-            q = project(b.m, self.ren, w, h, f.pos() + (0, 0, 0.06))
+            q = K.project(b.m, self.ren, w, h, f.pos() + (0, 0, 0.06))
             if q is None or not (0 <= q[0] < w and 0 <= q[1] < h):
                 continue
             tw, th = g.textbbox((0, 0), f.name, font=self.tag)[2:]
@@ -336,11 +331,22 @@ def fight(out, keys, limit, fps=30):
     img = scr.frame(1.0)
     for _ in range(fps * 2):
         video.write(img)
+    dark = np.asarray(img, np.float32)
+    for i in range(fps):                                # a fade to black, a moment of black, the podium
+        video.write((dark * (1 - (i + 1) / fps)).astype(np.uint8))
+    for _ in range(fps // 2):
+        video.write(np.zeros_like(dark, np.uint8))
+    P.ceremony(bout.podium(), video, fps)
     video.close()
 
 
-def still(out, keys, at):
-    bout = Bout(keys, 30.0)
+def still(out, keys, at, limit, podium=False):
+    bout = Bout(keys, limit)
+    if podium:
+        while bout.end is None:
+            bout.step()
+        P.picture(bout.podium(), out)
+        return
     bout.run_to(at)
     scr = Screen(bout, 1280, 720)
     scr.frame(None).convert('RGB').save(out, quality=90)
@@ -353,6 +359,7 @@ def main(argv=None):
     p.add_argument('--limit', type=float, default=30.0, help='the bout\'s time limit, s')
     p.add_argument('--still', metavar='JPG', help='only a picture of the bout, at --at')
     p.add_argument('--at', type=float, default=0.35, help='--still: seconds after the start')
+    p.add_argument('--podium', action='store_true', help='--still: the podium after the bout, with its fireworks')
     a = p.parse_args(argv)
     try:
         keys = K.robot_names(a.robots)
@@ -361,7 +368,7 @@ def main(argv=None):
     if len(keys) < 2:
         p.error('a bout needs two robots at least')
     if a.still:
-        still(a.still, keys, a.at)
+        still(a.still, keys, a.at, a.limit, a.podium)
         print('->', a.still)
     elif a.out:
         fight(a.out, keys, a.limit)

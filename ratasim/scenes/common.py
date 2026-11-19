@@ -263,6 +263,20 @@ def lane_keep(bot, v, heading, offset, k_heading=0.3, k_offset=1.0):
     return v + dv, v - dv
 
 
+def project(m, ren, w, h, p):
+    """World point p as (x, y) pixels of the renderer's last scene (its free camera), or None behind it."""
+    c = ren.scene.camera[0]
+    fwd, up = np.array(c.forward), np.array(c.up)
+    right = np.cross(fwd, up)
+    head = (np.array(c.pos) + np.array(ren.scene.camera[1].pos)) / 2      # its two eyes', half an ipd each side
+    v = np.asarray(p) - head
+    z = float(v @ fwd)
+    if z <= 1e-6:
+        return None
+    f = h / 2 / math.tan(math.radians(m.vis.global_.fovy) / 2)     # pixels per unit at depth 1
+    return w / 2 + f * float(v @ right) / z, h / 2 - f * float(v @ up) / z
+
+
 def font(size, bold=True):
     return ImageFont.truetype(FONT.format('-Bold' if bold else ''), size)
 

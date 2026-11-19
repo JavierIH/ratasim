@@ -11,7 +11,7 @@
     ratasim futura [options]        Futura in a maze
     ratasim ukmarsbot [options]     UKMARSBOT in a maze
     ratasim maze-race|drag-race OUT.mp4 [--robots a,b,c]   scenes with any robots (videos)
-    ratasim minisumo OUT.mp4 [--robots a,b,c]   a minisumo bout, all at once on one dohyo (a video)
+    ratasim minisumo OUT.mp4 [--robots a,b,c]   a minisumo bout, all at once on one dohyo, then its podium (a video)
     ratasim crash|loop OUT.mp4 [options]   scenes with Ratatron and ZoroBot3 (videos)
     ratasim portraits [DIR]         a square picture of each robot
     ratasim help                    this

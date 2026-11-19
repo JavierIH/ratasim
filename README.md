@@ -287,7 +287,9 @@ tyres and power. Their firmwares know no sumo: the scene drives them all with th
 full speed (each its drag race profile's) to the centre, then at the nearest robot left, back to the centre over the
 white border, backing off when stuck; ZoroBot3's and Fujin's fans off (minisumo's rules forbid suction). A robot is
 out when its centre leaves the dohyo or it lies toppled; the last one left wins (`ratasim minisumo --help`). It
-prints the order they went out in and the winner, the same every run.
+prints the order they went out in, the winner and the podium, the same every run. After the bout the video fades to
+black and goes on to the podium: its first three (two with two robots) on their blocks, the camera on each from the
+3rd to the 1st, then the whole podium under fireworks (the same every run too).
 
 ```sh
 ratasim maze-race maze-race.mp4     # Ratatron, ZoroBot3, Bulebule, Fujin, UKMARSBOT: their searches, x4
@@ -295,6 +297,7 @@ ratasim drag-race race.mp4          # 3 m, all nine: start lights, lanes, a chec
 ratasim drag-race race.mp4 --robots fujin,zorobot
 ratasim minisumo sumo.mp4           # all nine on one dohyo, the last one left wins (all nine: Fujin, at 12.0 s)
 ratasim minisumo sumo.mp4 --robots ratatron,zorobot,fujin
+ratasim minisumo --still podium.jpg --podium    # a picture of the podium after the bout, with its fireworks
 ratasim crash crash.mp4 --ramp      # Ratatron and ZoroBot3 head-on on the maze's longest straight, over a ramp
 ratasim loop loop.mp4               # Ratatron and ZoroBot3 through a loop-the-loop beside the maze
 ratasim portraits                   # the pictures above
@@ -303,7 +306,7 @@ ratasim portraits                   # the pictures above
 | ![A race in the maze](docs/images/maze-race.jpg) | ![Drag race](docs/images/drag-race.jpg) |
 |:-:|:-:|
 | ![Minisumo](docs/images/minisumo.jpg) | ![Head-on on a ramp](docs/images/crash-ramp.jpg) |
-| ![Loop-the-loop](docs/images/loop.jpg) | |
+| ![The podium after the bout](docs/images/minisumo-podium.jpg) | ![Loop-the-loop](docs/images/loop.jpg) |
 
 ## Credits and licences
 
