@@ -43,23 +43,24 @@ cells of 180 mm).
 </tr>
 <tr>
 <td align="center" width="33%"><a href="docs/robots.md#fujin"><img src="docs/images/robots/fujin.jpg" width="250"><br><b>Fujin</b></a></td>
-<td width="33%"></td>
+<td align="center" width="33%"><a href="docs/robots.md#futura"><img src="docs/images/robots/futura.jpg" width="250"><br><b>Futura</b></a></td>
 <td width="33%"></td>
 </tr>
 <tr>
 <td align="center">by <a href="https://raiju.team">Team Raiju</a> · <a href="https://github.com/team-raiju/fujin">repo</a></td>
-<td></td>
+<td align="center">by <a href="https://micromouseusa.com">Green Ye</a> · <a href="https://micromouseusa.com/?page_id=1342">page</a></td>
 <td></td>
 </tr>
 <tr>
 <td align="center">STM32G474 · 4 IR · gyro · fan</td>
-<td></td>
+<td align="center">STM32F405 · 4 IR · gyro · its kit's test loop</td>
 <td></td>
 </tr>
 </table>
 
-Each robot's firmware comes from its own repository, a submodule of `external/` pinned to a commit; its authors are
-credited in [robots.md](docs/robots.md), with what was taken from where.
+Each robot's firmware comes from its own repository, a submodule of `external/` pinned to a commit (Futura's, which
+has none, from its page at build time, pinned by its hash); its authors are credited in [robots.md](docs/robots.md),
+with what was taken from where.
 
 ## Getting started
 
@@ -94,7 +95,7 @@ The console stays open meanwhile: `MODE 2 6` and `START` (or `:select`, `:start`
 `--console`: not started, only the console. In the viewer, Page Up is its SELECT button, Page Down its START and
 End puts it back at the start.
 
-The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen|fujin`) also open MuJoCo's window, at real time
+The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen|fujin|futura`) also open MuJoCo's window, at real time
 (`--record-speed 2` for twice that); with `--headless`, or `--record out.mp4` (a video instead of the window), or no
 screen, they run without it.
 
@@ -199,6 +200,20 @@ front of its front sensors; two seconds' beep and it goes. It needs g++ 13 or cl
 
 ![Fujin searching the OSHWDEM 2026 maze](docs/images/maze-fujin.jpg)
 
+### Futura in a maze
+
+```sh
+ratasim futura --maze oshwdem2026 --echo --record futura.mp4
+```
+
+The kit mouse of UCLA IEEE's Project Futura, with the firmware template its students start from (downloaded from its
+page on the first run): a beep, "mous" on its display, then once a second its four IR pairs, gyro, battery and
+encoders printed on its serial port (`--echo`) and both motors at 100 of 999. It steers by nothing: put down in the
+start cell and switched on, it rolls ahead to the wall that ends the column and stays against it, its front sensors
+printing that wall.
+
+![Futura at the end of the start column](docs/images/maze-futura.jpg)
+
 ## The stopwatch
 
 Every runner times the robot's runs as at a competition: the stopwatch starts when the robot's centre leaves the
@@ -223,6 +238,7 @@ ratasim/bulebule/   Bulebule: its board from its layout, its parts from KiCad's 
 ratasim/nezumibot/  NezumiBot: its assembled 3D model (assets/), its simulated chip (fw/), runner
 ratasim/perenquen/  Perenquén: its meshes from its FreeCAD assembly (assets/, cad.py), its simulated dsPIC (fw/), runner
 ratasim/fujin/      Fujin: its model from its STEP (cad.py), its firmware on our BSP and simulated STM32G474 (fw/), runner
+ratasim/futura/     Futura: its files downloaded at build time, its model, its simulated STM32F405 and ST library (fw/)
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
 ratasim/start.py    starting a robot as its makers do (its config's sequence), with the hand of hand.py
 ratasim/stopwatch.py the runs' times, from the start cell to the goal (every robot)
@@ -254,4 +270,7 @@ Every robot belongs to its authors (above); their repositories are submodules an
 ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's and Fujin's repositories carry no licence; Perenquén's design is CC BY-SA
 4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,
 Eurobotics Engineering) GPLv2+; Gamusino's gyro library, STM32duino LSM6DSR (STMicroelectronics, BSD-3), is
-downloaded at build time. The meshes made from ZoroBot3's, Gamusino's, Bulebule's and Fujin's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
+downloaded at build time. Futura's page (Green Ye, micromouseusa.com) gives no licence: its firmware template and
+printed parts are downloaded at build time, pinned by their SHA-256, and stay out of git; ST's library is not used
+(`ratasim/futura/fw` simulates the part of its API the template calls).
+The meshes made from ZoroBot3's, Gamusino's, Bulebule's and Fujin's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.

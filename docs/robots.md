@@ -217,3 +217,52 @@ made from the submodule at build time)
   exploration; held: it waits) and a hand in front of its front sensors, read for 0.4 s; two seconds' beep and it
   goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 105.7 s, back at 175 s. Medium and
   fast (its fan on) touch walls after their first turns: their curves land 10 to 15 mm off.
+
+## Futura
+
+<img src="images/robots/futura.jpg" width="220" align="right">
+
+By [Green Ye](https://micromouseusa.com) for UCLA IEEE's micromouse programme ·
+[Project Futura](https://micromouseusa.com/?page_id=1342) (no licence given; no repository: its files are its page's
+downloads)
+
+The kit mouse of Project Futura (2014): a pre-made mouse lent to UCLA IEEE's returning members, to learn the software
+on it before making their own. Its page gives its firmware template, its schematic (V1.1), its Gerber files, its
+printed parts and eight lectures. Of its maker's own mice (Green Giant, 2012-2017) only the schematics and layouts
+are published, no firmware: Futura is the one with code.
+
+- **Firmware:** its kit's template, `FuturaProject.zip` (its Keil µVision project, `micromouse_test`), downloaded
+  from its page at build time and checked against its SHA-256 (`ratasim/futura/config.py`); its page's certificate
+  has expired, so if the download is refused for it, it is fetched unchecked and the hash vouches for it
+  (`FUTURA_DOWNLOADS`: a directory with the zip, instead). Its own files, `user/` and `user_Libraries/`, unchanged,
+  for its STM32F405 at 168 MHz on a simulated chip (`ratasim/futura/fw/`): ST's Standard Peripheral Library (in the
+  zip, under ST's licence) is not used; `include/stm32f4xx.h` and `fchip.c` give the part of its API the template
+  calls, its peripherals as host memory. Its `main()` in a coroutine on a clock of CPU cycles that moves where it
+  waits: each read of its `Millis` (its delays poll it; `fsim.h` reads it through the chip), of SysTick's counter
+  (its `micros()`), of a flag; SysTick's interrupt every millisecond. The ADC's single conversions with each
+  phototransistor lit or dark by its emitter's pin (the template reads each one dark, lights its emitter, waits
+  60 µs, reads it again), TIM2 and TIM5 counting the encoders, TIM4's four channels to its two H-bridges, TIM3's
+  buzzer, its HCMS-2903 display's bytes on SPI2 (read back through its own font: the runner prints what it shows),
+  its `printf` through its own `fputc` on USART1 at 9600 baud, each byte taking its time. Two words of it differ
+  from Keil's C for gcc, and the build bridges them without touching its files: `matrixDisplay.h` declares the font
+  `static` and `matrixDisplay.c` defines it (that file is built with the word dropped), and `fputc` and `printf`
+  are renamed to the chip's (Keil's library calls `fputc`). What it runs (`user/main.c`): a 2 s beep, then over
+  and over its IR pairs, gyro, battery and encoders read and printed, "mous" on its display, both motors at 100 of
+  999, a second's wait. Its buttons' handlers are empty; it reads nothing from its serial port.
+- **Model:** its printed wheels and skate, its page's STL files (`futura-3D-printing-model.zip`, downloaded and
+  pinned as the firmware), and the rest made here from the photo of its kit (no board file was at hand): its board,
+  a rectangle between its wheels and a half disc for its nose, generated as a mesh; its chips, display, buzzer, IR
+  pairs, motors in their white printed mounts, encoder boards and battery as simple shapes where the photo shows
+  them. Collisions: its board (a box and a disc), its skate, its tyres.
+- **Sensors:** its schematic's four SFH4545 emitters and TEFT4300 phototransistors on the arc of its nose, LF and RF
+  looking ahead, DL and DR 45° out (`config.py`, by the photo); its template prints the raw difference lit minus
+  dark and has no threshold: the light back assumed as the inverse square of the distance along the beam, ~1900
+  counts at 40 mm, ~300 at a cell. Its LY3200ALH gyro (0.67 mV/dps) at the template's own zero (1859.6 counts), its
+  battery through its divider (the template's 809/3248).
+- **Physics, assumed:** 85 g, 2S 120 mAh (its kit's batteries); its motors "a 6V faulhaber" (its `pwm.c`): a
+  Faulhaber 1717 006 SR, geared 12:40 as its maker's Green Giant, its encoders 512 lines x4 a motor turn; its
+  printed 32 mm wheels with a 1 mm tyre. At 100 of 999 it rolls at about 0.85 m/s.
+- **Run:** `ratasim futura --maze oshwdem2026 [--echo] [--headless] [--record out.mp4] [--max-s 15]`: put down in the
+  start cell, facing north, and switched on. In the OSHWDEM 2026 maze it rolls ten cells up the west column, from
+  0.35 s to 2.3 s, and stays against the wall that ends it (a touch a second, reported), its four sensors printing
+  ~4000. `--echo` prints its serial port.
