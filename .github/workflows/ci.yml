@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        robot: [ratatron, zorobot, gamusino, bulebule, nezumibot, perenquen, fujin, futura]
+        robot: [ratatron, zorobot, gamusino, bulebule, nezumibot, perenquen, fujin, futura, ukmarsbot]
     steps:
       - uses: actions/checkout@v4
       # The submodules one level deep, by hand: perenquen's has a submodule with no URL (KiCad_BOM_Wizard), on which
@@ -25,8 +25,8 @@ jobs:
         with:
           python-version: "3.11"
       # gmsh (Bulebule's parts from KiCad's STEP models, Fujin's meshes from its STEP) needs these X and GL libraries
-      # even without a screen; EGL: the runners of ZoroBot3, Gamusino, NezumiBot, Perenquén, Fujin and Futura pick MuJoCo's
-      # EGL renderer, loaded on import
+      # even without a screen; EGL: the runners of ZoroBot3, Gamusino, NezumiBot, Perenquén, Fujin, Futura and
+      # UKMARSBOT pick MuJoCo's EGL renderer, loaded on import
       - run: >-
           sudo apt-get update -q && sudo apt-get install -y -q libglu1-mesa libxrender1 libxcursor1 libxft2
           libxinerama1 libegl1 libgl1

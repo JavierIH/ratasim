@@ -4,6 +4,7 @@ actions on the simulated robot with its firmware running between them.
     ('say', text)               what is being done (the console, the video's status line)
     ('wait', ms)                its firmware runs
     ('press', button[, ms])     a button held (100 ms)
+    ('switches', value)         its function switches set (a DIP switch its firmware reads)
     ('send', line)              a line typed in a terminal connected to it (its serial port, Bluetooth)
     ('hand', sensors[, ms])     a hand in front of these sensors (300 ms; ratasim/hand.py)
     ('lift',)                   held in the air over where it stands (its sensors see over the walls)
@@ -21,6 +22,8 @@ def actions(robot, steps, say=print):
             yield args[0]
         elif kind == 'press':
             robot.press(*args)
+        elif kind == 'switches':
+            robot.set_switches(*args)
         elif kind == 'send':
             robot.send(*args)
         elif kind == 'hand':

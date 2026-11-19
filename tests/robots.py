@@ -1,16 +1,17 @@
 """Every robot in the OSHWDEM 2026 maze, each run as its makers start it, checked by what it prints. The CI runs one
 robot per job; locally, any of them or all:
 
-    python tests/robots.py [ratatron zorobot gamusino bulebule nezumibot perenquen fujin futura]
+    python tests/robots.py [ratatron zorobot gamusino bulebule nezumibot perenquen fujin futura ukmarsbot]
 
-A check fails when the firmware does not build, stops, or the robot does not do its run (Ratatron: the search to
-the goal and back, then race 2.4 on its map; ZoroBot3: its exploration to the goal; Bulebule: its exploration, to
-the goal and back to its start cell, its path saved; Fujin: its search to the goal and back; NezumiBot and
-Perenquén: their wall following, away from the start; Gamusino: its 1.5 m and back; Futura: its kit's test loop,
-its sensors printed as it rolls to the wall that ends the start column). Wall touches fail the robots that run
-clean (Ratatron, NezumiBot); for the others, whose touches are known (robots.md), they are only reported.
-The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron, ZoroBot3 and Fujin, which reach the goal, fail
-without one.
+A check fails when the firmware does not build, stops, or the robot does not do its run (Ratatron: the search to the
+goal and back, then race 2.4 on its map; ZoroBot3: its exploration to the goal; Bulebule: its exploration, to the
+goal and back to its start cell, its path saved; Fujin: its search to the goal and back; UKMARSBOT: its search to
+the goal and back to the start; NezumiBot and Perenquén: their wall following, away from the start; Gamusino: its
+1.5 m and back; Futura: its kit's test loop, its sensors printed as it rolls to the wall that ends the start
+column). Wall touches fail the robots that run clean (Ratatron, NezumiBot); for the others, whose touches are known
+(robots.md), they are only reported. The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron, ZoroBot3,
+Fujin and UKMARSBOT, which reach the
+goal, fail without one.
 A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
 ZoroBot3's meshes need its STEP (not in the repository, README): without it only its firmware is built.
 """
@@ -177,6 +178,23 @@ def futura():
     return fails
 
 
+def ukmarsbot():
+    fails = []
+    out = run(['ukmarsbot', '--headless', '--maze', MAZE, '--max-s', '400'])
+    pose = common(out, fails, clean=False)
+    if 'Off we go' not in out:
+        fails.append('not started')
+    if 'Arrived! (1)' not in out:
+        fails.append('the goal not reached')
+    elif not goal_times(out):
+        fails.append('no time to the goal (the stopwatch)')
+    if 'Arrived! (2)' not in out:
+        fails.append('not back at the start')
+    elif far_from(pose, (90, 90), 90):
+        fails.append(f'not in the start cell ({pose})')
+    return fails
+
+
 def model(name):
     """A robot with no firmware yet: its model builds, and after 2 s on a floor it still stands where it was put."""
     import importlib
@@ -243,7 +261,7 @@ def fujin():
 
 ROBOTS = {'ratatron': ratatron, 'zorobot': zorobot, 'gamusino': gamusino, 'bulebule': bulebule,
           'nezumibot': nezumibot, 'perenquen': perenquen, 'fujin': fujin,
-          'futura': futura}
+          'futura': futura, 'ukmarsbot': ukmarsbot}
 
 
 def main(names):

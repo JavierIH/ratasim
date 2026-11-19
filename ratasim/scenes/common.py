@@ -19,6 +19,7 @@ from ..nezumibot import model as NM   # noqa: E402
 from ..perenquen import model as PM   # noqa: E402
 from ..fujin import model as FM   # noqa: E402
 from ..futura import model as UM   # noqa: E402
+from ..ukmarsbot import model as KM   # noqa: E402
 
 MM = 0.001
 RAT_V, RAT_A = 0.9, 2.0                 # Ratatron's race preset: FAST_FULL_SPEED, RACE_ACCEL_MM_S2
@@ -27,7 +28,8 @@ FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans{}.ttf'
 
 
 def scene_xml(maze, with_maze=True, rat_mass=0.200, hull_solref=None, gamusino=False, bulebule=False, nezumibot=False,
-              perenquen=False, fujin=False, futura=False):
+              perenquen=False, fujin=False, futura=False,
+              ukmarsbot=False):
     """Ratatron's scene (its maze, unless with_maze is False) with ZoroBot3 added (and Gamusino, prefixed g_): the
     robots' hulls hit each other (and stiffer, bouncier with hull_solref, e.g. "0.002 0.3")."""
     C.MASS_KG = rat_mass
@@ -88,6 +90,12 @@ def scene_xml(maze, with_maze=True, rat_mass=0.200, hull_solref=None, gamusino=F
         xml = xml.replace('</worldbody>', UM.robot_xml(prefix='u_') + '</worldbody>', 1)
         xml = xml.replace('</actuator>', '<motor name="u_motor_l" joint="u_wheel_l"/>'
                           '<motor name="u_motor_r" joint="u_wheel_r"/></actuator>', 1)
+    if ukmarsbot:
+        xml = re.sub(r'(</default>\s*<asset>)', lambda m: KM.defaults_xml() + m.group(1), xml, count=1)
+        xml = xml.replace('</asset>', KM.assets_xml() + '</asset>', 1)
+        xml = xml.replace('</worldbody>', KM.robot_xml(prefix='k_') + '</worldbody>', 1)
+        xml = xml.replace('</actuator>', '<motor name="k_motor_l" joint="k_wheel_l"/>'
+                          '<motor name="k_motor_r" joint="k_wheel_r"/></actuator>', 1)
     return xml
 
 
