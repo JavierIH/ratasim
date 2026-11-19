@@ -2,13 +2,14 @@
 geometry and the physics assumed for it. Robot frame (mm): x right, y forward, z up, origin between its wheels at the
 axle's height.
 
-Sources: its kit's firmware template (FuturaProject.zip: user/, user_Libraries/), its schematic (Futura V1.1:
-STM32F405, LY3200ALH gyro, four SFH4545 and TEFT4300 IR pairs, TC4427 and ZXMHC3F381N8 H-bridges, HCMS-2903
-display), its board's Gerber files (Futura_Gerber.zip, V1.1: its outline, its parts' pads, its holes), its encoder
-board's schematic (an AS5304/AS5306 magnetic encoder), its 3D printing files (futura-3D-printing-model.zip: wheel,
-skate) and the photo of the kit on its page.
-Its page publishes no licence: nothing of it is in this repository; its three zips are downloaded at build time
-(download()), pinned by their SHA-256.
+Sources: its kit's firmware template (FuturaProject.zip: user/, user_Libraries/), its controller sample
+(controller-sample.c) and its lecture's guide to testing it (Guide-for-testing-controller.docx), its schematic
+(Futura V1.1: STM32F405, LY3200ALH gyro, four SFH4545 and TEFT4300 IR pairs, TC4427 and ZXMHC3F381N8 H-bridges,
+HCMS-2903 display), its board's Gerber files (Futura_Gerber.zip, V1.1: its outline, its parts' pads, its holes), its
+encoder board's schematic (an AS5304/AS5306 magnetic encoder), its 3D printing files (futura-3D-printing-model.zip:
+wheel, skate) and the photo of the kit on its page.
+Its page publishes no licence: nothing of it is in this repository; its three zips and its controller sample are
+downloaded at build time (download()), pinned by their SHA-256.
 """
 import hashlib
 import math
@@ -30,10 +31,21 @@ FILES = {       # name: URL, SHA-256
                                      '4db946b2dc12ea9a537e096e7bf4131c5c394aa34e36ecc0c0393432db95ef05'),
     'Futura_Gerber.zip': (UPLOADS + '2014/08/Futura_Gerber.zip',
                           'e17ace6c36edef936bd5bcc3a46c00e15087c37e28a7f58de2c0fa2310c378ff'),
+    'controller-sample.c': (UPLOADS + '2016/04/controller-sample.c',
+                            '93863da49af5786d7efb47dd181f59fded5c23e0db2f3a092d6a4f1a1da8c119'),
 }
 PROJECT = os.path.join(BUILD, 'FuturaProject')  # its firmware (FuturaProject.zip: user/, user_Libraries/)
 PRINTS = os.path.join(BUILD, 'prints')          # its printed parts (STL)
 GERBERS = os.path.join(BUILD, 'gerbers')        # its board (Futura_Gerber.zip: V1.1.GTL, .GTO, .GML, .TXT...)
+SAMPLE = os.path.join(BUILD, 'controller', 'controller-sample.c')   # its page's controller sample, mended
+# controller-sample.c is its lecture's code, never compiled as it is: the two places no compiler takes, mended here
+# (the rest, what it leaves to its students, in fw/include/controller.h): needToDecelerate()'s cast before nothing,
+# "*100*(double)/dist", put on dist, as its comment's equation (a = (Vt^2 - V0^2) / 2 / S) has it; and a comment's
+# end, after the file's last function, that no comment opens. And its IR pairs' error in its rotational feedback, the
+# line its comment gives "if you use IR sensor as well" (its lecture's guide, step 5: to keep it in the cells' middle).
+SAMPLE_FIXES = [('*100*(double)/dist/4/2', '*100/(double)dist/4/2'), ('\n}\n\n\n\n*/\n', '\n}\n'),
+                ('\t\trotationalFeedback = encoderFeedbackW + gyroFeedback;\n',
+                 '\t\trotationalFeedback = encoderFeedbackW + gyroFeedback + sensorFeedback;\n')]
 
 
 def _sha256(path):
@@ -56,8 +68,9 @@ def _get(url, path):
 
 
 def download():
-    """Its zips in BUILD (once; FUTURA_DOWNLOADS: a directory where they already are), checked, unzipped: its
-    firmware's sources to PROJECT, its STL files to PRINTS, its Gerber files to GERBERS."""
+    """Its files in BUILD (once; FUTURA_DOWNLOADS: a directory where they already are), checked, unzipped: its
+    firmware's sources to PROJECT, its STL files to PRINTS, its Gerber files to GERBERS; its controller sample
+    mended to SAMPLE."""
     os.makedirs(BUILD, exist_ok=True)
     local = os.environ.get('FUTURA_DOWNLOADS')
     for name, (url, sha) in FILES.items():
@@ -81,11 +94,21 @@ def download():
     if not os.path.exists(os.path.join(GERBERS, 'V1.1.GML')):
         with zipfile.ZipFile(os.path.join(BUILD, 'Futura_Gerber.zip')) as z:
             z.extractall(GERBERS, [n for n in z.namelist() if n.startswith('V1.1.') and '/' not in n])
+    with open(os.path.join(BUILD, 'controller-sample.c')) as f:
+        text = f.read()
+    for old, new in SAMPLE_FIXES:
+        if text.count(old) != 1:
+            raise RuntimeError(f'controller-sample.c: {old!r} not found once')
+        text = text.replace(old, new)
+    if not os.path.exists(SAMPLE) or open(SAMPLE).read() != text:     # rewritten only when its mends change
+        os.makedirs(os.path.dirname(SAMPLE), exist_ok=True)
+        with open(SAMPLE + '.part', 'w') as f:
+            f.write(text)
+        os.replace(SAMPLE + '.part', SAMPLE)
 
 
 # ---- From its firmware (user_Libraries) --------------------------------------------------------------------------
 PWM_PERIOD = 1000                               # TIM4: ARR 999, 21 kHz (pwm.c)
-PWM_DEMO = 100                                  # main.c: setLeftPwm(100), setRightPwm(100)
 ADC_FULL = 4095                                 # 12 bits, 3.3 V
 # The IR receivers' ADC channels (adc.h) and the pin that lights each one's emitter (led.h): GPIO port, bit.
 IR_CHANNELS = {'LF': (9, ('C', 7)), 'RF': (4, ('C', 1)), 'DL': (8, ('A', 7)), 'DR': (5, ('A', 7))}
@@ -152,8 +175,8 @@ SKATE_Y_MM = 45.0                               # assumed (no hole for it): unde
 GROUND_Z_MM = -WHEEL_RADIUS_MM
 
 # ---- Assumed (nothing measured) ----------------------------------------------------------------------------------
-# The IR pairs: the light back as the inverse square of the distance along the beam; its template prints the raw
-# differences and uses no threshold: IR_K gives ~1900 counts (lit minus dark) at 40 mm, ~300 at a cell (100 mm).
+# The IR pairs: the light back as the inverse square of the distance along the beam (its thresholds, fw/main.c, are
+# measured on it): IR_K gives ~1900 counts (lit minus dark) at 40 mm, ~300 at a cell (100 mm).
 IR_K = 1900 * 40.0 ** 2
 IR_AMBIENT = 60                                 # counts, emitters off (the maze's lighting)
 IR_FAR_MM = 400.0
@@ -178,5 +201,6 @@ TIRE_FRICTION = 0.8
 
 # ---- Its start (ratasim/start.py) --------------------------------------------------------------------------------
 def start(cell=(0, 0), heading_deg=0.0):
-    """Its template has no start: put down, switched on, it beeps and runs its test loop (main.c)."""
+    """It has no start (its template's main() has none, fw/main.c neither): put down, switched on, it beeps and runs
+    (fw/main.c)."""
     return [('put_down', cell, heading_deg), ('say', f'put down in cell {cell}, switched on'), ('wait', 10)]

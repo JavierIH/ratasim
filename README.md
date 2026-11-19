@@ -53,7 +53,7 @@ cells of 180 mm).
 </tr>
 <tr>
 <td align="center">STM32G474 · 4 IR · gyro · fan</td>
-<td align="center">STM32F405 · 4 IR · gyro · its kit's test loop</td>
+<td align="center">STM32F405 · 4 IR · gyro · its page's controller sample</td>
 <td align="center">ATmega328P · 4 IR · N20 motors</td>
 </tr>
 </table>
@@ -206,13 +206,15 @@ front of its front sensors; two seconds' beep and it goes. It needs g++ 13 or cl
 ratasim futura --maze oshwdem2026 --echo --record futura.mp4
 ```
 
-The kit mouse of UCLA IEEE's Project Futura, with the firmware template its students start from (downloaded from its
-page on the first run): a beep, "mous" on its display, then once a second its four IR pairs, gyro, battery and
-encoders printed on its serial port (`--echo`) and both motors at 100 of 999. It steers by nothing: put down in the
-start cell and switched on, it rolls ahead to the wall that ends the column and stays against it, its front sensors
-printing that wall.
+The kit mouse of UCLA IEEE's Project Futura, with the firmware template its students start from and the controller
+sample its page gives them (both downloaded from its page on the first run), around a main routine of ratasim's
+([robots.md](docs/robots.md#futura)). The sample's speed profile and PD controller every millisecond take it from
+cell to cell at 0.5 m/s, kept in the middle by its side IR pairs; at a wall it stops in the cell's middle and pivots
+on its gyro, left, then right, then back, until the way is open. It searches nothing: in the OSHWDEM 2026 maze it
+goes up the west column and round to the north rows, and from 33 s on runs to and fro between two dead ends. Its
+serial port (`--echo`) prints each cell, wall and pivot.
 
-![Futura at the end of the start column](docs/images/maze-futura.jpg)
+![Futura in the north rows of the OSHWDEM 2026 maze](docs/images/maze-futura.jpg)
 
 ### UKMARSBOT in a maze
 
@@ -286,7 +288,8 @@ ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's and Fujin's repositories 
 4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,
 Eurobotics Engineering) GPLv2+; Gamusino's gyro library, STM32duino LSM6DSR (STMicroelectronics, BSD-3), is
 downloaded at build time. Futura's page (Green Ye, micromouseusa.com) gives no licence: its firmware template, its
-board's Gerber files and its printed parts are downloaded at build time, pinned by their SHA-256, and stay out of git; ST's library is not used
+controller sample, its board's Gerber files and its printed parts are downloaded at build time, pinned by their
+SHA-256, and stay out of git; ST's library is not used
 (`ratasim/futura/fw` simulates the part of its API the template calls). Fujin's team's photos of its board
 (raiju.team), its art's only source, are downloaded at build time, pinned by their SHA-256, and stay out of git.
 The meshes made from ZoroBot3's, Gamusino's, Bulebule's and Fujin's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.

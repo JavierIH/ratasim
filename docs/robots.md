@@ -235,13 +235,14 @@ downloads)
 
 The kit mouse of Project Futura (2014): a pre-made mouse lent to UCLA IEEE's returning members, to learn the software
 on it before making their own. Its page gives its firmware template, its schematic (V1.1), its Gerber files, its
-printed parts and eight lectures. Of its maker's own mice (Green Giant, 2012-2017) only the schematics and layouts
-are published, no firmware: Futura is the one with code.
+printed parts, eight lectures and a controller sample. Of its maker's own mice (Green Giant, 2012-2017) only the
+schematics and layouts are published, no firmware: Futura is the one with code.
 
-- **Firmware:** its kit's template, `FuturaProject.zip` (its Keil µVision project, `micromouse_test`), downloaded
-  from its page at build time and checked against its SHA-256 (`ratasim/futura/config.py`); its page's certificate
-  has expired, so if the download is refused for it, it is fetched unchecked and the hash vouches for it
-  (`FUTURA_DOWNLOADS`: a directory with the zip, instead). Its own files, `user/` and `user_Libraries/`, unchanged,
+- **Firmware:** its kit's template, `FuturaProject.zip` (its Keil µVision project, `micromouse_test`), and its
+  page's controller sample, `controller-sample.c` (2016), downloaded from its page at build time and checked against
+  their SHA-256 (`ratasim/futura/config.py`); its page's certificate has expired, so if the download is refused for
+  it, it is fetched unchecked and the hash vouches for it (`FUTURA_DOWNLOADS`: a directory with the files, instead).
+  The template's own files, `user/` and `user_Libraries/`, unchanged but for its `main.c`,
   for its STM32F405 at 168 MHz on a simulated chip (`ratasim/futura/fw/`): ST's Standard Peripheral Library (in the
   zip, under ST's licence) is not used; `include/stm32f4xx.h` and `fchip.c` give the part of its API the template
   calls, its peripherals as host memory. Its `main()` in a coroutine on a clock of CPU cycles that moves where it
@@ -253,9 +254,23 @@ are published, no firmware: Futura is the one with code.
   its `printf` through its own `fputc` on USART1 at 9600 baud, each byte taking its time. Two words of it differ
   from Keil's C for gcc, and the build bridges them without touching its files: `matrixDisplay.h` declares the font
   `static` and `matrixDisplay.c` defines it (that file is built with the word dropped), and `fputc` and `printf`
-  are renamed to the chip's (Keil's library calls `fputc`). What it runs (`user/main.c`): a 2 s beep, then over
-  and over its IR pairs, gyro, battery and encoders read and printed, "mous" on its display, both motors at 100 of
-  999, a second's wait. Its buttons' handlers are empty; it reads nothing from its serial port.
+  are renamed to the chip's (Keil's library calls `fputc`). The template's `main.c` (a loop printing its sensors
+  once a second, both motors at 100 of 999: it rolls to the first wall) gives way to `ratasim/futura/fw/main.c`,
+  which runs the controller sample as its lecture (Lecture 3) and its guide to testing it lay out. The sample is
+  lecture code, never compiled as it is: its globals, its units' conversions (`speed_to_counts`), its thresholds'
+  names and switches are left to the students, and `fw/include/controller.h` gives them; three of its words are
+  misspelt (`guroFeedback`, `LFvalues1`, `RFvalve2`) and its `moveOneCell` has neither type nor parentheses, which
+  the same header gives; two places no compiler takes are mended at build time (a cast before nothing in
+  `needToDecelerate()`, put on the distance its comment's equation divides by, and a comment's end no comment
+  opens), and its rotational feedback takes its IR pairs' error, the line its comment gives "if you use IR sensor as
+  well" (the guide's step 5). Its own values stay (its gains, its 6 m/s² accelerations, its `moveSpeed` of 0.5 m/s);
+  ratasim's `main.c` adds the least to run it: the sample's `systickHandler` (its IR pairs, its side pairs' error
+  in a cell's run, its gyro, `speedProfile()` every millisecond), `maxSpeed` brought down to `moveSpeed` (the guide's
+  step 2, a low constant speed: its profile otherwise speeds up to 2 m/s and back in every cell, and its wheels slip
+  out of line), the guide's pivot turn (step 6: `targetSpeedX` 0, `targetSpeedW` a constant, the gyro's angle to end
+  it), its thresholds measured in the simulator as its students would on the mouse, and a loop: `moveOneCell()` one
+  cell after another until its front pairs see a wall in the cell's middle, a stop, and a look for the way on, a
+  pivot left, then right, then back. Its buttons' handlers are empty; it reads nothing from its serial port.
 - **Model:** its board from its Gerber files (`Futura_Gerber.zip`, V1.1, downloaded and pinned as the firmware;
   `ratasim/futura/pcb.py`): its outline (74 x 100 mm, its nose an arc, a 9 x 32 mm notch each side for a wheel),
   its two faces textured from its layers (copper under the mask, tinned pads, silkscreen, holes), and its parts
@@ -272,18 +287,22 @@ are published, no firmware: Futura is the one with code.
   top, its skate, its tyres.
 - **Sensors:** its schematic's four SFH4545 emitters and TEFT4300 phototransistors, placed by its Gerbers: LF and RF
   at the board's edges looking ahead, 7° out; DL and DR by its middle, 60° out to the sides (`config.py`); each pair
-  seen from between its two lenses' tips. Its template prints the raw difference lit minus dark and has no
-  threshold: the light back assumed as the inverse square of the distance along the beam, ~1900 counts at 40 mm,
-  ~300 at a cell. Its LY3200ALH gyro (0.67 mV/dps) at the template's own zero (1859.6 counts), its battery through
-  its divider (the template's 809/3248).
+  seen from between its two lenses' tips. Its firmware reads the difference lit minus dark: the light back assumed
+  as the inverse square of the distance along the beam, ~1900 counts at 40 mm, ~300 at a cell (`main.c`'s
+  thresholds are measured on it). Its LY3200ALH gyro (0.67 mV/dps) at the template's own zero (1859.6 counts), its
+  battery through its divider (the template's 809/3248).
 - **Physics, assumed:** 85 g, 2S 120 mAh (its kit's batteries); its motors "a 6V faulhaber" (its `pwm.c`): a
   Faulhaber 1717 006 SR, geared 12:40 as its maker's Green Giant; its encoders counted as 512 lines x4 a motor turn
   (its encoder boards read a magnetic ring by the wheel with an AS5304/AS5306, whose counts a turn depend on a ring
-  its page does not name); its printed 32 mm wheels with a 1 mm tyre. At 100 of 999 it rolls at about 0.85 m/s.
-- **Run:** `ratasim futura --maze oshwdem2026 [--echo] [--headless] [--record out.mp4] [--max-s 15]`: put down in the
-  start cell, facing north, and switched on. In the OSHWDEM 2026 maze it rolls ten cells up the west column, from
-  0.35 s to 2.3 s, and stays against the wall that ends it (a touch a second, reported), its four sensors printing
-  ~4000. `--echo` prints its serial port.
+  its page does not name); its printed 32 mm wheels with a 1 mm tyre.
+- **Run:** `ratasim futura --maze oshwdem2026 [--echo] [--headless] [--record out.mp4] [--max-s 60]`: put down in the
+  start cell, facing north, and switched on. A beep, "run " on its display, and a second later it goes: cell after
+  cell at 0.5 m/s, kept within 6 mm of the cells' middle; at each wall it stops in the cell's middle (its front
+  pairs ~1900) and turns to the first open way, left, right or back (its pivots within 2° and corrected by its side
+  walls after). In the OSHWDEM 2026 maze it goes ten cells up the west column, round the north-west corner and
+  along the north rows (40 cells in 33 s); from then on it runs to and fro between two dead ends of the north row,
+  (1,14) and (6,13): 65 cells and 46 pivots in a minute, touching no wall. `--echo` prints its serial port: each
+  cell, wall and pivot.
 
 ## UKMARSBOT
 

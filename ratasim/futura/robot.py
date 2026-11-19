@@ -1,7 +1,7 @@
-"""Futura simulated: MuJoCo physics, its motors, encoders, IR pairs and gyro around its firmware template (futura/fw,
-through ctypes). Every millisecond: inputs to the chip (what the encoders counted, the phototransistors' inputs lit
-and dark, the gyro, the battery), 1 ms of its firmware (main() until the millisecond, then SysTick's interrupt), its
-PWM to motor torques, two physics steps of 0.5 ms.
+"""Futura simulated: MuJoCo physics, its motors, encoders, IR pairs and gyro around its firmware (its kit's template
+and its page's controller sample, futura/fw, through ctypes). Every millisecond: inputs to the chip (what the encoders
+counted, the phototransistors' inputs lit and dark, the gyro, the battery), 1 ms of its firmware (main() until the
+millisecond, then SysTick's interrupt), its PWM to motor torques, two physics steps of 0.5 ms.
 
 Its IR pairs: each phototransistor's input with its emitter lit is IR_K over the square of the distance to the wall
 along its beam (three rays across it, their harmonic mean), with noise, over the dark input (config.py: assumed).
@@ -136,10 +136,10 @@ class FRobot:
 
     # ---- the operator ------------------------------------------------------------------------------------------
     def press(self, button, ms=100):
-        raise ValueError("Futura's template does nothing with its buttons (their handlers are empty)")
+        raise ValueError("Futura's firmware does nothing with its buttons (their handlers are empty)")
 
     def send(self, line):
-        raise ValueError("Futura's template reads nothing from its serial port")
+        raise ValueError("Futura's firmware reads nothing from its serial port")
 
     def cover(self, sensors, ms=300):
         self.hand.sensors, self.hand.until = tuple(sensors), self.fw.time_ms() + ms

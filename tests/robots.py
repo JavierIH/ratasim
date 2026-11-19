@@ -7,9 +7,9 @@ A check fails when the firmware does not build, stops, or the robot does not do 
 goal and back, then race 2.4 on its map; ZoroBot3: its exploration to the goal; Bulebule: its exploration, to the
 goal and back to its start cell, its path saved; Fujin: its search to the goal and back; UKMARSBOT: its search to
 the goal and back to the start; NezumiBot and Perenquén: their wall following, away from the start; Gamusino: its
-1.5 m and back; Futura: its kit's test loop, its sensors printed as it rolls to the wall that ends the start
-column). Wall touches fail the robots that run clean (Ratatron, NezumiBot); for the others, whose touches are known
-(robots.md), they are only reported. The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron, ZoroBot3,
+1.5 m and back; Futura: its controller sample's cells and pivots, up to the maze's north rows). Wall touches fail the
+robots that run clean (Ratatron, NezumiBot, Futura); for the others, whose touches are known (robots.md), they are
+only reported. The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron, ZoroBot3,
 Fujin and UKMARSBOT, which reach the goal, fail without one.
 A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
 ZoroBot3's meshes need its STEP (not in the repository, README): without it only its firmware is built.
@@ -159,21 +159,25 @@ def perenquen():
 
 
 def futura():
-    """Its template: its display shows "mous", it prints a line of its sensors a second, it rolls out of the start
-    cell to the wall that ends the column, and its front sensors print that wall (the light back, lit minus dark)."""
+    """Its kit's template with its page's controller sample (fw/main.c): "run " on its display, cells one after
+    another to the walls, a stop in the middle of the cell and pivots to look for the way on, left, right and back.
+    In 60 s it runs clean, at least 25 cells and 10 pivots, up the west column and round to the maze's north rows."""
     fails = []
-    out = run(['futura', '--headless', '--echo', '--maze', MAZE, '--max-s', '15'])
-    pose = common(out, fails, clean=False)
-    if 'its display: "mous"' not in out:
-        fails.append('its display never showed "mous"')
-    m = re.search(r'its serial port: (\d+) lines', out)
-    if not m or int(m[1]) < 12:
-        fails.append(f'its serial port: {m[1] if m else "no"} lines (one a second)')
-    if not far_from(pose, (90, 90), 4 * 180):
-        fails.append(f'still near the start ({pose})')
-    front = [int(v) for v in re.findall(r'LF (\d+) RF', out)]
-    if not front or front[-1] < 2000:
-        fails.append(f'its front sensors do not see the wall it stopped at (LF {front[-1:] or "none"})')
+    out = run(['futura', '--headless', '--echo', '--maze', MAZE, '--max-s', '60'])
+    pose = common(out, fails, clean=True)
+    if 'its display: "run "' not in out:
+        fails.append('its display never showed "run "')
+    cells = [int(v) for v in re.findall(r'^cell (\d+)', out, re.M)]
+    if not cells or cells[-1] < 25:
+        fails.append(f'{cells[-1] if cells else "no"} cells (at least 25)')
+    pivots = re.findall(r'^pivot \d+: (-?\d+) deg', out, re.M)
+    if len(pivots) < 10 or not {'90', '-180', '-90'} <= set(pivots):
+        fails.append(f'{len(pivots)} pivots, {sorted(set(pivots))} deg (at least 10, left, right and back)')
+    walls = [int(v) for v in re.findall(r'^wall ahead: LF (\d+)', out, re.M)]
+    if not walls or min(walls) < 1000:
+        fails.append(f'not stopped in the middle of the cell at a wall (LF {min(walls) if walls else "none"})')
+    if pose is None or pose[1] < 12 * 180:
+        fails.append(f'not up in the north rows ({pose})')
     return fails
 
 

@@ -1,9 +1,11 @@
-"""Futura in the simulator: its kit's firmware template (FuturaProject.zip, as its page gives it) on its simulated
-STM32F405. What it runs (main.c): a beep, then over and over its sensors read and printed on its serial port (the
-four IR pairs, the gyro, the battery, the encoders), "mous" on its display, both motors at 100 of 999 and a second's
-wait. It has no start and steers by nothing: put down in the start cell, facing north, and switched on, it rolls
-ahead at a tenth of its battery until the column ends (in the OSHWDEM 2026 maze, ten cells along its west wall)
-and stays against the wall, its front sensors printing it.
+"""Futura in the simulator: its kit's firmware template (FuturaProject.zip, as its page gives it) with its page's
+controller sample (controller-sample.c) and a main routine of ratasim's for it (fw/main.c), on its simulated
+STM32F405. A beep, "run " on its display, then cells one after another with the sample's moveOneCell() (its speed
+profile and PD controller each millisecond, its encoders and its side IR pairs' error as feedback, 0.5 m/s), to a
+wall seen by its front pairs, where it stops in the cell's middle and looks for the way on: a pivot left (its
+lecture's guide: the gyro's angle ends it), then right, then back. Its serial port prints each cell, wall and pivot.
+In the OSHWDEM 2026 maze it goes up the west column (ten cells), round the north-west corner and along the north
+rows; from 33 s on it runs to and fro between two dead ends of the north row, (1,14) and (6,13).
 
     ratasim futura [--maze oshwdem2026] [--headless] [--record out.mp4] [--max-s N] [--echo]
 """
@@ -28,7 +30,7 @@ def main(argv=None):
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--maze', default='oshwdem2026')
     add_view_args(p)
-    p.add_argument('--max-s', type=float, help='stop after these simulated seconds (default 15; with a window, none)')
+    p.add_argument('--max-s', type=float, help='stop after these simulated seconds (default 60; with a window, none)')
     p.add_argument('--seed', type=int, default=0)
     p.add_argument('--log', help='write everything its firmware prints here')
     p.add_argument('--echo', action='store_true', help='print what its firmware prints')
@@ -36,7 +38,7 @@ def main(argv=None):
     r = FRobot(Maze.load(maze_path(a.maze)), seed=a.seed)
     clock = Stopwatch(r.maze)
     rec = make_view(r, a, 'Futura (Green Ye, UCLA IEEE)', clock=clock)
-    a.max_s = time_limit(a, rec, 15)
+    a.max_s = time_limit(a, rec, 60)
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()
     crash_t = -10000

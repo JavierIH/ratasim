@@ -12,8 +12,9 @@
 //   GPIO        output data registers (its LEDs, its emitters)
 //
 // Time passes where main() waits on the chip: each read of Millis (its delays), of SysTick->VAL (micros()), of a
-// flag (ADC, SPI, USART). When that crosses a millisecond, main() gives the time back to fsim_step(), which runs
-// SysTick's handler then; computation takes no simulated time.
+// flag (ADC, SPI, USART), of what the controller sample's loop polls (fsim_poll()). When that crosses a
+// millisecond, main() gives the time back to fsim_step(), which runs SysTick's handler then; computation takes no
+// simulated time.
 #define _GNU_SOURCE
 #include <stdarg.h>
 #include <stdio.h>
@@ -67,6 +68,12 @@ static void fw_entry(void) {
 volatile u32 *fsim_millis(void) {
   spend(POLL_CYCLES);
   return &millis;
+}
+
+// a variable a waiting loop polls (controller.h: the controller sample's encoderCount), at a pass's time
+volatile int32_t *fsim_poll(volatile int32_t *p) {
+  spend(POLL_CYCLES);
+  return p;
 }
 
 SysTick_Type *fsim_systick(void) {     // its down-counter at this cycle
