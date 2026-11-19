@@ -130,6 +130,21 @@ wall) and switched on, as its maker starts it: green, its gyro measured, blue, i
 
 ![Gamusino on the maze's longest straight](docs/images/maze-gamusino.jpg)
 
+### Bulebule in a maze
+
+```sh
+ratasim bulebule --maze oshwdem2026 --record bulebule.mp4
+```
+
+Its firmware (libopencm3 on its STM32F103, with its library mmlib) on a simulated chip, started as its makers start
+it, with its button and a hand: a press wakes it, a long one picks the classic goal (the maze's centre), short presses
+and a long one its force (0.25 N, its boot's); it blinks, waits with its LEDs on for a hand in front, and 2 s after the
+hand goes it calibrates and goes. It explores to the centre and on, through the cells that could make a shorter path,
+back to its start, and saves the path in its flash (`ratasim/bulebule/build/flash.bin`); `--run` races it from there,
+to the goal and back (it does not get there yet: [robots.md](docs/robots.md#bulebule)).
+
+![Bulebule exploring the OSHWDEM 2026 maze](docs/images/maze-bulebule.jpg)
+
 ### NezumiBot in a maze
 
 ```sh
@@ -175,7 +190,7 @@ without one):
 ratasim/            the simulator: the maze, the physics, Ratatron (its model, sensors, simulated chip in fw/)
 ratasim/zorobot/    ZoroBot3: its model from its STEP, its simulated chip (fw/), its runner
 ratasim/gamusino/   Gamusino: its model from the GLB in its repository, its ESP32 under an Arduino core (fw/), runner
-ratasim/bulebule/   Bulebule: its board from its layout, its parts from KiCad's 3D library
+ratasim/bulebule/   Bulebule: its board from its layout, its parts from KiCad's library, its simulated chip (fw/), runner
 ratasim/nezumibot/  NezumiBot: its assembled 3D model (assets/), its simulated chip (fw/), runner
 ratasim/perenquen/  Perenquén: its meshes from its FreeCAD assembly (assets/, cad.py), its simulated dsPIC (fw/), runner
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share

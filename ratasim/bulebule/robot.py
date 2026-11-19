@@ -4,7 +4,7 @@ emitter adds, the gyro's rate, the button), 1 ms of firmware (16 of its emitters
 main loop until it waits), its motor driver's inputs to torques, two physics steps of 0.5 ms.
 
 Its IR pairs: the light its emitter adds is its own calibration inverted (config.py) for the distance its firmware
-would give the beam's hit (three rays across the beam), with noise; its emitters lit by its own pins, so a reading
+would give the beam's hits (five rays across the beam), with noise; its emitters lit by its own pins, so a reading
 taken with the emitter off is dark.
 """
 import ctypes as C
@@ -56,6 +56,7 @@ class BFirmware:
         lib.bsim_get_motors.argtypes = [C.POINTER(C.c_int16), C.POINTER(C.c_int16), C.POINTER(C.c_uint8), C.POINTER(C.c_uint8)]
         lib.bsim_flash.restype = C.POINTER(C.c_uint8)
         lib.bsim_flash_bytes.restype = C.c_uint32
+        lib.bsim_flash_erases.restype = C.c_uint32
         lib.bsim_uart_rx.argtypes = [C.c_char_p, C.c_uint32]
         lib.bsim_uart_tx.argtypes = [C.c_char_p, C.c_uint32]
         lib.bsim_uart_tx.restype = C.c_uint32
@@ -84,6 +85,10 @@ class BFirmware:
 
     def maze_saved(self):
         return any(b != 0xFF for b in self.flash())
+
+    def flash_erases(self):
+        """How many times its firmware erased its maze's page (it does before each save)."""
+        return self.lib.bsim_flash_erases()
 
     def close(self):
         try:

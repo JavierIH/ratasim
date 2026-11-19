@@ -4,12 +4,13 @@ robot per job; locally, any of them or all:
     python tests/robots.py [ratatron zorobot gamusino bulebule nezumibot perenquen]
 
 A check fails when the firmware does not build, stops, or the robot does not do its run (Ratatron: the search to
-the goal and back, then race 2.4 on its map; ZoroBot3: its exploration to the goal; NezumiBot and Perenquén: their
-wall following, away from the start; Gamusino: its 1.5 m and back). Wall touches fail the robots that run clean
-(Ratatron, NezumiBot); for the others, whose touches are known (robots.md), they are only reported.
+the goal and back, then race 2.4 on its map; ZoroBot3: its exploration to the goal; Bulebule: its exploration, to
+the goal and back to its start cell, its path saved; NezumiBot and Perenquén: their wall following, away from the
+start; Gamusino: its 1.5 m and back). Wall touches fail the robots that run clean (Ratatron, NezumiBot); for the
+others, whose touches are known (robots.md), they are only reported.
 The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron and ZoroBot3, which reach the goal, fail
 without one.
-A robot with a model and no firmware yet (Bulebule) is checked by its model: it builds and stands on the floor.
+A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
 ZoroBot3's meshes need its STEP (not in the repository, README): without it only its firmware is built.
 """
 import math
@@ -190,7 +191,19 @@ def model(name):
 
 
 def bulebule():
-    return model('bulebule')
+    fails = []
+    flash = os.path.join(tempfile.mkdtemp(), 'flash.bin')
+    out = run(['bulebule', '--headless', '--maze', MAZE, '--erase-flash', '--flash', flash, '--max-s', '300'])
+    pose = common(out, fails, clean=False)
+    if 'exploring' not in out:
+        fails.append('not started')
+    if 'its path saved in its flash' not in out:
+        fails.append('its exploration did not end (no path saved)')
+    if far_from(pose, (90, 90), 90):
+        fails.append(f'not back in its start cell ({pose})')
+    if 'Collision detected' in out:
+        fails.append('its firmware detected a collision')
+    return fails
 
 
 ROBOTS = {'ratatron': ratatron, 'zorobot': zorobot, 'gamusino': gamusino, 'bulebule': bulebule,

@@ -239,6 +239,7 @@ int _putchar(char c) {
 
 // ---- Flash: its maze's page at its own address ----
 static uint8_t *flash;
+static uint32_t flash_erases;
 static int flash_map(void) {
   uintptr_t base = FLASH_PAGE & ~0xFFFu;
   void *p = mmap((void *)base, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0);
@@ -257,7 +258,10 @@ static int flash_map(void) {
 }
 void flash_unlock(void) {}
 void flash_erase_page(uint32_t a) {
-  if (a >= FLASH_PAGE && a < FLASH_PAGE + FLASH_PAGE_BYTES) memset(flash, 0xFF, FLASH_PAGE_BYTES);
+  if (a >= FLASH_PAGE && a < FLASH_PAGE + FLASH_PAGE_BYTES) {
+    memset(flash, 0xFF, FLASH_PAGE_BYTES);
+    flash_erases++;
+  }
 }
 uint32_t flash_get_status_flags(void) { return FLASH_SR_EOP; }
 void flash_program_word(uint32_t a, uint32_t data) {
@@ -328,6 +332,7 @@ uint8_t bsim_leds(void) {            // bit 0 left (PB4), bit 1 right (PB5), bit
 uint8_t bsim_speaker(void) { return !(dier[1] & TIM_DIER_UIE); }   // TIM1 given to the speaker
 uint8_t *bsim_flash(void) { return flash; }
 uint32_t bsim_flash_bytes(void) { return FLASH_PAGE_BYTES; }
+uint32_t bsim_flash_erases(void) { return flash_erases; }      // its page erased (before each save)
 
 // Bytes arriving on USART3 (Bluetooth): DMA channel 3 writes them into its receive buffer, then the line goes idle.
 void bsim_uart_rx(const char *data, uint32_t n) {
