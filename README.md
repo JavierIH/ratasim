@@ -143,7 +143,7 @@ ratasim/scenes/     several robots: drag race, crash, loop, pictures
 ratasim/mazes/      competition mazes (micromouseonline text format)
 external/           the robots' repositories (submodules)
 tests/robots.py    every robot in the maze, checked by what it prints (the CI: one job per robot)
-docs/               robots.md (each robot, its authors), simulator.md (Ratatron in detail), plan.md
+docs/               robots.md (each robot, its authors), simulator.md (Ratatron in detail)
 ```
 
 ## Off the maze
