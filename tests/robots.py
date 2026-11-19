@@ -1,13 +1,14 @@
 """Every robot in the OSHWDEM 2026 maze, each run as its makers start it, checked by what it prints. The CI runs one
 robot per job; locally, any of them or all:
 
-    python tests/robots.py [ratatron zorobot gamusino bulebule nezumibot perenquen fujin]
+    python tests/robots.py [ratatron zorobot gamusino bulebule nezumibot perenquen fujin futura]
 
 A check fails when the firmware does not build, stops, or the robot does not do its run (Ratatron: the search to
 the goal and back, then race 2.4 on its map; ZoroBot3: its exploration to the goal; Bulebule: its exploration, to
 the goal and back to its start cell, its path saved; Fujin: its search to the goal and back; NezumiBot and
-Perenquén: their wall following, away from the start; Gamusino: its 1.5 m and back). Wall touches fail the robots
-that run clean (Ratatron, NezumiBot); for the others, whose touches are known (robots.md), they are only reported.
+Perenquén: their wall following, away from the start; Gamusino: its 1.5 m and back; Futura: its kit's test loop,
+its sensors printed as it rolls to the wall that ends the start column). Wall touches fail the robots that run
+clean (Ratatron, NezumiBot); for the others, whose touches are known (robots.md), they are only reported.
 The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron, ZoroBot3 and Fujin, which reach the goal, fail
 without one.
 A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
@@ -157,6 +158,25 @@ def perenquen():
     return wall_follower(['perenquen', '--side', 'right', '--gain', '30'], clean=False)
 
 
+def futura():
+    """Its template: its display shows "mous", it prints a line of its sensors a second, it rolls out of the start
+    cell to the wall that ends the column, and its front sensors print that wall (the light back, lit minus dark)."""
+    fails = []
+    out = run(['futura', '--headless', '--echo', '--maze', MAZE, '--max-s', '15'])
+    pose = common(out, fails, clean=False)
+    if 'its display: "mous"' not in out:
+        fails.append('its display never showed "mous"')
+    m = re.search(r'its serial port: (\d+) lines', out)
+    if not m or int(m[1]) < 12:
+        fails.append(f'its serial port: {m[1] if m else "no"} lines (one a second)')
+    if not far_from(pose, (90, 90), 4 * 180):
+        fails.append(f'still near the start ({pose})')
+    front = [int(v) for v in re.findall(r'LF (\d+) RF', out)]
+    if not front or front[-1] < 2000:
+        fails.append(f'its front sensors do not see the wall it stopped at (LF {front[-1:] or "none"})')
+    return fails
+
+
 def model(name):
     """A robot with no firmware yet: its model builds, and after 2 s on a floor it still stands where it was put."""
     import importlib
@@ -222,7 +242,8 @@ def fujin():
 
 
 ROBOTS = {'ratatron': ratatron, 'zorobot': zorobot, 'gamusino': gamusino, 'bulebule': bulebule,
-          'nezumibot': nezumibot, 'perenquen': perenquen, 'fujin': fujin}
+          'nezumibot': nezumibot, 'perenquen': perenquen, 'fujin': fujin,
+          'futura': futura}
 
 
 def main(names):

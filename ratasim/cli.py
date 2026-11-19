@@ -8,6 +8,7 @@
     ratasim perenquen [options]     Perenquen in a maze
     ratasim bulebule [options]      Bulebule in a maze
     ratasim fujin [options]         Fujin in a maze
+    ratasim futura [options]        Futura in a maze
     ratasim crash|loop|drag-race OUT.mp4 [options]   scenes with both robots (videos)
     ratasim portraits [DIR]         a square picture of each robot
     ratasim help                    this
@@ -29,6 +30,7 @@ COMMANDS = {
     'nezumibot': 'ratasim.nezumibot.run',
     'perenquen': 'ratasim.perenquen.run',
     'bulebule': 'ratasim.bulebule.run',
+    'futura': 'ratasim.futura.run',
     'zorobot': 'ratasim.zorobot.run',
     'crash': 'ratasim.scenes.crash',
     'loop': 'ratasim.scenes.loop',
