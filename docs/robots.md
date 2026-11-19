@@ -3,7 +3,8 @@
 Every robot is a package of `ratasim/` with the same parts: its **model** (meshes from its CAD, collisions from simple
 shapes), its **physics** (mass, motors, tires; what was measured apart from what is assumed), its **sensors** (IR rays
 through its firmware's own calibration, encoders, gyro), its **firmware**, compiled for the host from its
-repository (a submodule of `external/`) on a simulated chip, and its **start**: what its makers do to start it
+repository (a submodule of `external/`) on a simulated chip (Miniskybot's, whose authors publish none for a maze,
+is ours: see its section), and its **start**: what its makers do to start it
 (buttons, a hand in front of a sensor, held in the air, commands typed over its serial link), a sequence in its config (`start()`) that
 `ratasim/start.py` plays with the hand of `ratasim/hand.py`, which every sensor sees. The pictures:
 `ratasim portraits`.
@@ -370,3 +371,60 @@ By the [UK Micromouse and Robotics Society](https://ukmars.org/projects/ukmarsbo
   back). Its turns' geometry is its own: its right turn starts 15 mm later than its left one (its config, tuned on
   ORION), and ends 17 mm off the centre line on a robot that follows its profile exactly, which its steering takes
   out where there are walls beside it.
+
+## Miniskybot
+
+<img src="images/robots/miniskybot.jpg" width="220" align="right">
+
+By [Juan González-Gómez (Obijuan)](https://github.com/Obijuan), Andrés Prieto-Moreno, Miguel Ángel de Frutos and
+Antonio Barrientos · [Obijuan/Miniskybot](https://github.com/Obijuan/Miniskybot) (GPL or CC BY-SA, its README) ·
+its page: [Miniskybot 2](http://www.iearobotics.com/wiki/index.php?title=Miniskybot_2) (CC BY-SA 3.0 ES)
+
+A 3D printable robot for teaching (2012), not a micromouse: two Futaba S3003 servos hacked for continuous
+rotation, a ball caster, an SRF02 ultrasonic ranger in its front, a Skymega board (Obijuan's Arduino, an ATmega328
+at 16 MHz) and four AAA cells. No encoders, no gyro, one sensor.
+
+- **Program: ours, not its authors'.** Its repository has its library and three examples (its motors, two digital
+  IR sensors, a line follower), nothing for a maze; it is here as the exception to "its own firmware", with a
+  program of ratasim's (`ratasim/miniskybot/fw/miniskybot/miniskybot.ino`), written for it as it is, in Arduino C++
+  on its Skymega: its servos on `SERVO2` and `SERVO4` driven as Obijuan's examples drive them (`write(0)`,
+  `write(180)`, stopped at 90), its SRF02 read over I2C as its data sheet says (the command, 66 ms, two registers),
+  its button and LED. What it does: it goes straight on, ranging every 70 ms; when a wall is near ahead (24 cm, the
+  far side of the next cell) it stops and squares up to it, then goes on to the middle of its cell, by time from
+  the range it measured, and turns 90°, by time, to the side it tries first; if the way there is closed it looks
+  the other way, then back. The side it tries first changes at every cell it turns in, so that a corridor does not
+  lead it back to the same one every time. Why each piece: with no encoders its moves are timed (its speed and its
+  turns measured in the simulator, as one would measure them on the robot), and its servos take a pulse every
+  20 ms, so each turn is up to 4° off; in a corridor 168 mm wide with 39 mm on each side of it, a few turns of
+  that and it meets walls askew. Squaring up uses its one sensor: a flat wall echoes ultrasound back only while it
+  faces it within its beam, so it turns slowly left to where the echo ends, right across to where it ends on that
+  side, and back half that: square to the wall, at every wall it meets. When it is nearer a wall than its ranger's
+  16 cm minimum it backs off to where it can range; when its range does not change for 3 s (against a wall met
+  askew, which echoes nothing back) it backs off and turns. It searches nothing and does not go for the goal.
+- **Chip:** its Skymega's ATmega328 under a small Arduino core of the simulator's own (`ratasim/miniskybot/fw/`:
+  `mchip.cpp`, `arduino/`): `setup()` and `loop()` in a coroutine, time moving where it waits and by what its calls
+  cost; `Servo` (each pin's pulse, read by the simulator every 20 ms), `Wire` with the SRF02 on its bus (address
+  0xE0, its registers, deaf while ranging, each byte at 100 kHz), its pins (the test button to ground on D12, the
+  test LED on D13, as the Skymega's schematic and pin table give them), its serial port. Its servo connectors'
+  pins in our `skymega.h`, from the Skymega's pin table (its own `skymega.h` was on iearobotics' SVN, no longer
+  online).
+- **Model:** as its OpenSCAD model's `show_robot()` assembles it (`parts/Openscad/main.scad`), from the STL files its
+  repository ships: its printed chassis (exported upside down for printing, turned back), its battery holder, its
+  two S3003 and its wheels on their horns, white as in its photo. Drawn from its parts list and photo: the O-rings
+  on its wheels (Ø50 x 3 mm in the V of the Ø56 rim: a 30.1 mm tyre), its black 4-arm horns, the Ø16 marble of its
+  caster, its SRF02 (`fake_ultrasound.scad`'s board and transducer, black) and the Skymega on four spacers, its
+  parts plainly (not from its files). Collisions: a box round its chassis and holder, its ranger, its board, its
+  marble, its tyres.
+- **Sensor:** its SRF02's echo: rays across its beam (55° wide), level from its transducer's face; a wall echoes
+  where a ray meets it within 10° of square (ultrasound is mirrored, not scattered, by a flat wall); small faces
+  (posts, the ends of walls) only within 8° of its axis; the nearest such echo is its range, 3 mm of noise, 16 cm
+  at least (its minimum), nothing beyond 6 m.
+- **Physics, assumed:** its S3003 as their data sheet gives them at 4.8 V (four AAA NiMH): 43 rpm free (0.23 s for
+  60°), 3.2 kgf·cm stalled, driven in proportion to the pulse's distance from its middle, at full beyond 150 µs,
+  stopped at `write(90)` (1472 µs: their pots trimmed so); 137 mm/s at full. 230 g by its parts (its servos 37 g
+  each, its cells, its printed parts by their STL's volume, its board). Its O-rings' friction 0.6 on floor and walls:
+  with MuJoCo's default of 1 against the walls its Ø60 wheels, meeting a 50 mm wall askew, climb it and turn it over.
+- **Run:** `ratasim miniskybot --maze oshwdem2026 [--echo] [--record out.mp4]`: switched on in the start cell, its
+  button pressed; a second later it goes. `--echo` prints what it says (each wall, its squaring, each turn). In the
+  OSHWDEM 2026 maze it goes up the west column and round the north-west of the maze: in 300 s, 46 to 50 cells with
+  four seeds of its sensor's noise, 23 to 42 wall touches (against posts and walls met askew), never stuck nor over.

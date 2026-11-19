@@ -56,11 +56,27 @@ cells of 180 mm).
 <td align="center">STM32F405 · 4 IR · gyro · its page's controller sample</td>
 <td align="center">ATmega328P · 4 IR · N20 motors</td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="docs/robots.md#miniskybot"><img src="docs/images/robots/miniskybot.jpg" width="250"><br><b>Miniskybot</b></a></td>
+<td width="33%"></td>
+<td width="33%"></td>
+</tr>
+<tr>
+<td align="center">by <a href="https://github.com/Obijuan">Obijuan</a> · <a href="https://github.com/Obijuan/Miniskybot">repo</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td align="center">ATmega328 · 1 ultrasonic · hacked servos · ratasim's program, not its authors'</td>
+<td></td>
+<td></td>
+</tr>
 </table>
 
 Each robot's firmware comes from its own repository, a submodule of `external/` pinned to a commit (Futura's, which
 has none, from its page at build time, pinned by its hash); its authors are credited in [robots.md](docs/robots.md),
-with what was taken from where.
+with what was taken from where. The exception is Miniskybot, a teaching robot whose authors publish no program for
+a maze: it runs one of ratasim's, written for it ([robots.md](docs/robots.md#miniskybot)).
 
 ## Getting started
 
@@ -95,7 +111,7 @@ The console stays open meanwhile: `MODE 2 6` and `START` (or `:select`, `:start`
 `--console`: not started, only the console. In the viewer, Page Up is its SELECT button, Page Down its START and
 End puts it back at the start.
 
-The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen|fujin|futura|ukmarsbot`) also open MuJoCo's window, at real time
+The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen|fujin|futura|ukmarsbot|miniskybot`) also open MuJoCo's window, at real time
 (`--record-speed 2` for twice that); with `--headless`, or `--record out.mp4` (a video instead of the window), or no
 screen, they run without it.
 
@@ -230,6 +246,22 @@ wall follower to the goal; `--console`: its serial command line afterwards).
 
 ![UKMARSBOT searching the OSHWDEM 2026 maze](docs/images/maze-ukmarsbot.jpg)
 
+### Miniskybot in a maze
+
+```sh
+ratasim miniskybot --maze oshwdem2026 --echo --record miniskybot.mp4
+```
+
+Obijuan's printable robot, two hacked servos and an ultrasonic ranger on an Arduino (its Skymega's ATmega328,
+simulated), with **a program of ratasim's, not its authors'** (they publish none for a maze;
+[robots.md](docs/robots.md#miniskybot)): it goes straight on until its ranger sees a wall near ahead, squares up to
+it with the ranger's echo, stops in the middle of the cell and turns, by time (it has no encoders), to a way that
+is open, trying first one side and then the other. It searches nothing: in the OSHWDEM 2026 maze it wanders the
+west column and the north-west of the maze. Switched on in the start cell, its button pressed; `--echo` prints what
+it says.
+
+![Miniskybot in the OSHWDEM 2026 maze](docs/images/maze-miniskybot.jpg)
+
 ## The stopwatch
 
 Every runner times the robot's runs as at a competition: the stopwatch starts when the robot's centre leaves the
@@ -276,6 +308,7 @@ ratasim/perenquen/  Perenquén: its meshes from its FreeCAD assembly (assets/, c
 ratasim/fujin/      Fujin: its model from its STEP and its board's photos (cad.py, board.py), its firmware on our BSP and simulated STM32G474 (fw/), runner
 ratasim/futura/     Futura: its files downloaded at build time, its model, its simulated STM32F405 and ST library (fw/)
 ratasim/ukmarsbot/  UKMARSBOT: its model from its KiCad boards and Gerbers (cad.py, pcb.py), its Nano's ATmega328P (fw/)
+ratasim/miniskybot/ Miniskybot: its model from its STL files, its Skymega's ATmega328 and our program for it (fw/)
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
 ratasim/start.py    starting a robot as its makers do (its config's sequence), with the hand of hand.py
 ratasim/stopwatch.py the runs' times, from the start cell to the goal (every robot)
@@ -298,7 +331,8 @@ runs are replayed in one maze, each from the moment it leaves the start cell, th
 
 The other scenes have no firmware: each robot follows the speed profile its firmware gives its straights
 (Ratatron's race preset, ZoroBot3's `SPEED_HAKI`, Fujin's "super" forward with its fan, UKMARSBOT's fast run,
-Bulebule's speed limit at its force, Futura's, Perenquén's, Gamusino's; NezumiBot's 40 % PWM) and keeps its lane;
+Bulebule's speed limit at its force, Futura's, Perenquén's, Gamusino's; NezumiBot's 40 % PWM; Miniskybot's servos at
+full) and keeps its lane;
 Ratatron's and ZoroBot3's motor models, the others a speed servo as quick as Ratatron's.
 
 Minisumo puts them all at once on a minisumo dohyo (77 cm across with its 2.5 cm white border, 2.5 cm high),
@@ -313,9 +347,10 @@ black and goes on to the podium: its first three (two with two robots) on their 
 
 ```sh
 ratasim maze-race maze-race.mp4     # Ratatron, ZoroBot3, Bulebule, Fujin, UKMARSBOT: their searches, x4
-ratasim drag-race race.mp4          # 3 m, all nine: start lights, lanes, a checkered finish
+ratasim drag-race race.mp4          # 3 m, all ten: start lights, lanes, a checkered finish
 ratasim drag-race race.mp4 --robots fujin,zorobot
-ratasim minisumo sumo.mp4           # all nine on one dohyo, the last one left wins (all nine: Fujin, at 12.0 s)
+ratasim minisumo sumo.mp4           # all ten on one dohyo, the last one left wins (all ten: Miniskybot, the
+                                    # nearest the centre at 30 s; the nine before it, as in the pictures: Fujin)
 ratasim minisumo sumo.mp4 --robots ratatron,zorobot,fujin
 ratasim minisumo --still podium.jpg --podium    # a picture of the podium after the bout, with its fireworks
 ratasim crash crash.mp4 --ramp      # Ratatron and ZoroBot3 head-on on the maze's longest straight, over a ramp
@@ -339,4 +374,5 @@ controller sample, its board's Gerber files and its printed parts are downloaded
 SHA-256, and stay out of git; ST's library is not used
 (`ratasim/futura/fw` simulates the part of its API the template calls). Fujin's team's photos of its board
 (raiju.team), its art's only source, are downloaded at build time, pinned by their SHA-256, and stay out of git.
-The meshes made from ZoroBot3's, Gamusino's, Bulebule's and Fujin's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
+Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES); the program it runs here is
+ratasim's. The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's and Miniskybot's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
