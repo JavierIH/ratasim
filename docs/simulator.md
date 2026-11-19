@@ -5,13 +5,21 @@ black floor, white walls 50 x 12 mm with red tops, 180 mm cells, 12 mm posts wit
 Code: `ratasim/` (the ZoroBot3 part: `ratasim/zorobot/`, [robots.md](robots.md#zorobot3)).
 
 ```
-ratasim                              # viewer + console on stdin; a generated maze (seed 1)
+ratasim                              # viewer + console on stdin; a generated maze (seed 1); started: the search
 ratasim --maze oshwdem2026           # a maze of ratasim/mazes, or any micromouseonline maze file
-ratasim --headless --speed 0 --erase-flash --cmd "MODE 1" --cmd START --until-idle
+ratasim --maze oshwdem2026 --race 4  # started on race 2.4 of its race menu, on the map the search saved
+ratasim --headless --speed 0 --erase-flash          # the search, headless: it ends 8 s after the run
+ratasim --headless --speed 0 --cmd "MODE 1" --cmd START --until-idle   # a script instead of its start
 ratatron connect --sim               # then ratatron monitor / ratatron send, as with the robot (its tools:
                                      # pip install -e external/ratatron/software)
 ```
 
+- Its start, as its maker starts it at a competition
+  ([its usage](https://github.com/JavierIH/ratatron/blob/develop/docs/usage.md)): `start()` in `ratasim/config.py`,
+  played by `ratasim/start.py` with the console and the viewer running. Switched on in the start cell facing north,
+  SELECT after the boot picks mode 1 and START launches the search after a 5 s countdown. `--race K`: SELECT twice
+  (mode 2), START opens the race menu, SELECT K-1 times, START. `--cmd` lines (a script) or `--console`: not
+  started, only the console. Headless and started, it quits 8 s after its run.
 - Console lines go to the firmware as over Bluetooth; `:start`, `:select` press the buttons, `:place x y N`,
   `:reset`, `:erase-flash`, `:speed f`, `:wait-idle` (scripts), `:quit`. Viewer: Page Up = SELECT,
   Page Down = START, End = back to the start. The viewer needs a screen: else `--headless` (`--record out.mp4`).

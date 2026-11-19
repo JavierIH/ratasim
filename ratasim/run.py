@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """RATATRON in MuJoCo: the robot's firmware (firmware/src, unchanged) driving the CAD robot in a 16x16 maze.
 
-    ratasim                               # random maze (seed 1), viewer, console on stdin
+    ratasim [ratatron]                    # random maze (seed 1), viewer, console on stdin; started: the search
     ratasim --maze oshwdem2026                     # a maze of ratasim/mazes, or any maze file (micromouseonline)
+    ratasim --maze oshwdem2026 --race 4            # race 2.4 on the map the search saved
     ratasim --headless --speed 0 --cmd "MODE 1" --cmd START --until-idle
+
+Its start (config.start(), played by ratasim/start.py), as at a competition: switched on in the start cell, SELECT
+picks mode 1, START launches the search after a 5 s countdown; --race k: race k of its race menu instead. --cmd
+lines (a script) or --console: no start, only the console. Headless, it ends 8 s after the run it started.
 
 Console: every line goes to the firmware as over Bluetooth (MODE 1, START, STOP, MAP, STATUS, ...), except
     :start :select      press a button          :place x y [N|E|S|W]   put the robot at a cell centre
@@ -22,9 +27,11 @@ import time
 
 from . import paths
 from .firmware import STATE_NAMES, build
+from .config import start as ratatron_start
 from .maze import Maze
 from .robot import Robot
 from .stopwatch import Stopwatch
+from .start import actions
 
 KEY_PAGE_UP, KEY_PAGE_DOWN, KEY_END = 266, 267, 269
 MAZES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mazes')
@@ -59,6 +66,22 @@ class Session:
         self.wait = None
         self.status = ''
         self.clock = Stopwatch(self.maze, goal=[(3, 2)] if args.practice else None)   # the firmware's default goal
+        self.starting, self.start_until = None, 0     # its start sequence's steps, and the end of its current wait
+
+    def start(self, steps):
+        def say(text):
+            print(f'## [{self.robot.fw.time_ms() / 1000:8.3f}] {text}', flush=True)
+            self.status = text[:48]
+        self.starting, self.start_until = actions(self.robot, steps, say), self.robot.fw.time_ms()
+
+    def start_step(self):
+        """Its start: the next step once the last wait is over (the console and the viewer go on meanwhile)."""
+        if self.robot.fw.time_ms() < self.start_until:
+            return
+        try:
+            self.start_until = self.robot.fw.time_ms() + next(self.starting)
+        except StopIteration:
+            self.starting, self.started = None, True
 
     # ---- input ------------------------------------------------------------------------------------------------
     def stdin_reader(self):
@@ -176,6 +199,8 @@ class Session:
                 self.wait = None
         while not self.wait and not self.inbox.empty():
             self.handle(self.inbox.get())
+        if self.starting:
+            self.start_step()
         state = r.step()
         self.clock.update(r.fw.time_ms(), r.pose())
         if state == 1:          # RESET: the chip restarts, the robot stays where it is
@@ -318,7 +343,12 @@ def make_parser():
     p.add_argument('--erase-flash', action='store_true', help='start with blank flash (no saved map)')
     p.add_argument('--headless', action='store_true', help='no viewer')
     p.add_argument('--speed', type=float, default=1.0, help='real-time factor (0: as fast as possible)')
-    p.add_argument('--cmd', action='append', default=[], help='console line to send at the start (repeatable)')
+    p.add_argument('--race', type=int, metavar='K', help='started on race K of its race menu (1-6; on the map '
+                   'saved), not the search')
+    p.add_argument('--console', action='store_true',
+                   help='not started: only the console (its buttons: :select, :start)')
+    p.add_argument('--cmd', action='append', default=[],
+                   help='console line to send at the start (repeatable; instead of its start)')
     p.add_argument('--until-idle', action='store_true', help='quit 8 s after the run ends')
     p.add_argument('--max-s', type=float, default=0, help='quit after this many simulated seconds')
     p.add_argument('--telemetry', action='store_true', help='show the @ telemetry lines too')
@@ -368,6 +398,9 @@ def main():
               f'(ratatron monitor --port {os.path.relpath(link)})', flush=True)
     for c in args.cmd:
         s.inbox.put(c)
+    if not args.cmd and not args.console:
+        s.start(ratatron_start(args.race))
+        args.until_idle = args.until_idle or args.headless
     if not args.headless or not args.cmd:
         threading.Thread(target=s.stdin_reader, daemon=True).start()
     try:

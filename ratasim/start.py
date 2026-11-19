@@ -11,12 +11,14 @@ actions on the simulated robot with its firmware running between them.
 """
 
 
-def play(robot, steps, run, say=print):
+def actions(robot, steps, say=print):
+    """The steps done on the robot one by one; yields each wait (ms) for the caller to run its firmware: a runner
+    with its own loop (Ratatron's, its viewer and console) takes them as they come."""
     for kind, *args in steps:
         if kind == 'say':
             say(*args)
         elif kind == 'wait':
-            run(*args)
+            yield args[0]
         elif kind == 'press':
             robot.press(*args)
         elif kind == 'send':
@@ -29,3 +31,8 @@ def play(robot, steps, run, say=print):
             robot.put_down(*args)
         else:
             raise ValueError(f'unknown start step {kind!r}')
+
+
+def play(robot, steps, run, say=print):
+    for ms in actions(robot, steps, say):
+        run(ms)

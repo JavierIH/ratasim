@@ -17,8 +17,10 @@ By [JavierIH](https://github.com/JavierIH) · [JavierIH/ratatron](https://github
 - **Firmware:** `external/ratatron/firmware/src`, unchanged, on a fake STM32 HAL (`ratasim/fw/`): its application
   files and `gpio.c`/`infrared.c` as they are, the motors, encoders, UART, flash and clock simulated.
 - **Model:** its FreeCAD assembly, exported to `ratasim/assets` (`ratasim/export_cad.py`).
-- **Run:** `ratasim --maze oshwdem2026`, then `MODE 1` and `START` in the console. Details, calibration and the studies:
-  [simulator.md](simulator.md).
+- **Start:** switched on in the start cell, SELECT picks mode 1, START launches the search after a 5 s countdown
+  (`--race K`: race K of its race menu, on the map saved).
+- **Run:** `ratasim --maze oshwdem2026` (its console stays open: `MODE 2 6`, `START`, ...). Details, calibration and
+  the studies: [simulator.md](simulator.md).
 
 ## ZoroBot3
 

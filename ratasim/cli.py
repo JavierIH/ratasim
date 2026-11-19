@@ -1,6 +1,6 @@
 """ratasim: micromouse robots in MuJoCo, each with its own firmware.
 
-    ratasim [options]               Ratatron in a maze (ratasim --help)
+    ratasim [ratatron] [options]    Ratatron in a maze, started as at a competition (ratasim --help)
     ratasim batch|curves|failures|mapdiff|demo|ir-info|real-ir ...   Ratatron's studies
     ratasim zorobot [options]       ZoroBot3 in a maze
     ratasim gamusino [options]      Gamusino in a maze
@@ -21,6 +21,7 @@ COMMANDS = {
     'demo': 'ratasim.demo_monitor',
     'ir-info': 'ratasim.curve_ir_info',
     'real-ir': 'ratasim.real_ir_check',
+    'ratatron': 'ratasim.run',
     'gamusino': 'ratasim.gamusino.run',
     'nezumibot': 'ratasim.nezumibot.run',
     'perenquen': 'ratasim.perenquen.run',

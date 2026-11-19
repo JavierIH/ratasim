@@ -55,3 +55,28 @@ IR_SENSORS = {          # name: (firmware index, ADC channel, (x, y, z) mm, dire
     'SL': (2, 8, (-15.19, 37.32, 9.0), 165.0),
     'SR': (3, 7, (15.19, 37.32, 9.0), 15.0),
 }
+
+
+# ---- Its start (docs/usage.md of its repository; ratasim/start.py) -----------------------------------------------
+RACES = {1: 'left wall follower', 2: 'right wall follower', 3: 'no curves', 4: 'FAST 800 CURVE 300',
+         5: 'FAST 900 CURVE 400', 6: 'FAST 900 CURVE 480'}
+
+
+def start(race=None):
+    """As at a competition: switched on in the start cell facing north, SELECT picks mode 1 (the search: to the goal
+    and back, mapping) and START launches it after a 5 s countdown. race k instead, on the map it saved: SELECT
+    twice (mode 2), START opens the race menu (race 1), SELECT k-1 times, START."""
+    steps = [('say', 'switched on in the start cell'), ('wait', 1000)]
+    if race is None:
+        return steps + [('say', 'SELECT: mode 1, the search'), ('press', 'select'), ('wait', 500),
+                        ('say', 'START: the search, after a 5 s countdown'), ('press', 'start'), ('wait', 500)]
+    if race not in RACES:
+        raise ValueError(f'no race {race} (1-{len(RACES)})')
+    steps += [('say', 'SELECT twice: mode 2, the races'), ('press', 'select'), ('wait', 300), ('press', 'select'),
+              ('wait', 300), ('say', 'START: the race menu'), ('press', 'start'), ('wait', 300)]
+    if race > 1:
+        steps.append(('say', f'SELECT {race - 1} times: race {race}'))
+    for _ in range(race - 1):
+        steps += [('press', 'select'), ('wait', 300)]
+    return steps + [('say', f'START: race 2.{race} ({RACES[race]}), after a 5 s countdown'), ('press', 'start'),
+                    ('wait', 500)]

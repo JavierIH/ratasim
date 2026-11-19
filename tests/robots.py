@@ -91,9 +91,9 @@ def far_from(pose, xy, mm):
 def ratatron():
     fails = []
     flash = os.path.join(tempfile.mkdtemp(), 'flash.bin')
-    base = ['--headless', '--speed', '0', '--no-pty', '--flash', flash, '--maze', MAZE, '--until-idle', '--max-s', '600']
-    for name, cmds in (('search', ['--erase-flash', '--cmd', 'MODE 1']), ('race 2.4', ['--cmd', 'MODE 2 4'])):
-        out = run(base + cmds + ['--cmd', 'START'])
+    base = ['--headless', '--speed', '0', '--no-pty', '--flash', flash, '--maze', MAZE, '--max-s', '600']
+    for name, start in (('search', ['--erase-flash']), ('race 2.4', ['--race', '4'])):     # its start (config.py)
+        out = run(base + start)
         if 'End: OK' not in out:
             fails.append(f'{name}: no "End: OK"')
         if 'Goal reached' not in out:

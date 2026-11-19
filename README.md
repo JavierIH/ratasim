@@ -67,15 +67,17 @@ ratasim --maze oshwdem2026
 ```
 
 A viewer opens with the maze and the robot, and the terminal becomes the robot's console, as over its Bluetooth link.
-Its firmware is compiled on the first run and boots by itself. To make it move, type in the terminal:
+Its firmware is compiled on the first run and boots by itself, and it is started as at a competition: switched on in
+the start cell, SELECT picks mode 1 and START launches the search after a 5 s countdown, from the start to the goal
+and back, mapping the maze. When it is back, the race on the map it saved:
 
-```text
-MODE 1          the search: from the start to the goal and back, mapping the maze
-START
+```sh
+ratasim --maze oshwdem2026 --race 4      # race 2.4 of its race menu (SELECT twice, START, SELECT 3 times, START)
 ```
 
-When it is back, `MODE 2 6` and `START` run the race (2.6, the fastest preset) on the map it saved. In the viewer,
-Page Up is its SELECT button, Page Down its START and End puts it back at the start.
+The console stays open meanwhile: `MODE 2 6` and `START` (or `:select`, `:start`, its buttons) run the fastest race;
+`--console`: not started, only the console. In the viewer, Page Up is its SELECT button, Page Down its START and
+End puts it back at the start.
 
 The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen`) also open MuJoCo's window, at real time
 (`--record-speed 2` for twice that); with `--headless`, or `--record out.mp4` (a video instead of the window), or no
@@ -84,7 +86,7 @@ screen, they run without it.
 Without a screen (over SSH), headless, as fast as possible, with a video:
 
 ```sh
-ratasim --headless --speed 0 --maze oshwdem2026 --cmd "MODE 1" --cmd START --until-idle --record search.mp4
+ratasim --headless --speed 0 --maze oshwdem2026 --record search.mp4
 ```
 
 ![Ratatron searching the OSHWDEM 2026 maze](docs/images/maze-ratatron.jpg)

@@ -104,7 +104,7 @@ class Robot:
         counts = np.arange(4096, dtype=np.float32)
         for name, (idx, _, _, _) in C.IR_SENSORS.items():
             self.tables[name] = np.array([self.fw.ir_mm_of(idx, float(c)) for c in counts])   # decreasing
-        self.buttons = []           # queued presses: ('start' | 'select')
+        self.buttons = []           # queued presses: ('start' | 'select', ms)
         self.button_until = 0
         self.button_now = (0, 0)
 
@@ -188,8 +188,23 @@ class Robot:
         return mm_l + s['l'], mm_r + s['r']
 
     # ---- buttons, console -------------------------------------------------------------------------------------------
-    def press(self, button):
-        self.buttons.append(button)
+    def press(self, button, ms=BUTTON_MS):
+        """A button (start, select) held ms; presses queue up, BUTTON_MS apart."""
+        self.buttons.append((button, ms))
+
+    def send(self, line):
+        """A line over its Bluetooth link."""
+        self.fw.send(line)
+
+    def cover(self, sensors, ms=300):
+        raise ValueError('Ratatron is started with its buttons, not a hand')
+
+    def lift(self):
+        raise ValueError('Ratatron is started on the floor')
+
+    def put_down(self, cell, deg):
+        """At a cell's centre facing deg (0 north, positive to the left; a multiple of 90)."""
+        self.place(*cell, {0: 'N', 90: 'W', 180: 'S', 270: 'E'}[round(deg) % 360])
 
     def _buttons(self, t):
         if t < self.button_until:
@@ -199,9 +214,9 @@ class Robot:
             self.button_until = t + BUTTON_MS
             return self.button_now
         if self.buttons:
-            b = self.buttons.pop(0)
+            b, ms = self.buttons.pop(0)
             self.button_now = (1, 0) if b == 'start' else (0, 1)
-            self.button_until = t + BUTTON_MS
+            self.button_until = t + ms
         return self.button_now
 
     # ---- one millisecond ----------------------------------------------------------------------------------------------
