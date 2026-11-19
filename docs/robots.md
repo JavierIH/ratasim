@@ -338,10 +338,14 @@ By the [UK Micromouse and Robotics Society](https://ukmars.org/projects/ukmarsbo
   build time as Bulebule's; the IR emitters water-clear as in its photos), the repository's own for the gearmotors in
   their brackets with their encoders (lifted 0.5 mm onto the board, their gearboxes on the wheels' axle), the
   TB6612FNG module and the switches (coloured as its renders show them: gmsh reads none of their colours), the Arduino
-  Nano's X3D model. Not on its boards: the PP3 battery standing behind the motors and the 32 mm wheels, where its
-  photos and renders put them, two skids. Collisions: the main board's outline up to the battery, its tyres (their
-  contact 2 mm wide, at its `MOUSE_RADIUS`: a 7 mm cylinder touches the floor at its edges, and its turns in place
-  came out 10° short), its skids.
+  Nano's X3D model. Not on its boards: the PP3 battery lying on its edge behind the motors and the 32 mm wheels, where
+  its photos and renders put them, two skids. The battery (`battery.py`) as the standard's drawing gives a PP3
+  (6LR61: 48.5 x 26.5 x 17.5 mm, its long edges rounded, its top's shoulder, its two snaps 12.7 mm apart, the round
+  positive and the hollow hexagonal negative; KiCad's library has no 9 V battery), black with a copper band and top
+  like the best-known alkaline ones, "Ratasim" small on its front face; its snap clip on it, as in its photos, with
+  its red and black leads in a loop down to the main board's battery connector. Collisions: the main board's outline
+  up to the battery, its tyres (their contact 2 mm wide, at its `MOUSE_RADIUS`: a 7 mm cylinder touches the floor at
+  its edges, and its turns in place came out 10° short), its skids.
 - **Sensors:** where the sensor board puts each SFH4545 emitter and TEFT4300 phototransistor: the front pair at the
   sides looking 10° out, the diagonal pair at the nose looking 60° out; channels and emitters as its board's
   connector and its config. The light back from a wall: a diffuse reflector, cos(incidence) A / (d + 13.3 mm)², three

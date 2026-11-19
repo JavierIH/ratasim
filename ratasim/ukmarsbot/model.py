@@ -2,8 +2,8 @@
 boards, their outlines (Edge.Cuts, kicad.py) and their faces textured from their Gerber files (pcb.py), and every
 part their footprints place, their 3D models where KiCad puts them (cad.py): the Arduino Nano, the TB6612FNG module,
 the gearmotors in their brackets with their encoders, the IR emitters and phototransistors, the capacitors,
-resistors, diodes, headers, switches and button; the PP3 battery standing behind the motors and the 32 mm wheels,
-which its boards do not place, where its photos and renders put them.
+resistors, diodes, headers, switches and button; the PP3 battery lying behind the motors with its clip and leads
+(battery.py) and the 32 mm wheels, which its boards do not place, where its photos and renders put them.
 Collisions: the main board's outline as a convex hull up to the battery's top, its two tyres (2 mm wide, at its
 firmware's MOUSE_RADIUS), its two skids.
 """
@@ -14,7 +14,7 @@ import os
 from .. import config as C
 from ..hand import hand_xml
 from ..model import MM, ROBOT_GROUP, WALL_GROUP, _f, maze_xml
-from . import cad
+from . import battery, cad
 from . import config as U
 from . import pcb
 from .kicad import Board
@@ -98,16 +98,12 @@ def _wheel(s):
 
 
 def _chassis():
-    t = U.MAIN_TOP
     g = [f'<geom class="kvisual" type="mesh" mesh="k_{b}_{face}" material="k_{b}_{face}"/>'
          for b in pcb.BOARDS for face in ('top', 'bottom')]
     g += [f'<geom class="kvisual" type="mesh" mesh="k_{b}_side" rgba="{_f(*EDGE)}"/>' for b in pcb.BOARDS]
     g += [f'<geom class="kvisual" type="mesh" mesh="k_{e["file"][:-4]}" rgba="{_f(*e["rgba"])}"/>' for e in _meshes()]
-    # the battery standing behind the motors (a rechargeable PP3: 48.5 x 26.5 x 17.5 mm), its leads' plug
-    g.append(_box((-24.75, -33.75, t), (23.75, -16.25, t + 26.5), (0.94, 0.94, 0.92, 1)))
-    g.append(_box((-24.80, -33.80, t + 8), (23.80, -16.20, t + 18), (0.95, 0.55, 0.10, 1)))
-    for x in (-6.0, 6.0):
-        g.append(_rod((x, -25.0, t + 26.5), (x, -25.0, t + 29.0), 3.0, SILVER))
+    # the PP3 battery behind the motors, its clip and leads (battery.py)
+    g.append(battery.visuals(_box, _rod, _f))
     # its skids
     for y in (U.SKID_Y[0], U.SKID_Y[1]):
         g.append(_rod((0, y, U.MAIN_BOTTOM), (0, y, U.SKID_R + U.SKID_CLEARANCE_MM), U.SKID_R, SKID))
@@ -134,8 +130,9 @@ def assets_xml():
                    for b in pcb.BOARDS for part in ('top', 'bottom', 'side'))
     out += ''.join(f'<mesh name="k_{e["file"][:-4]}" file="{d}/{e["file"]}" scale="{_f(MM, MM, MM)}" inertia="shell"/>'
                    for e in _meshes())
+    out += battery.assets_xml(MM)
     hull = ' '.join(f'{x * MM:.5f} {y * MM:.5f} {z * MM:.5f}' for x, y in main.loops()[0]
-                    for z in (U.MAIN_BOTTOM, U.MAIN_TOP + 26.5))
+                    for z in (U.MAIN_BOTTOM, U.MAIN_TOP + battery.WIDTH))
     return out + f'<mesh name="k_hull" vertex="{hull}"/>'
 
 

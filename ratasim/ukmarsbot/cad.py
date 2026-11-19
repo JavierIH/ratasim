@@ -12,7 +12,7 @@ a footprint on the bottom); a model in mm (STEP) or in tenths of an inch (VRML, 
 
 (KiCad's 3d-viewer, create_scene.cpp), then to the robot frame as kicad.py's: x_robot = -y3d - 105, y_robot = x3d - 105.
 A stock model named .wrl is taken as its .step (kicad-cli's --subst-models). The motors' footprints place the
-gearmotors with their brackets; the wheels, the battery and the skids are not on the boards (model.py).
+gearmotors with their brackets; the wheels, the battery and the skids are not on the boards (model.py, battery.py).
 
     python -m ratasim.ukmarsbot.cad        # makes them again
 
