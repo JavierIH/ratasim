@@ -22,3 +22,9 @@
 [submodule "external/fujin"]
 	path = external/fujin
 	url = https://github.com/team-raiju/fujin
+[submodule "external/mazerunner-core"]
+	path = external/mazerunner-core
+	url = https://github.com/ukmars/mazerunner-core
+[submodule "external/ukmarsbot"]
+	path = external/ukmarsbot
+	url = https://github.com/ukmars/ukmarsbot
