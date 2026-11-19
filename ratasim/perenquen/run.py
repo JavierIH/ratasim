@@ -20,6 +20,7 @@ from ..maze import Maze   # noqa: E402
 from ..recorder import add_view_args, make_view, time_limit   # noqa: E402
 from ..run import maze_path   # noqa: E402
 from ..start import play   # noqa: E402
+from ..stopwatch import Stopwatch   # noqa: E402
 from . import config as P   # noqa: E402
 from .robot import PRobot   # noqa: E402
 
@@ -38,7 +39,8 @@ def main(argv=None):
     p.add_argument('--console', action='store_true', help='then type commands to it (stdin)')
     a = p.parse_args(argv)
     r = PRobot(Maze.load(maze_path(a.maze)))
-    rec = make_view(r, a, 'Perenquen (supernudo)')
+    clock = Stopwatch(r.maze)
+    rec = make_view(r, a, 'Perenquen (supernudo)', clock=clock)
     a.max_s = time_limit(a, rec, 60)
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()
@@ -51,6 +53,7 @@ def main(argv=None):
             if r.step():
                 print(f'firmware {"reset" if r.fw.state == 1 else "halted"}')
                 return False
+            clock.update(r.fw.time_ms(), r.pose())
             out = r.fw.received()
             if out:
                 if log:

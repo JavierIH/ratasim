@@ -20,6 +20,11 @@ class Maze:
             self.walls[0][i] |= W
             self.walls[size - 1][i] |= E
 
+    def goal(self):
+        """The competition's goal: the centre 2x2 cells (an odd size: the centre cell)."""
+        h = self.size // 2
+        return [(h - 1, h - 1), (h, h - 1), (h - 1, h), (h, h)] if self.size % 2 == 0 else [(h, h)]
+
     def has(self, x, y, d):
         return bool(self.walls[x][y] & d)
 
@@ -99,8 +104,7 @@ class Maze:
             for y in range(size):
                 m.walls[x][y] = N | E | S | W
         if goal is None:
-            h = size // 2
-            goal = [(h - 1, h - 1), (h, h - 1), (h - 1, h), (h, h)] if size % 2 == 0 else [(h, h)]
+            goal = m.goal()
         goal_set = set(goal)
         for (x, y) in goal:
             for d, (dx, dy) in STEP.items():

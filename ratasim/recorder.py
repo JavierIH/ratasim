@@ -11,7 +11,7 @@ import mujoco
 
 class Recorder:
     """An mp4 (ffmpeg): a camera following the robot, the whole maze in a corner with its trail, the time, a status
-    line and an LED. The robot: .model, .data, .maze, .pose() (mm, deg) and .fw.time_ms()."""
+    line, an LED and the stopwatch (.clock). The robot: .model, .data, .maze, .pose() (mm, deg) and .fw.time_ms()."""
 
     def __init__(self, robot, path, title, width=1280, height=720, fps=30, speed=1.0, led=None):
         self.r, self.fps, self.speed = robot, fps, speed
@@ -27,6 +27,7 @@ class Recorder:
         self.w, self.h = width, height
         self.trail = []
         self.status = ''
+        self.clock = None           # a Stopwatch, drawn under the title
         self.title, self.led = title, led
         self.ff = subprocess.Popen(['ffmpeg', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24',
                                     '-s', f'{width}x{height}', '-r', str(fps), '-i', '-', '-c:v', 'libx264',
@@ -63,6 +64,8 @@ class Recorder:
         if self.led:
             rgb = tuple(int(255 * c) for c in self.led())
             d.ellipse((392, 34, 410, 52), fill=rgb, outline=(120, 120, 120))
+        if self.clock:
+            self.clock.draw(d, 0, 64)
         self.ff.stdin.write(frame.tobytes())
 
     def close(self):
@@ -75,7 +78,7 @@ class Viewer:
 
     def __init__(self, robot, speed=1.0):
         import mujoco.viewer
-        self.r, self.speed, self.status = robot, speed, ''
+        self.r, self.speed, self.status, self.clock = robot, speed, '', None
         before = set(threading.enumerate())
         self.v = mujoco.viewer.launch_passive(robot.model, robot.data)
         self.threads = [t for t in threading.enumerate() if t not in before]     # its window's
@@ -92,6 +95,8 @@ class Viewer:
         if rate != self.rate:                       # re-anchor the clock when the pace changes
             self.wall0, self.sim0, self.rate = now, t, rate
         if now - self.last > 1 / 60:
+            if self.clock:
+                self.v.set_texts(self.clock.overlay())
             self.v.sync()
             self.last = now
         ahead = (t - self.sim0) / 1000.0 / rate - (now - self.wall0)
@@ -112,16 +117,20 @@ def add_view_args(p):
     p.add_argument('--record-speed', type=float, default=1.0, help='the pace of window and video (x real time)')
 
 
-def make_view(robot, a, title, led=None):
-    """What shows the run: a video (--record), else MuJoCo's window, else (--headless, or no screen) nothing."""
+def make_view(robot, a, title, led=None, clock=None):
+    """What shows the run: a video (--record), else MuJoCo's window, else (--headless, or no screen) nothing.
+    clock: a Stopwatch it shows."""
     if a.record:
-        return Recorder(robot, a.record, title, speed=a.record_speed, led=led)
-    if a.headless:
+        view = Recorder(robot, a.record, title, speed=a.record_speed, led=led)
+    elif a.headless:
         return None
-    if sys.platform.startswith('linux') and not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
+    elif sys.platform.startswith('linux') and not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
         print('no screen (DISPLAY): running headless')
         return None
-    return Viewer(robot, speed=a.record_speed)
+    else:
+        view = Viewer(robot, speed=a.record_speed)
+    view.clock = clock
+    return view
 
 
 def time_limit(a, view, default):

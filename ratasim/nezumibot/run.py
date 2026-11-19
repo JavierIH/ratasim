@@ -15,6 +15,7 @@ from ..maze import Maze   # noqa: E402
 from ..recorder import add_view_args, make_view, time_limit   # noqa: E402
 from ..run import maze_path   # noqa: E402
 from ..start import play   # noqa: E402
+from ..stopwatch import Stopwatch   # noqa: E402
 from . import config as N   # noqa: E402
 from .robot import NRobot   # noqa: E402
 
@@ -30,7 +31,8 @@ def main(argv=None):
     p.add_argument('--log', help='write everything the firmware prints here')
     a = p.parse_args(argv)
     r = NRobot(Maze.load(maze_path(a.maze)))
-    rec = make_view(r, a, 'NezumiBot (OPRobots)')
+    clock = Stopwatch(r.maze)
+    rec = make_view(r, a, 'NezumiBot (OPRobots)', clock=clock)
     a.max_s = time_limit(a, rec, 60)
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()
@@ -43,6 +45,7 @@ def main(argv=None):
             if r.step():
                 print('firmware halted')
                 return False
+            clock.update(r.fw.time_ms(), r.pose())
             out = r.fw.received()
             if out and log:
                 for line in out.splitlines():

@@ -17,6 +17,7 @@ from ..maze import Maze   # noqa: E402
 from ..run import maze_path   # noqa: E402
 from ..recorder import add_view_args, make_view, time_limit   # noqa: E402
 from ..start import play   # noqa: E402
+from ..stopwatch import Stopwatch   # noqa: E402
 from . import config as Z   # noqa: E402
 from .robot import ZRobot   # noqa: E402
 
@@ -35,7 +36,8 @@ def main(argv=None):
     maze = Maze.load(maze_path(a.maze))
     menu = (a.speed, 0, a.explore_type, a.floodfill, 1, 0, 2)
     r = ZRobot(maze, menu=menu)
-    rec = make_view(r, a, 'ZoroBot3 (OPRobots)', led=r.fw.rgb)
+    clock = Stopwatch(r.maze)
+    rec = make_view(r, a, 'ZoroBot3 (OPRobots)', led=r.fw.rgb, clock=clock)
     a.max_s = time_limit(a, rec, 400)
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()
@@ -49,6 +51,7 @@ def main(argv=None):
             if r.step():
                 print('firmware halted')
                 return False
+            clock.update(r.fw.time_ms(), r.pose())
             out = r.fw.received()
             if out:
                 for line in out.splitlines():

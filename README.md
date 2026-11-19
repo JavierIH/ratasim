@@ -153,6 +153,20 @@ walls it will keep to), a hand in front of both front sensors, taken away: it go
 
 ![Perenquén keeping to the right wall](docs/images/maze-perenquen.jpg)
 
+## The stopwatch
+
+Every runner times the robot's runs as at a competition: the stopwatch starts when the robot's centre leaves the
+start cell, from zero every time it does, and stops when it enters the goal (the centre 2x2 cells; Ratatron's
+`--practice` build: its cell 3,2). Putting the robot somewhere by hand (Ratatron's `:place`, `:reset`) ends the run.
+MuJoCo's window shows the time in its top right corner, and videos under their title, green once at the goal. The
+runners print it, and `tests/robots.py` reports the times (and fails Ratatron and ZoroBot3 if they reach the goal
+without one):
+
+```text
+[   5.33] stopwatch: run 1 started (left the start cell)
+[  38.12] stopwatch: run 1 at the goal (8, 8) in 32.785 s
+```
+
 ## Layout
 
 ```text
@@ -164,6 +178,7 @@ ratasim/nezumibot/  NezumiBot: its assembled 3D model (assets/), its simulated c
 ratasim/perenquen/  Perenquén: its meshes from its FreeCAD assembly (assets/, cad.py), its simulated dsPIC (fw/), runner
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
 ratasim/start.py    starting a robot as its makers do (its config's sequence), with the hand of hand.py
+ratasim/stopwatch.py the runs' times, from the start cell to the goal (every robot)
 ratasim/scenes/     several robots: drag race, crash, loop, pictures
 ratasim/mazes/      competition mazes (micromouseonline text format)
 external/           the robots' repositories (submodules)

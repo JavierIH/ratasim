@@ -16,6 +16,7 @@ from ..maze import Maze   # noqa: E402
 from ..recorder import add_view_args, make_view, time_limit   # noqa: E402
 from ..run import maze_path   # noqa: E402
 from ..start import play   # noqa: E402
+from ..stopwatch import Stopwatch   # noqa: E402
 from . import config as G   # noqa: E402
 from .robot import GRobot   # noqa: E402
 
@@ -32,7 +33,8 @@ def main(argv=None):
     a = p.parse_args(argv)
     maze = Maze.load(maze_path(a.maze))
     r = GRobot(maze, seed=a.seed)
-    rec = make_view(r, a, 'Gamusino (turmandreams)', led=r.led)
+    clock = Stopwatch(r.maze)
+    rec = make_view(r, a, 'Gamusino (turmandreams)', led=r.led, clock=clock)
     a.max_s = time_limit(a, rec, 30)
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()
@@ -45,6 +47,7 @@ def main(argv=None):
             if r.step():
                 print('its sketch stopped')
                 return False
+            clock.update(r.fw.time_ms(), r.pose())
             out = r.fw.received()
             if out:
                 if log:

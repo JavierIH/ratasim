@@ -24,6 +24,7 @@ from . import paths
 from .firmware import STATE_NAMES, build
 from .maze import Maze
 from .robot import Robot
+from .stopwatch import Stopwatch
 
 KEY_PAGE_UP, KEY_PAGE_DOWN, KEY_END = 266, 267, 269
 MAZES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mazes')
@@ -57,6 +58,7 @@ class Session:
         self.crashes = 0
         self.wait = None
         self.status = ''
+        self.clock = Stopwatch(self.maze, goal=[(3, 2)] if args.practice else None)   # the firmware's default goal
 
     # ---- input ------------------------------------------------------------------------------------------------
     def stdin_reader(self):
@@ -95,10 +97,12 @@ class Session:
             self.started = True
         elif cmd == 'place' and len(words) >= 3:
             r.place(int(words[1]), int(words[2]), (words[3] if len(words) > 3 else 'N').upper())
+            self.clock.moved()
         elif cmd in ('reset', 'erase-flash'):
             if cmd == 'erase-flash' and os.path.exists(self.args.flash):
                 os.remove(self.args.flash)
             r.place(0, 0, 'N')
+            self.clock.moved()
             r.boot('power-on')
         elif cmd == 'wait-idle':        # scripts: the next lines wait until the run started before has ended
             self.wait = 'start'
@@ -173,6 +177,7 @@ class Session:
         while not self.wait and not self.inbox.empty():
             self.handle(self.inbox.get())
         state = r.step()
+        self.clock.update(r.fw.time_ms(), r.pose())
         if state == 1:          # RESET: the chip restarts, the robot stays where it is
             self.output(r.fw.received())
             r.boot('RESET (software)')
@@ -230,6 +235,7 @@ class Session:
                     if self.args.follow:
                         x, y, _ = r.pose()
                         v.cam.lookat[:] = (x / 1000, y / 1000, 0)
+                    v.set_texts(self.clock.overlay())
                     v.sync()
                     last_sync = now
                 if self.speed > 0:
@@ -241,7 +247,8 @@ class Session:
 
 
 class Recorder:
-    """An mp4 (ffmpeg) of the run: a camera following the robot, the whole maze in a corner, time, mode and LEDs.
+    """An mp4 (ffmpeg) of the run: a camera following the robot, the whole maze in a corner, time, mode, LEDs and the
+    stopwatch.
     Runs (the robot moving) at --record-speed, the waits between them at 8x."""
 
     def __init__(self, session, path, width=1280, height=720, fps=30):
@@ -287,6 +294,7 @@ class Recorder:
         d.rectangle((0, 0, 330, 60), fill=(0, 0, 0))
         d.text((10, 8), f't = {t / 1000:6.1f} s   x{speed:g}', fill=(255, 255, 255))
         d.text((10, 30), self.s.status, fill=(255, 220, 60))
+        self.s.clock.draw(d, 0, 60)
         for i in range(6):
             on = leds >> (5 - i) & 1
             d.ellipse((200 + i * 20, 8, 212 + i * 20, 20), fill=(255, 40, 20) if on else (60, 20, 20))

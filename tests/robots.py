@@ -7,6 +7,7 @@ A check fails when the firmware does not build, stops, or the robot does not do 
 the goal and back, then race 2.4 on its map; ZoroBot3: its exploration to the goal; NezumiBot and Perenquén: their
 wall following, away from the start; Gamusino: its 1.5 m and back). Wall touches fail the robots that run clean
 (Ratatron, NezumiBot); for the others, whose touches are known (robots.md), they are only reported.
+The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron and ZoroBot3, which reach the goal, fail without one.
 A robot with a model and no firmware yet (Bulebule) is checked by its model: it builds and stands on the floor.
 ZoroBot3's meshes need its STEP (not in the repository, README): without it only its firmware is built.
 """
@@ -46,15 +47,30 @@ def end_pose(out):
     return tuple(map(int, m[-1])) if m else None
 
 
+def goal_times(out):
+    """The stopwatch's times (s) of the runs that reached the goal (ratasim/stopwatch.py)."""
+    return [float(t) for t in re.findall(r'stopwatch: run \d+ at the goal \(\d+, \d+\) in (\d+\.\d+) s', out)]
+
+
+def stopwatch(out, what=''):
+    """Its times on the log and the CI run's page; the times to the goal."""
+    times = goal_times(out)
+    starts = len(re.findall(r'stopwatch: run \d+ started', out))
+    note('notice', f'stopwatch{what}: {starts} run(s) from the start cell, '
+         + (f'at the goal in {", ".join(f"{t:.3f} s" for t in times)}' if times else 'none at the goal'))
+    return times
+
+
 def touches(out):
     return re.findall(r'touches (\S+) at', out)
 
 
 def common(out, fails, clean):
-    """What every runner prints: its firmware stopping, its end pose, its wall touches."""
+    """What every runner prints: its firmware stopping, its end pose, its wall touches, its stopwatch's times."""
     for bad in ('firmware halted', 'firmware reset', 'its sketch stopped', 'Traceback'):
         if bad in out:
             fails.append(bad)
+    stopwatch(out)
     pose = end_pose(out)
     if pose is None:
         fails.append('no end pose')
@@ -81,6 +97,8 @@ def ratatron():
             fails.append(f'{name}: no "End: OK"')
         if 'Goal reached' not in out:
             fails.append(f'{name}: the goal not reached')
+        elif not stopwatch(out, f' ({name})'):
+            fails.append(f'{name}: no time to the goal (the stopwatch)')
         for bad in ('POSE LOST', 'touches a wall', 'Traceback'):
             if bad in out:
                 fails.append(f'{name}: {bad}')
@@ -101,6 +119,8 @@ def zorobot():
         fails.append('not started')
     if 'race over' not in out:
         fails.append('its exploration did not end')
+    elif not goal_times(out):
+        fails.append('no time to the goal (the stopwatch)')
     return fails
 
 
