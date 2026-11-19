@@ -10,8 +10,7 @@ the goal and back to the start; NezumiBot and Perenquén: their wall following, 
 1.5 m and back; Futura: its kit's test loop, its sensors printed as it rolls to the wall that ends the start
 column). Wall touches fail the robots that run clean (Ratatron, NezumiBot); for the others, whose touches are known
 (robots.md), they are only reported. The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron, ZoroBot3,
-Fujin and UKMARSBOT, which reach the
-goal, fail without one.
+Fujin and UKMARSBOT, which reach the goal, fail without one.
 A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
 ZoroBot3's meshes need its STEP (not in the repository, README): without it only its firmware is built.
 """

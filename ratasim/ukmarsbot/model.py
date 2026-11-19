@@ -82,12 +82,12 @@ def _plate(poly, z0, z1):
 def _box(lo, hi, rgba):
     c = [(a + b) / 2 * MM for a, b in zip(lo, hi)]
     s = [abs(b - a) / 2 * MM for a, b in zip(lo, hi)]
-    return f'<geom class="uvisual" type="box" pos="{_f(*c)}" size="{_f(*s)}" rgba="{_f(*rgba)}"/>'
+    return f'<geom class="kvisual" type="box" pos="{_f(*c)}" size="{_f(*s)}" rgba="{_f(*rgba)}"/>'
 
 
 def _rod(p0, p1, r, rgba, kind='cylinder'):
     a = ' '.join(f'{v * MM:.5f}' for v in (*p0, *p1))
-    return f'<geom class="uvisual" type="{kind}" fromto="{a}" size="{r * MM:.5f}" rgba="{_f(*rgba)}"/>'
+    return f'<geom class="kvisual" type="{kind}" fromto="{a}" size="{r * MM:.5f}" rgba="{_f(*rgba)}"/>'
 
 
 def _along(p, deg, d, z):
@@ -142,8 +142,8 @@ def _wheel(s):
 def _chassis():
     main, sensor = boards()
     t, st, sb = U.MAIN_TOP, U.SENSOR_TOP, U.SENSOR_BOTTOM
-    g = ['<geom class="uvisual" type="mesh" mesh="u_mainboard" rgba="{}"/>'.format(_f(*GREEN)),
-         '<geom class="uvisual" type="mesh" mesh="u_sensorboard" rgba="{}"/>'.format(_f(*GREEN))]
+    g = ['<geom class="kvisual" type="mesh" mesh="k_mainboard" rgba="{}"/>'.format(_f(*GREEN)),
+         '<geom class="kvisual" type="mesh" mesh="k_sensorboard" rgba="{}"/>'.format(_f(*GREEN))]
     # the Arduino Nano on its two sockets, its USB end at its pin 1 (x -33)
     nano = main.footprint(lib='Arduino_Nano')[0]
     x0, y0, x1, y1 = nano.bbox(('F.Fab',))
@@ -241,11 +241,11 @@ def _resistor(f, z):
 
 # ---- MuJoCo -----------------------------------------------------------------------------------------------------
 def defaults_xml():
-    return (f'<default class="uvisual"><geom group="{ROBOT_GROUP}" contype="0" conaffinity="0" mass="0"/></default>'
-            '<default class="uhull"><geom group="3" contype="2" conaffinity="1" rgba="0 0 1 0.1" mass="0" friction="0.3"/></default>'
-            '<default class="utire"><geom group="3" contype="2" conaffinity="1" rgba="0 0 0 0.3" condim="3" solref="0.004 1" '
+    return (f'<default class="kvisual"><geom group="{ROBOT_GROUP}" contype="0" conaffinity="0" mass="0"/></default>'
+            '<default class="khull"><geom group="3" contype="2" conaffinity="1" rgba="0 0 1 0.1" mass="0" friction="0.3"/></default>'
+            '<default class="ktire"><geom group="3" contype="2" conaffinity="1" rgba="0 0 0 0.3" condim="3" solref="0.004 1" '
             f'friction="{U.TIRE_FRICTION} 0.005 0.0001"/></default>'
-            '<default class="uskid"><geom group="3" contype="2" conaffinity="1" rgba="1 1 1 0.3" condim="1" '
+            '<default class="kskid"><geom group="3" contype="2" conaffinity="1" rgba="1 1 1 0.3" condim="1" '
             'friction="0.05" mass="0"/></default>')
 
 
@@ -255,10 +255,10 @@ def assets_xml():
     for name, board, z0, z1 in (('mainboard', main, U.MAIN_BOTTOM, U.MAIN_TOP),
                                 ('sensorboard', sensor, U.SENSOR_BOTTOM, U.SENSOR_TOP)):
         v, f = _plate(board.loops()[0], z0, z1)
-        out += f'<mesh name="u_{name}" vertex="{v}" face="{f}" inertia="shell"/>'
+        out += f'<mesh name="k_{name}" vertex="{v}" face="{f}" inertia="shell"/>'
     hull = ' '.join(f'{x * MM:.5f} {y * MM:.5f} {z * MM:.5f}' for x, y in main.loops()[0]
                     for z in (U.MAIN_BOTTOM, U.MAIN_TOP + 26.5))
-    return out + f'<mesh name="u_hull" vertex="{hull}"/>'
+    return out + f'<mesh name="k_hull" vertex="{hull}"/>'
 
 
 def robot_xml(start_xy=(0.5, 0.5), prefix=''):
@@ -269,12 +269,12 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
         wheels += f'''
       <body name="{p}wheel_{s}" pos="{_f(sign * U.MOUSE_RADIUS_MM * MM, 0, r * MM)}">
         <joint name="{p}wheel_{s}" type="hinge" axis="-1 0 0" armature="2e-6"/>
-        <geom name="{p}tire_{s}" class="utire" type="cylinder" size="{_f(r * MM, CONTACT_W / 2 * MM)}" euler="0 90 0" mass="0.004"/>
+        <geom name="{p}tire_{s}" class="ktire" type="cylinder" size="{_f(r * MM, CONTACT_W / 2 * MM)}" euler="0 90 0" mass="0.004"/>
         {_wheel(s)}
       </body>'''
     sites = ''.join(f'<site name="{p}ir_{n}" pos="{_f(x * MM, y * MM, U.IR_Z_MM * MM)}" size="0.0015" group="4" '
                     f'rgba="1 0 0 0.6"/>' for n, (_, _, (x, y), _) in U.IR_SENSORS.items())
-    skids = ''.join(f'<geom name="{p}skid_{k}" class="uskid" type="sphere" size="{U.SKID_R * MM:.5f}" '
+    skids = ''.join(f'<geom name="{p}skid_{k}" class="kskid" type="sphere" size="{U.SKID_R * MM:.5f}" '
                     f'pos="{_f(0, y * MM, (U.SKID_R + U.SKID_CLEARANCE_MM) * MM)}"/>'
                     for k, y in enumerate(U.SKID_Y))
     mass = U.MASS_KG - 2 * 0.004
@@ -283,7 +283,7 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
     <body name="{p}robot" pos="{_f(start_xy[0] * C.CELL_MM * MM, start_xy[1] * C.CELL_MM * MM, 0.0005)}">
       <freejoint name="{p}robot"/>
       <inertial pos="{_f(*(v * MM for v in U.COM_MM))}" mass="{mass:.4f}" diaginertia="{_f(1.25e-4, 1.0e-4, izz)}"/>
-      <geom name="{p}hull" class="uhull" type="mesh" mesh="u_hull"/>
+      <geom name="{p}hull" class="khull" type="mesh" mesh="k_hull"/>
       {skids}{_chassis()}{sites}{wheels}
     </body>'''
 
