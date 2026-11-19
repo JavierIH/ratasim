@@ -28,3 +28,6 @@
 [submodule "external/ukmarsbot"]
 	path = external/ukmarsbot
 	url = https://github.com/ukmars/ukmarsbot
+[submodule "external/Miniskybot"]
+	path = external/Miniskybot
+	url = https://github.com/Obijuan/Miniskybot
