@@ -3,7 +3,7 @@ ahead at 1.6 m/s steering to the point (1.5, 0) by its gyro and encoders, a stop
 over and over. It reads no wall sensor: it is put down in the start cell, facing the maze's first straight (in the OSHWDEM
 2026 maze, sixteen cells along its west wall) and switched on, as its maker starts it.
 
-    ratasim gamusino [--maze oshwdem2026] [--headless] [--record out.mp4] [--max-s 30] [--echo]
+    ratasim gamusino [--maze oshwdem2026] [--headless] [--record out.mp4] [--max-s N] [--echo]
 """
 import argparse
 import os
@@ -13,7 +13,7 @@ import time
 os.environ.setdefault('MUJOCO_GL', 'egl')
 
 from ..maze import Maze   # noqa: E402
-from ..recorder import add_view_args, make_view   # noqa: E402
+from ..recorder import add_view_args, make_view, time_limit   # noqa: E402
 from ..run import maze_path   # noqa: E402
 from ..start import play   # noqa: E402
 from . import config as G   # noqa: E402
@@ -25,7 +25,7 @@ def main(argv=None):
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--maze', default='oshwdem2026')
     add_view_args(p)
-    p.add_argument('--max-s', type=float, default=30.0)
+    p.add_argument('--max-s', type=float, help='stop after these simulated seconds (default 30; with a window, none)')
     p.add_argument('--seed', type=int, default=0)
     p.add_argument('--log', help='write everything its sketch prints here')
     p.add_argument('--echo', action='store_true', help='print what its sketch prints')
@@ -33,6 +33,7 @@ def main(argv=None):
     maze = Maze.load(maze_path(a.maze))
     r = GRobot(maze, seed=a.seed)
     rec = make_view(r, a, 'Gamusino (turmandreams)', led=r.led)
+    a.max_s = time_limit(a, rec, 30)
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()
     crash_t = -10000

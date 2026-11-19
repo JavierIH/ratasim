@@ -122,3 +122,10 @@ def make_view(robot, a, title, led=None):
         print('no screen (DISPLAY): running headless')
         return None
     return Viewer(robot, speed=a.record_speed)
+
+
+def time_limit(a, view, default):
+    """--max-s if given; else none with a window (it runs until it is closed), else the robot's default."""
+    if a.max_s is not None:
+        return a.max_s
+    return math.inf if isinstance(view, Viewer) else default
