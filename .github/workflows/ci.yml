@@ -4,8 +4,9 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   robot:
-    # Each robot in the OSHWDEM 2026 maze with its own firmware, as tests/robots.py checks it (its docstring says what
-    # passes). ZoroBot3's STEP is not in the repository: there, only its firmware is built.
+    # Each robot in the OSHWDEM 2026 maze with its own firmware, as tests/robots.py's short check checks it (its
+    # docstring says what passes): it builds, starts and leaves the start cell; its whole run is --full, run locally.
+    # ZoroBot3's STEP is not in the repository: there, only its firmware is built.
     name: ${{ matrix.robot }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -32,4 +33,5 @@ jobs:
           sudo apt-get update -q && sudo apt-get install -y -q libglu1-mesa libxrender1 libxcursor1 libxft2
           libxinerama1 libegl1 libgl1
       - run: pip install -e ".[cad]"
+      # the short check (not --full)
       - run: python tests/robots.py ${{ matrix.robot }}

@@ -8,6 +8,11 @@ repository (a submodule of `external/`) on a simulated chip, and its **start**: 
 `ratasim/start.py` plays with the hand of `ratasim/hand.py`, which every sensor sees. The pictures:
 `ratasim portraits`.
 
+`tests/robots.py` checks every robot in the maze, started as below. Its short check (the CI's, the default) only
+asks that its firmware builds, its start sequence runs, its firmware does not stop in a few simulated seconds and
+the robot leaves the start cell (the stopwatch starts a run). Its full check (`--full`) is each robot's whole run
+as its **Run** line below tells it (to the goal and back, races, wall following), for local use.
+
 ## Ratatron
 
 <img src="images/robots/ratatron.jpg" width="220" align="right">

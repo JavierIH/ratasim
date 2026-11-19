@@ -236,13 +236,33 @@ Every runner times the robot's runs as at a competition: the stopwatch starts wh
 start cell, from zero every time it does, and stops when it enters the goal (the centre 2x2 cells; Ratatron's
 `--practice` build: its cell 3,2). Putting the robot somewhere by hand (Ratatron's `:place`, `:reset`) ends the run.
 MuJoCo's window shows the time in its top right corner, and videos under their title, green once at the goal. The
-runners print it, and `tests/robots.py` reports the times (and fails Ratatron and ZoroBot3 if they reach the goal
-without one):
+runners print it, and `tests/robots.py` reports the times: its short check fails a robot whose run never starts
+(it does not leave the start cell), its full check Ratatron, ZoroBot3, Fujin and UKMARSBOT if they reach the goal
+without one:
 
 ```text
 [   5.33] stopwatch: run 1 started (left the start cell)
 [  38.12] stopwatch: run 1 at the goal (8, 8) in 32.785 s
 ```
+
+## Tests and CI
+
+`tests/robots.py` puts each robot in the OSHWDEM 2026 maze, started as its makers start it, and checks what it
+prints (its docstring says what passes). The CI runs it one job per robot, in its short check:
+
+```sh
+python tests/robots.py [robot ...]           # short: it builds, starts, runs and leaves the start cell
+python tests/robots.py --full [robot ...]    # full: its whole run (search to the goal and back, races, ...)
+```
+
+The short check (the default) asks each robot for the basics: its firmware builds, its start sequence runs, for a
+few simulated seconds its firmware neither halts nor resets, the runner ends without an error, and the robot leaves
+the start cell (the stopwatch starts a run); wall touches fail the robots that run clean (Ratatron, NezumiBot,
+Futura). The full check is each robot's whole run, as `docs/robots.md` tells it: Ratatron's search and race 2.4,
+the explorations of ZoroBot3, Bulebule, Fujin and UKMARSBOT to the goal (and back for most), NezumiBot's and
+Perenquén's wall following, Gamusino's 1.5 m and back, Futura's cells and pivots to the maze's north rows. It takes
+longer, and some of those runs are sensitive to numerical perturbations (UKMARSBOT's way back from the goal touches
+a wall with 3 seeds in 10), so it is for local use.
 
 ## Layout
 
@@ -263,7 +283,7 @@ ratasim/scenes/     several robots: drag race, a race in the maze, minisumo, cra
 ratasim/trace.py    a run traced (--trace) for the race in the maze
 ratasim/mazes/      competition mazes (micromouseonline text format)
 external/           the robots' repositories (submodules)
-tests/robots.py    every robot in the maze, checked by what it prints (the CI: one job per robot)
+tests/robots.py    every robot in the maze, checked by what it prints (short, the CI: one job per robot; --full)
 docs/               robots.md (each robot, its authors), simulator.md (Ratatron in detail)
 ```
 

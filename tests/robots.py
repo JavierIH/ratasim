@@ -1,16 +1,26 @@
 """Every robot in the OSHWDEM 2026 maze, each run as its makers start it, checked by what it prints. The CI runs one
-robot per job; locally, any of them or all:
+robot per job, in the short check; locally, any of them or all, short or full:
 
-    python tests/robots.py [ratatron zorobot gamusino bulebule nezumibot perenquen fujin futura ukmarsbot]
+    python tests/robots.py [--full] [ratatron zorobot gamusino bulebule nezumibot perenquen fujin futura ukmarsbot]
 
-A check fails when the firmware does not build, stops, or the robot does not do its run (Ratatron: the search to the
-goal and back, then race 2.4 on its map; ZoroBot3: its exploration to the goal; Bulebule: its exploration, to the
-goal and back to its start cell, its path saved; Fujin: its search to the goal and back; UKMARSBOT: its search to
-the goal and back to the start; NezumiBot and Perenquén: their wall following, away from the start; Gamusino: its
-1.5 m and back; Futura: its controller sample's cells and pivots, up to the maze's north rows). Wall touches fail the
-robots that run clean (Ratatron, NezumiBot, Futura); for the others, whose touches are known (robots.md), they are
-only reported. The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron, ZoroBot3,
-Fujin and UKMARSBOT, which reach the goal, fail without one.
+The short check (the default, the CI's) asks each robot only the basics: its firmware builds, it is started as its
+makers start it (its start sequence printed: Ratatron's search, ZoroBot3's and Fujin's "started: True", Bulebule's
+"exploring", UKMARSBOT's "Off we go", NezumiBot's wall following, Perenquén's "keeping to the" wall, Gamusino's
+"blue:", Futura's "run " on its display), it runs for a few simulated seconds (SHORT_S) without its firmware halting,
+resetting or faulting and without a Python exception, the runner ends with its end pose, and the robot leaves the
+start cell: the stopwatch starts a run (ratasim/stopwatch.py, "run 1 started (left the start cell)"). Wall touches
+fail Ratatron, NezumiBot and Futura, which run clean, and are only reported for the others. A robot that does not
+leave its start cell in that time fails. Its runs do not depend on what happens later in the maze (UKMARSBOT's way
+back from the goal, for one, is sensitive to numerical perturbations: 3 seeds in 10 touch a wall on it).
+
+The full check (--full) is the whole run, as before: it fails when the firmware does not build, stops, or the robot
+does not do its run (Ratatron: the search to the goal and back, then race 2.4 on its map; ZoroBot3: its exploration
+to the goal; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
+the goal and back; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
+following, away from the start; Gamusino: its 1.5 m and back; Futura: its controller sample's cells and pivots, up
+to the maze's north rows). Wall touches as in the short check. The stopwatch's times are reported; Ratatron,
+ZoroBot3, Fujin and UKMARSBOT, which reach the goal, fail without one.
+
 A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
 ZoroBot3's meshes need its STEP (not in the repository, README): without it only its firmware is built.
 """
@@ -25,6 +35,11 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)
 MAZE = 'oshwdem2026'
 CI = os.environ.get('GITHUB_ACTIONS') == 'true'
+# The short check's simulated seconds per robot: about 5 s more than its start sequence and its leaving the start
+# cell take in the OSHWDEM 2026 maze (the stopwatch's start: Futura 1.4 s, Perenquén 2.9, UKMARSBOT 3.7, Gamusino 4.4,
+# NezumiBot 6.2, Ratatron 6.8, ZoroBot3 8.9, Fujin 11.0, Bulebule 18.0)
+SHORT_S = {'ratatron': 12, 'zorobot': 14, 'gamusino': 10, 'bulebule': 23, 'nezumibot': 11, 'perenquen': 8,
+           'fujin': 16, 'futura': 6, 'ukmarsbot': 9}
 
 
 def note(kind, text):
@@ -70,7 +85,8 @@ def touches(out):
 
 def common(out, fails, clean):
     """What every runner prints: its firmware stopping, its end pose, its wall touches, its stopwatch's times."""
-    for bad in ('firmware halted', 'firmware reset', 'its sketch stopped', 'Traceback'):
+    for bad in ('firmware halted', 'firmware reset', 'firmware fault', 'firmware stopped', 'its sketch stopped',
+                'Traceback'):
         if bad in out:
             fails.append(bad)
     stopwatch(out)
@@ -88,12 +104,41 @@ def far_from(pose, xy, mm):
     return pose is not None and math.dist(pose[:2], xy) > mm
 
 
-# ---- each robot: a list of what went wrong (empty: passed)
+def left_start(out, fails):
+    """The short check's point: the stopwatch started a run, the robot's centre out of the start cell."""
+    if not re.search(r'stopwatch: run \d+ started', out):
+        fails.append('it did not leave the start cell (no run started on the stopwatch)')
 
-def ratatron():
+
+def short(args, max_s, clean, started=None):
+    """The short check (the CI's): started as its makers start it, for max_s simulated seconds (its start sequence
+    and a few seconds more), its firmware built and running, and out of its start cell."""
+    fails = []
+    out = run(args + ['--headless', '--maze', MAZE, '--max-s', str(max_s)])
+    common(out, fails, clean)
+    if started and started not in out:
+        fails.append(f'not started (no "{started}")')
+    left_start(out, fails)
+    return fails
+
+
+# ---- each robot: a list of what went wrong (empty: passed); full: its whole run, else the short check
+
+def ratatron(full):
     fails = []
     flash = os.path.join(tempfile.mkdtemp(), 'flash.bin')
-    base = ['--headless', '--speed', '0', '--no-pty', '--flash', flash, '--maze', MAZE, '--max-s', '600']
+    base = ['--headless', '--speed', '0', '--no-pty', '--flash', flash, '--maze', MAZE]
+    if not full:
+        out = run(base + ['--erase-flash', '--max-s', str(SHORT_S['ratatron'])])
+        stopwatch(out)
+        for bad in ('POSE LOST', 'touches a wall', '## firmware', 'Traceback'):     # its firmware halted or faulted
+            if bad in out:
+                fails.append(bad)
+        if '## end:' not in out:
+            fails.append('no end')
+        left_start(out, fails)
+        return fails
+    base += ['--max-s', '600']
     for name, start in (('search', ['--erase-flash']), ('race 2.4', ['--race', '4'])):     # its start (config.py)
         out = run(base + start)
         if 'End: OK' not in out:
@@ -108,13 +153,15 @@ def ratatron():
     return fails
 
 
-def zorobot():
+def zorobot(full):
     from ratasim.zorobot import config as Z
     from ratasim.zorobot.robot import build
     build()
     if not os.path.exists(Z.CAD_STEP):
         note('notice', 'ZoroBot3: its firmware built; no run (its STEP is not in the repository)')
         return []
+    if not full:
+        return short(['zorobot'], SHORT_S['zorobot'], clean=False, started='started: True')
     fails = []
     out = run(['zorobot', '--headless', '--maze', MAZE, '--max-s', '400'])
     common(out, fails, clean=False)
@@ -127,7 +174,9 @@ def zorobot():
     return fails
 
 
-def gamusino():
+def gamusino(full):
+    if not full:
+        return short(['gamusino'], SHORT_S['gamusino'], clean=False, started='blue:')
     fails = []
     out = run(['gamusino', '--headless', '--maze', MAZE, '--max-s', '30'])
     pose = common(out, fails, clean=False)
@@ -139,7 +188,9 @@ def gamusino():
     return fails
 
 
-def wall_follower(args, clean):
+def wall_follower(args, clean, full, started):
+    if not full:
+        return short(args, SHORT_S[args[0]], clean, started)
     fails = []
     out = run(args + ['--headless', '--maze', MAZE, '--max-s', '60'])
     pose = common(out, fails, clean)
@@ -150,18 +201,20 @@ def wall_follower(args, clean):
     return fails
 
 
-def nezumibot():
-    return wall_follower(['nezumibot', '--hand', 'left'], clean=True)
+def nezumibot(full):
+    return wall_follower(['nezumibot', '--hand', 'left'], clean=True, full=full, started='started: True')
 
 
-def perenquen():
-    return wall_follower(['perenquen', '--side', 'right', '--gain', '30'], clean=False)
+def perenquen(full):
+    return wall_follower(['perenquen', '--side', 'right', '--gain', '30'], clean=False, full=full, started='keeping to the')
 
 
-def futura():
+def futura(full):
     """Its kit's template with its page's controller sample (fw/main.c): "run " on its display, cells one after
     another to the walls, a stop in the middle of the cell and pivots to look for the way on, left, right and back.
     In 60 s it runs clean, at least 25 cells and 10 pivots, up the west column and round to the maze's north rows."""
+    if not full:
+        return short(['futura'], SHORT_S['futura'], clean=True, started='its display: "run "')
     fails = []
     out = run(['futura', '--headless', '--echo', '--maze', MAZE, '--max-s', '60'])
     pose = common(out, fails, clean=True)
@@ -181,7 +234,9 @@ def futura():
     return fails
 
 
-def ukmarsbot():
+def ukmarsbot(full):
+    if not full:
+        return short(['ukmarsbot'], SHORT_S['ukmarsbot'], clean=False, started='Off we go')
     fails = []
     out = run(['ukmarsbot', '--headless', '--maze', MAZE, '--max-s', '400'])
     pose = common(out, fails, clean=False)
@@ -231,9 +286,12 @@ def model(name):
     return [] if abs(q[2] - z0) < 0.01 and abs(q[3]) > 0.95 else [f'not standing on the floor ({q[2] - z0:+.3f} m)']
 
 
-def bulebule():
+def bulebule(full):
     fails = []
     flash = os.path.join(tempfile.mkdtemp(), 'flash.bin')
+    if not full:
+        return short(['bulebule', '--erase-flash', '--flash', flash], SHORT_S['bulebule'], clean=False,
+                     started='exploring')
     out = run(['bulebule', '--headless', '--maze', MAZE, '--erase-flash', '--flash', flash, '--max-s', '300'])
     pose = common(out, fails, clean=False)
     if 'exploring' not in out:
@@ -247,7 +305,9 @@ def bulebule():
     return fails
 
 
-def fujin():
+def fujin(full):
+    if not full:
+        return short(['fujin'], SHORT_S['fujin'], clean=False, started='started: True')
     fails = []
     out = run(['fujin', '--headless', '--maze', MAZE, '--max-s', '400'])
     pose = common(out, fails, clean=False)
@@ -267,11 +327,16 @@ ROBOTS = {'ratatron': ratatron, 'zorobot': zorobot, 'gamusino': gamusino, 'buleb
           'futura': futura, 'ukmarsbot': ukmarsbot}
 
 
-def main(names):
+def main(args):
+    full = '--full' in args
+    names = [a for a in args if a != '--full']
+    for name in names:
+        if name not in ROBOTS:
+            sys.exit(f'unknown robot {name!r} (robots: {" ".join(ROBOTS)})')
     failed = []
     for name in names or ROBOTS:
-        print(f'==== {name}', flush=True)
-        fails = ROBOTS[name]()
+        print(f'==== {name}{" (full)" if full else ""}', flush=True)
+        fails = ROBOTS[name](full)
         for f in fails:
             note('error', f'{name}: {f}')
         print(f'==== {name}: {"FAILED" if fails else "OK"}', flush=True)
