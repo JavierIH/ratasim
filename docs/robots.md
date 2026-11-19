@@ -266,3 +266,56 @@ are published, no firmware: Futura is the one with code.
   start cell, facing north, and switched on. In the OSHWDEM 2026 maze it rolls ten cells up the west column, from
   0.35 s to 2.3 s, and stays against the wall that ends it (a touch a second, reported), its four sensors printing
   ~4000. `--echo` prints its serial port.
+
+## UKMARSBOT
+
+<img src="images/robots/ukmarsbot.jpg" width="220" align="right">
+
+By the [UK Micromouse and Robotics Society](https://ukmars.org/projects/ukmarsbot/) ·
+[ukmars/ukmarsbot](https://github.com/ukmars/ukmarsbot) (MIT) · its firmware by
+[Peter Harrison](https://github.com/micromouseonline),
+[ukmars/mazerunner-core](https://github.com/ukmars/mazerunner-core) (MIT)
+
+- **Firmware:** `external/mazerunner-core` at Peter Harrison's last commit of October 2025 (5077a4f, "adjust turn
+  parameters for orion"), the robot its `config.h` selects, ORION (his UKMARSBOT: 11:1 N20 gearmotors, 18-magnet
+  encoder discs, the advanced wall sensor), for the Arduino Nano (ATmega328P) on a simulated chip
+  (`ratasim/ukmarsbot/fw/`): an Arduino core whose registers are objects the chip sees (`avr/io.h`), so its own
+  register code runs (Timer2's 500 Hz systick, the interrupt-driven ADC reading each sensor dark and lit,
+  `ATOMIC_BLOCK`, `PROGMEM`); its `setup()` and `loop()` in a coroutine, its interrupts run where the time reaches
+  them, by priority, nested in systick's (`ISR_NOBLOCK`); its encoders a quadrature sequence on its pins, an
+  interrupt at each edge; its serial port at 115200 baud. Its sketch is copied at build time
+  (`fw/gen_src.py`) with two changes: its event set to `EVENT_UK` (its README's way: its `config.h` edited; the goal
+  at (7, 7), ORION's calibration for UK contests), and one float-to-int conversion written as the AVR does it
+  (`pwm_compensated()` at boot, 0 V over a battery not yet read: 0 on the AVR's 16-bit int, full reverse on x86).
+  Why that commit: its tag V0.2.0 (the UK contest of 2023, OSMIUM CORE) misses its stop before a wall when its
+  sensors reach their reference before its motion profile ends (it drives into the wall), the bug Peter fixed in
+  October 2025 (1f1fd7a); its last commit (a revert of May 2026) applies its steering 500 times stronger than the
+  gains it keeps were set for. What it runs: function 2 of its switches, its search to the goal and back,
+  mapping the maze by flood fill (3: a left wall follower).
+- **Model:** its two boards from their KiCad files (`ecad/kicad`: `mainboard`, `wall-sensor-advanced`, read by
+  `ratasim/ukmarsbot/kicad.py`): their outlines as plates, and where their footprints are, its parts as simple solids
+  of their sizes: the Arduino Nano on its sockets, the TB6612FNG module, the gearmotors in their printed brackets
+  (their footprint: encoder, motor, gearbox, shaft), the IR emitters over the sensor board and the phototransistors
+  under it along their axes, capacitors, resistors, switches, button; the PP3 battery standing behind the motors and
+  the 32 mm wheels where its photos and renders put them, two skids. Collisions: the main board's outline up to the
+  battery, its tyres (their contact 2 mm wide, at its `MOUSE_RADIUS`: a 7 mm cylinder touches the floor at its
+  edges, and its turns in place came out 10° short), its skids.
+- **Sensors:** where the sensor board puts each SFH4545 emitter and TEFT4300 phototransistor: the front pair at the
+  sides looking 10° out, the diagonal pair at the nose looking 60° out; channels and emitters as its board's
+  connector and its config. The light back from a wall: a diffuse reflector, cos(incidence) A / (d + 13.3 mm)², three
+  rays across the beam; A for each from its firmware's own calibration (backed up to a wall, centred in a cell) and
+  the offset from its `FRONT_REFERENCE` (850, centred before a wall): its turns' trigger then comes where its
+  config says. 0.7 counts of noise (its ADC).
+- **Physics, assumed:** 135 g (a PP3, two N20 with encoders, its boards, a Nano), its centre of mass just behind
+  the axle; its wheels' radius from its counts a millimetre (16.4 mm); its motors as DC motors with the constants
+  ORION's config measured (`FWD_KM` 475 mm/s a volt, `FWD_TM` 0.19 s, `BIAS_FF` 0.34 V), its turning inertia from
+  `ROT_TM`; an 8.4 V battery.
+- **Run:** `ratasim ukmarsbot --maze oshwdem2026 [--function 2|3] [--record out.mp4]`: started as at a contest:
+  backed up to the start cell's wall, switched on with its button held (its maze map, kept through resets, cleared),
+  its function switches at 2 and its button pressed, its LED flashing; a hand in front of its left front sensor,
+  taken away: it goes. `--console` leaves its serial command line in the terminal. In the OSHWDEM 2026 maze (the
+  goal 92 cells from the start) its search reaches the goal in 125 s and is back in the start cell at 186 s, its
+  map right; with other seeds of its sensors' noise, 7 runs of 8 (one reaches the goal and is lost on its way
+  back). Its turns' geometry is its own: its right turn starts 15 mm later than its left one (its config, tuned on
+  ORION), and ends 17 mm off the centre line on a robot that follows its profile exactly, which its steering takes
+  out where there are walls beside it.

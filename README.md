@@ -44,17 +44,17 @@ cells of 180 mm).
 <tr>
 <td align="center" width="33%"><a href="docs/robots.md#fujin"><img src="docs/images/robots/fujin.jpg" width="250"><br><b>Fujin</b></a></td>
 <td align="center" width="33%"><a href="docs/robots.md#futura"><img src="docs/images/robots/futura.jpg" width="250"><br><b>Futura</b></a></td>
-<td width="33%"></td>
+<td align="center" width="33%"><a href="docs/robots.md#ukmarsbot"><img src="docs/images/robots/ukmarsbot.jpg" width="250"><br><b>UKMARSBOT</b></a></td>
 </tr>
 <tr>
 <td align="center">by <a href="https://raiju.team">Team Raiju</a> · <a href="https://github.com/team-raiju/fujin">repo</a></td>
 <td align="center">by <a href="https://micromouseusa.com">Green Ye</a> · <a href="https://micromouseusa.com/?page_id=1342">page</a></td>
-<td></td>
+<td align="center">by <a href="https://ukmars.org">UKMARS</a> · <a href="https://github.com/ukmars/ukmarsbot">repo</a> · <a href="https://github.com/ukmars/mazerunner-core">firmware</a></td>
 </tr>
 <tr>
 <td align="center">STM32G474 · 4 IR · gyro · fan</td>
 <td align="center">STM32F405 · 4 IR · gyro · its kit's test loop</td>
-<td></td>
+<td align="center">ATmega328P · 4 IR · N20 motors</td>
 </tr>
 </table>
 
@@ -95,7 +95,7 @@ The console stays open meanwhile: `MODE 2 6` and `START` (or `:select`, `:start`
 `--console`: not started, only the console. In the viewer, Page Up is its SELECT button, Page Down its START and
 End puts it back at the start.
 
-The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen|fujin|futura`) also open MuJoCo's window, at real time
+The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen|fujin|futura|ukmarsbot`) also open MuJoCo's window, at real time
 (`--record-speed 2` for twice that); with `--headless`, or `--record out.mp4` (a video instead of the window), or no
 screen, they run without it.
 
@@ -214,6 +214,20 @@ printing that wall.
 
 ![Futura at the end of the start column](docs/images/maze-futura.jpg)
 
+### UKMARSBOT in a maze
+
+```sh
+ratasim ukmarsbot --maze oshwdem2026 --record ukmarsbot.mp4
+```
+
+mazerunner-core, Peter Harrison's firmware for it, as his ORION, on its Arduino Nano's ATmega328P (its registers,
+timers, ADC and interrupts simulated): its search, flood fill from the start to the goal and back, mapping the maze.
+Started as at a contest: backed up to the start cell's wall, switched on with its button held (its map cleared), its
+function switches at 2 and its button pressed, a hand in front of its left front sensor (`--function 3`: its left
+wall follower to the goal; `--console`: its serial command line afterwards).
+
+![UKMARSBOT searching the OSHWDEM 2026 maze](docs/images/maze-ukmarsbot.jpg)
+
 ## The stopwatch
 
 Every runner times the robot's runs as at a competition: the stopwatch starts when the robot's centre leaves the
@@ -239,6 +253,7 @@ ratasim/nezumibot/  NezumiBot: its assembled 3D model (assets/), its simulated c
 ratasim/perenquen/  Perenquén: its meshes from its FreeCAD assembly (assets/, cad.py), its simulated dsPIC (fw/), runner
 ratasim/fujin/      Fujin: its model from its STEP (cad.py), its firmware on our BSP and simulated STM32G474 (fw/), runner
 ratasim/futura/     Futura: its files downloaded at build time, its model, its simulated STM32F405 and ST library (fw/)
+ratasim/ukmarsbot/  UKMARSBOT: its model from its KiCad boards (kicad.py), its Arduino Nano's ATmega328P (fw/), runner
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
 ratasim/start.py    starting a robot as its makers do (its config's sequence), with the hand of hand.py
 ratasim/stopwatch.py the runs' times, from the start cell to the goal (every robot)
