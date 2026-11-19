@@ -19,7 +19,7 @@ cells of 180 mm).
 <tr>
 <td align="center">by <a href="https://github.com/JavierIH">JavierIH</a> · <a href="https://github.com/JavierIH/ratatron">repo</a></td>
 <td align="center">by <a href="https://oprobots.org">OPRobots</a> · <a href="https://github.com/OPRobots/ZoroBot3">repo</a></td>
-<td align="center">by <a href="https://github.com/turmandreams">turmandreams</a> · <a href="https://github.com/turmandreams/gamusino">repo</a></td>
+<td align="center">by <a href="https://github.com/turmandreams">turmand<wbr>reams</a> · <a href="https://github.com/turmandreams/gamusino">repo</a></td>
 </tr>
 <tr>
 <td align="center">STM32F103 · 4 Sharp IR · no gyro</td>
@@ -39,7 +39,7 @@ cells of 180 mm).
 <tr>
 <td align="center">STM32F103 · 4 IR · gyro · 4 wheels</td>
 <td align="center">STM32F401 · 4 Sharp IR · N20 motors</td>
-<td align="center">dsPIC33EP512MC806 · 4 IR · gyro · 4 wheels</td>
+<td align="center">dsPIC33<wbr>EP512<wbr>MC806 · 4 IR · gyro · 4 wheels</td>
 </tr>
 </table>
 
