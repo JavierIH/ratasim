@@ -52,6 +52,10 @@ START
 When it is back, `MODE 2 6` and `START` run the race (2.6, the fastest preset) on the map it saved. In the viewer,
 Page Up is its SELECT button, Page Down its START and End puts it back at the start.
 
+The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen`) also open MuJoCo's window, at real time
+(`--record-speed 2` for twice that); with `--headless`, or `--record out.mp4` (a video instead of the window), or no
+screen, they run without it.
+
 Without a screen (over SSH), headless, as fast as possible, with a video:
 
 ```sh

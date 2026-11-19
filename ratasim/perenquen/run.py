@@ -2,7 +2,7 @@
 follower, `start left|right <gain>`) and starts it as its maker did: in its start cell, the command typed in a terminal
 (it reads its diagonal sensors there), then a hand in front of both front sensors, taken away.
 
-    ratasim perenquen [--maze oshwdem2026] [--side right|left] [--gain 30] [--speed N] [--record out.mp4] [--max-s 60]
+    ratasim perenquen [--maze oshwdem2026] [--side right|left] [--gain 30] [--speed N] [--headless] [--record out.mp4] [--max-s 60]
 
 --speed: `traj_speed distance N` first (its units: 10 encoder counts a millisecond, 1000 = 1.96 m/s; it boots at 400,
 0.78 m/s). Its notes in commands_mainboard.c: "OK speed 1000 gain 100", "OK speed 1500 gain 200"; its last commit:
@@ -17,7 +17,7 @@ import time
 os.environ.setdefault('MUJOCO_GL', 'egl')
 
 from ..maze import Maze   # noqa: E402
-from ..recorder import Recorder   # noqa: E402
+from ..recorder import add_view_args, make_view   # noqa: E402
 from ..run import maze_path   # noqa: E402
 from ..start import play   # noqa: E402
 from . import config as P   # noqa: E402
@@ -31,15 +31,14 @@ def main(argv=None):
     p.add_argument('--side', choices=('left', 'right'), default='right', help='the wall it keeps to')
     p.add_argument('--gain', type=int, default=30)
     p.add_argument('--speed', type=int, help='traj_speed distance N before starting')
-    p.add_argument('--record', metavar='MP4')
-    p.add_argument('--record-speed', type=float, default=1.0)
+    add_view_args(p)
     p.add_argument('--max-s', type=float, default=60.0)
     p.add_argument('--log', help='write everything the firmware prints here')
     p.add_argument('--echo', action='store_true', help='print what the firmware prints')
     p.add_argument('--console', action='store_true', help='then type commands to it (stdin)')
     a = p.parse_args(argv)
     r = PRobot(Maze.load(maze_path(a.maze)))
-    rec = Recorder(r, a.record, 'Perenquen (supernudo)', speed=a.record_speed) if a.record else None
+    rec = make_view(r, a, 'Perenquen (supernudo)')
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()
     crash_t = -10000

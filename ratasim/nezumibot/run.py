@@ -2,7 +2,7 @@
 with a hand in front of its sensors: held in the air, the left or right sensor picks the "party" (it swaps hands
 every 30 s after 45 s) and then the wall it follows; put down in the start cell, a hand in front starts it 2 s later.
 
-    ratasim nezumibot [--maze oshwdem2026] [--hand left|right] [--party] [--record out.mp4] [--max-s 60]
+    ratasim nezumibot [--maze oshwdem2026] [--hand left|right] [--party] [--headless] [--record out.mp4] [--max-s 60]
 """
 import argparse
 import os
@@ -12,7 +12,7 @@ import time
 os.environ.setdefault('MUJOCO_GL', 'egl')
 
 from ..maze import Maze   # noqa: E402
-from ..recorder import Recorder   # noqa: E402
+from ..recorder import add_view_args, make_view   # noqa: E402
 from ..run import maze_path   # noqa: E402
 from ..start import play   # noqa: E402
 from . import config as N   # noqa: E402
@@ -25,13 +25,12 @@ def main(argv=None):
     p.add_argument('--maze', default='oshwdem2026')
     p.add_argument('--hand', choices=('left', 'right'), default='left', help='the wall it follows')
     p.add_argument('--party', action='store_true', help='swap hands every 30 s after 45 s')
-    p.add_argument('--record', metavar='MP4')
-    p.add_argument('--record-speed', type=float, default=1.0)
+    add_view_args(p)
     p.add_argument('--max-s', type=float, default=60.0)
     p.add_argument('--log', help='write everything the firmware prints here')
     a = p.parse_args(argv)
     r = NRobot(Maze.load(maze_path(a.maze)))
-    rec = Recorder(r, a.record, 'NezumiBot (OPRobots)', speed=a.record_speed) if a.record else None
+    rec = make_view(r, a, 'NezumiBot (OPRobots)')
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()
     crash_t = -10000

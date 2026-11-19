@@ -2,7 +2,7 @@
 of a sensor as on the real robot, and runs it in a maze; optionally records a video.
 
     ratasim zorobot [--maze oshwdem2026] [--speed 0..5] [--explore-type 0..2] [--run]
-                [--record out.mp4] [--max-s 400]
+                [--headless] [--record out.mp4] [--max-s 400]
 
 --run: EXPLORE & RUN (explore, then the speed run at --speed); else only the exploration.
 """
@@ -15,7 +15,7 @@ os.environ.setdefault('MUJOCO_GL', 'egl')
 
 from ..maze import Maze   # noqa: E402
 from ..run import maze_path   # noqa: E402
-from ..recorder import Recorder   # noqa: E402
+from ..recorder import add_view_args, make_view   # noqa: E402
 from ..start import play   # noqa: E402
 from . import config as Z   # noqa: E402
 from .robot import ZRobot   # noqa: E402
@@ -28,15 +28,14 @@ def main(argv=None):
     p.add_argument('--explore-type', type=int, default=0, help='0 to the goal, 1 and back home, 2 complete')
     p.add_argument('--floodfill', type=int, default=0, help='0 basic, 1 diagonal, 2 time')
     p.add_argument('--run', action='store_true', help='explore, then the speed run')
-    p.add_argument('--record', metavar='MP4')
-    p.add_argument('--record-speed', type=float, default=1.0)
+    add_view_args(p)
     p.add_argument('--max-s', type=float, default=400.0)
     p.add_argument('--log', help='write everything the firmware prints here')
     a = p.parse_args(argv)
     maze = Maze.load(maze_path(a.maze))
     menu = (a.speed, 0, a.explore_type, a.floodfill, 1, 0, 2)
     r = ZRobot(maze, menu=menu)
-    rec = Recorder(r, a.record, 'ZoroBot3 (OPRobots)', speed=a.record_speed, led=r.fw.rgb) if a.record else None
+    rec = make_view(r, a, 'ZoroBot3 (OPRobots)', led=r.fw.rgb)
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()
     started = ended = False

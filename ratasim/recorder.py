@@ -1,6 +1,10 @@
 """Videos of a robot running its firmware in a maze (ZoroBot3, NezumiBot)."""
 import math
+import os
 import subprocess
+import sys
+import threading
+import time
 
 import mujoco
 
@@ -64,3 +68,57 @@ class Recorder:
     def close(self):
         self.ff.stdin.close()
         self.ff.wait()
+
+
+class Viewer:
+    """MuJoCo's window on the run, paced to the clock (the waits between runs at 8x). Same calls as Recorder."""
+
+    def __init__(self, robot, speed=1.0):
+        import mujoco.viewer
+        self.r, self.speed, self.status = robot, speed, ''
+        before = set(threading.enumerate())
+        self.v = mujoco.viewer.launch_passive(robot.model, robot.data)
+        self.threads = [t for t in threading.enumerate() if t not in before]     # its window's
+        side = robot.maze.size * 0.18
+        self.v.cam.lookat[:] = (side / 2, side / 2, 0)
+        self.v.cam.distance, self.v.cam.elevation, self.v.cam.azimuth = side * 1.25, -70, 90
+        self.wall0, self.sim0, self.rate, self.last = time.monotonic(), robot.fw.time_ms(), speed, 0.0
+
+    def maybe_frame(self, fast=False):
+        if not self.v.is_running():
+            raise SystemExit('window closed')
+        rate = 8.0 if fast else self.speed
+        now, t = time.monotonic(), self.r.fw.time_ms()
+        if rate != self.rate:                       # re-anchor the clock when the pace changes
+            self.wall0, self.sim0, self.rate = now, t, rate
+        if now - self.last > 1 / 60:
+            self.v.sync()
+            self.last = now
+        ahead = (t - self.sim0) / 1000.0 / rate - (now - self.wall0)
+        if ahead > 0.002:
+            time.sleep(min(ahead, 0.05))
+        elif ahead < -0.5:                          # slower than asked: do not try to catch up
+            self.wall0, self.sim0 = now, t
+
+    def close(self):
+        self.v.close()
+        for t in self.threads:      # let its window finish: at the interpreter's exit it would crash in glfw
+            t.join(3)
+
+
+def add_view_args(p):
+    p.add_argument('--headless', action='store_true', help='no window (with --record there is none either)')
+    p.add_argument('--record', metavar='MP4')
+    p.add_argument('--record-speed', type=float, default=1.0, help='the pace of window and video (x real time)')
+
+
+def make_view(robot, a, title, led=None):
+    """What shows the run: a video (--record), else MuJoCo's window, else (--headless, or no screen) nothing."""
+    if a.record:
+        return Recorder(robot, a.record, title, speed=a.record_speed, led=led)
+    if a.headless:
+        return None
+    if sys.platform.startswith('linux') and not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
+        print('no screen (DISPLAY): running headless')
+        return None
+    return Viewer(robot, speed=a.record_speed)

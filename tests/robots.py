@@ -95,7 +95,7 @@ def zorobot():
         note('notice', 'ZoroBot3: its firmware built; no run (its STEP is not in the repository)')
         return []
     fails = []
-    out = run(['zorobot', '--maze', MAZE, '--max-s', '400'])
+    out = run(['zorobot', '--headless', '--maze', MAZE, '--max-s', '400'])
     common(out, fails, clean=False)
     if 'started: True' not in out:
         fails.append('not started')
@@ -106,7 +106,7 @@ def zorobot():
 
 def gamusino():
     fails = []
-    out = run(['gamusino', '--maze', MAZE, '--max-s', '30'])
+    out = run(['gamusino', '--headless', '--maze', MAZE, '--max-s', '30'])
     pose = common(out, fails, clean=False)
     m = re.search(r'put down in cell \((\d+), (\d+)\)', out)
     if not m or 'blue:' not in out:
@@ -118,7 +118,7 @@ def gamusino():
 
 def wall_follower(args, clean):
     fails = []
-    out = run(args + ['--maze', MAZE, '--max-s', '60'])
+    out = run(args + ['--headless', '--maze', MAZE, '--max-s', '60'])
     pose = common(out, fails, clean)
     if 'started: False' in out:
         fails.append('not started')
