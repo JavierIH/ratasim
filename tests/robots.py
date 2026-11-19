@@ -7,7 +7,8 @@ A check fails when the firmware does not build, stops, or the robot does not do 
 the goal and back, then race 2.4 on its map; ZoroBot3: its exploration to the goal; NezumiBot and Perenquén: their
 wall following, away from the start; Gamusino: its 1.5 m and back). Wall touches fail the robots that run clean
 (Ratatron, NezumiBot); for the others, whose touches are known (robots.md), they are only reported.
-The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron and ZoroBot3, which reach the goal, fail without one.
+The stopwatch's times (ratasim/stopwatch.py) are reported; Ratatron and ZoroBot3, which reach the goal, fail
+without one.
 A robot with a model and no firmware yet (Bulebule) is checked by its model: it builds and stands on the floor.
 ZoroBot3's meshes need its STEP (not in the repository, README): without it only its firmware is built.
 """

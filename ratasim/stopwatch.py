@@ -44,7 +44,7 @@ class Stopwatch:
     def text(self):
         """What the window and the video show: the run's time, running or at the goal, and the last one's."""
         if self.t0 is None:
-            return f'run {self.runs}  {self.last / 1000:.3f} s  at the goal' if self.last is not None else 'time  0.00 s'
+            return 'time  0.00 s' if self.last is None else f'run {self.runs}  {self.last / 1000:.3f} s  at the goal'
         text = f'run {self.runs}  {(self.now - self.t0) / 1000:.2f} s'
         return text + (f'   (last: {self.last / 1000:.3f} s)' if self.last is not None else '')
 
