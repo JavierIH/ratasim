@@ -8,7 +8,7 @@ Its printed parts as show_robot() (parts/Openscad/main.scad) puts them together:
 ready to print: turned back) and battery holder, its two Futaba S3003; its wheels about their own axle. What its STL
 files leave out, from its OpenSCAD model's dimensions and its photo: its wheels' O-rings in the V of their rims
 (Servo-wheel.scad's raw_wheel()), its black 4-arm horns in their wheels' recesses (horn4()), their screws; its
-Skymega's metal hex spacers; its servos' cables (black, red, white, Futaba's) and its battery's wires (red and black)
+Skymega's metal hex spacers, under it and over it; its servos' cables (black, red, white, Futaba's) and its battery's wires (red and black)
 up to its board.
 
 Frames: the body's meshes in the robot's (mm: x right, y forward, z up, origin on the floor under the wheels' axle);
@@ -215,10 +215,9 @@ def horn():
 
 
 def horn_screws():
-    """Its middle screw's head, sunk in the hub, and the two on its arms (pan heads), in Servo-wheel.scad's frame."""
+    """The two screws on its arms (pan heads; its hub's middle open, as in its photo), in Servo-wheel.scad's frame."""
     top = HORN_PLATE_Z[1]
-    return np.concatenate([cylinder(2.4, top - 0.8, top + 0.2, 20)]
-                          + [cylinder(1.7, top, top + 1.0, 16, c) for c in ((0, HORN_SCREW_MM), (0, -HORN_SCREW_MM))])
+    return np.concatenate([cylinder(1.7, top, top + 1.0, 16, c) for c in ((0, HORN_SCREW_MM), (0, -HORN_SCREW_MM))])
 
 
 def o_ring():
@@ -228,22 +227,30 @@ def o_ring():
     return torus(big, S.WHEEL_OR_DIAM / 2)
 
 
+UPPER_SPACER_MM = 8.0
+
+
 def spacers():
-    """The Skymega's four M3 hex spacers (5.5 mm across flats) from the top plate to the board, robot frame."""
+    """The Skymega's four M3 hex spacers (5.5 mm across flats) from the top plate to the board and the four over it
+    (its photo), robot frame."""
     cx, cy, _ = S.scad_to_robot(S.SKYMEGA_X_SCAD, S.MID_Y_SCAD, 0)
     plate = S.scad_to_robot(0, 0, S.SERVO_C1 + S.TOP_PLATE_THICKNESS)[2]
     hexagon = _circle(5.5 / np.sqrt(3), 6) @ np.array([[np.cos(np.pi / 6), np.sin(np.pi / 6)],
                                                         [-np.sin(np.pi / 6), np.cos(np.pi / 6)]])
-    return np.concatenate([prism(hexagon + (cx + dx * S.SKYMEGA_DRILL, cy + dy * S.SKYMEGA_DRILL),
-                                 plate, plate + S.SKYMEGA_SPACER_MM) for dx in (-1, 1) for dy in (-1, 1)])
+    top = board_top()[2]
+    return np.concatenate([prism(hexagon + (cx + dx * S.SKYMEGA_DRILL, cy + dy * S.SKYMEGA_DRILL), z0, z1)
+                           for dx in (-1, 1) for dy in (-1, 1)
+                           for z0, z1 in ((plate, plate + S.SKYMEGA_SPACER_MM), (top, top + UPPER_SPACER_MM))])
 
 
-# Its board's servo headers (the Skymega's photo: a row of three-pin headers, 2.54 mm pitch, by its left edge), the
+# Its board's servo headers (the robot's photo: a row of three-pin headers, 2.54 mm pitch, ahead of its middle), the
 # two its servos are plugged into, its power connector: where model.py draws them, robot frame.
-SERVO_HEADER = {'x0': -22.0, 'y': -9.5, 'n': 8}     # from the board's middle: the first's x, the middle pins' y
+SERVO_HEADER = {'x0': -14.0, 'y': 8.0, 'n': 8}      # from the board's middle: the first's x, the middle pins' y
 SERVO_PLUGGED = {'r': 2, 'l': 4}                    # SERVO2, SERVO4 (pins 8 and 9)
+RISE_Y = -9.5                                       # where their cables come up, from the board's middle
 PLUG_H = 14.0                                       # a servo plug's housing over the header's base
-POWER = (-19.5, 11.0)                               # its 2-pin power connector
+POWER = (9.0, 1.0)                                  # its 2-pin power connector, near its right edge
+POWER_H = 10.0                                      # its housing's height over the board
 
 
 def board_top():
@@ -267,8 +274,9 @@ def wires():
     r = 0.55
     for side, x0, loop in (('r', 6.0, 0.0), ('l', -6.0, 3.5)):     # the second round the first
         px, py, pz = plug(side)
-        path = rounded([(x0, py, plate - 8), (x0, py, plate + 3 + loop), (cx - 27 - loop, py, plate + 3 + loop),
-                        (cx - 31 - loop, py, top + 8), (cx - 28 - loop, py, pz + 4 + loop), (px, py, pz + 4 + loop),
+        yr = cy + RISE_Y                                            # up through the top plate's cutout
+        path = rounded([(x0, yr, plate - 8), (x0, yr, plate + 3 + loop), (cx - 27 - loop, yr, plate + 3 + loop),
+                        (cx - 31 - loop, yr, top + 8), (cx - 28 - loop, py, pz + 4 + loop), (px, py, pz + 4 + loop),
                         (px, py, pz)], 6.0)
         for k, colour in enumerate(('black', 'red', 'white')):        # -, +, signal: across the plug
             out[colour].append(tube(path + (0, (k - 1) * 1.1, 0), r))
@@ -278,7 +286,7 @@ def wires():
     for k, colour in enumerate(('red', 'black')):
         dx = (k - 0.5) * 1.4
         path = bezier([(8 + dx, y, plate - 18), (8 + dx, y, plate + 10), (4 + dx, y + 2, top + 16),
-                       (bx + dx, by + 12, top + 18), (bx + dx, by, top + 14), (bx + dx, by, top + 7)], 50)
+                       (bx + dx, by + 12, top + POWER_H + 11), (bx + dx, by, top + POWER_H + 7), (bx + dx, by, top + POWER_H)], 50)
         out[colour].append(tube(path, 0.6))
     return {k: np.concatenate(v) for k, v in out.items()}
 

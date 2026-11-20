@@ -411,13 +411,14 @@ at 16 MHz) and four AAA cells. No encoders, no gyro, one sensor.
 - **Model:** as its OpenSCAD model's `show_robot()` assembles it (`parts/Openscad/main.scad`), from the STL files its
   repository ships (`ratasim/miniskybot/cad.py`, at build time): its printed chassis (exported upside down for
   printing, turned back), its battery holder, its two S3003 and its wheels; merged per body and colour, their normals
-  smooth across rounded faces and sharp at edges (a crease angle). Its printed parts in blue PLA (RGB 25, 95, 200;
-  white in its photo), the rest as its photo shows it. Made from its OpenSCAD model's dimensions: the black O-rings
+  smooth across rounded faces and sharp at edges (a crease angle). Its printed parts white, as in its photo (a printed
+  plastic's warm, matt white, RGB 235, 232, 222), the rest as its photo shows it. Made from its OpenSCAD model's dimensions: the black O-rings
   in the V of its wheels' Ø56 rims (Ø50 x 3 mm: a 30.1 mm tyre), its black 4-arm horns in their wheels' recesses
-  (`horn4()`) with their screws. Drawn from its parts list, its photo and data sheets: the Ø16 marble of its caster,
+  (`horn4()`) with the two screws on their arms. Drawn from its parts list, its photo and data sheets: the Ø16 marble of its caster,
   its SRF02 (its board behind the front's face, its transducer out of the hole, 17 mm in all as its data sheet
-  gives it), the Skymega on four metal hex spacers (its parts plainly, not from its files: its servo headers with
-  its two servos' plugs), its servos' cables (black, red, white) and its battery's wires up to the board.
+  gives it, its screws and metal clamp), the Skymega on metal hex spacers under it and over it (its parts plainly,
+  not from its files, where its photo has them: its servo headers with its two servos' plugs, its ICSP's white boxed
+  header, its cream power connector, LED, button, its black expansion port, its red switch), its servos' cables (black, red, white) and its battery's wires up to the board.
   Collisions: a box round its chassis and holder, its ranger, its board, its marble, its tyres.
 - **Sensor:** its SRF02's echo: rays across its beam (55° wide), level from its transducer's face; a wall echoes
   where a ray meets it within 10° of square (ultrasound is mirrored, not scattered, by a flat wall); small faces
