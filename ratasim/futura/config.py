@@ -4,8 +4,10 @@ axle's height.
 
 Sources: its kit's firmware template (FuturaProject.zip: user/, user_Libraries/), its schematic (Futura V1.1:
 STM32F405, LY3200ALH gyro, four SFH4545 and TEFT4300 IR pairs, TC4427 and ZXMHC3F381N8 H-bridges, HCMS-2903
-display), its 3D printing files (futura-3D-printing-model.zip: wheel, skate) and the photo of the kit on its page.
-Its page publishes no licence: nothing of it is in this repository; its two zips are downloaded at build time
+display), its board's Gerber files (Futura_Gerber.zip, V1.1: its outline, its parts' pads, its holes), its encoder
+board's schematic (an AS5304/AS5306 magnetic encoder), its 3D printing files (futura-3D-printing-model.zip: wheel,
+skate) and the photo of the kit on its page.
+Its page publishes no licence: nothing of it is in this repository; its three zips are downloaded at build time
 (download()), pinned by their SHA-256.
 """
 import hashlib
@@ -26,9 +28,12 @@ FILES = {       # name: URL, SHA-256
                           'cc30612c3a2e369499eac6885a021204f321ae20e0d8728735683bf593e0633d'),
     'futura-3D-printing-model.zip': (UPLOADS + '2014/03/futura-3D-printing-model.zip',
                                      '4db946b2dc12ea9a537e096e7bf4131c5c394aa34e36ecc0c0393432db95ef05'),
+    'Futura_Gerber.zip': (UPLOADS + '2014/08/Futura_Gerber.zip',
+                          'e17ace6c36edef936bd5bcc3a46c00e15087c37e28a7f58de2c0fa2310c378ff'),
 }
 PROJECT = os.path.join(BUILD, 'FuturaProject')  # its firmware (FuturaProject.zip: user/, user_Libraries/)
 PRINTS = os.path.join(BUILD, 'prints')          # its printed parts (STL)
+GERBERS = os.path.join(BUILD, 'gerbers')        # its board (Futura_Gerber.zip: V1.1.GTL, .GTO, .GML, .TXT...)
 
 
 def _sha256(path):
@@ -51,8 +56,8 @@ def _get(url, path):
 
 
 def download():
-    """Its two zips in BUILD (once; FUTURA_DOWNLOADS: a directory where they already are), checked, unzipped: its
-    firmware's sources to PROJECT, its STL files to PRINTS."""
+    """Its zips in BUILD (once; FUTURA_DOWNLOADS: a directory where they already are), checked, unzipped: its
+    firmware's sources to PROJECT, its STL files to PRINTS, its Gerber files to GERBERS."""
     os.makedirs(BUILD, exist_ok=True)
     local = os.environ.get('FUTURA_DOWNLOADS')
     for name, (url, sha) in FILES.items():
@@ -73,6 +78,9 @@ def download():
     if not os.path.exists(os.path.join(PRINTS, 'skate.stl')):
         with zipfile.ZipFile(os.path.join(BUILD, 'futura-3D-printing-model.zip')) as z:
             z.extractall(PRINTS, [n for n in z.namelist() if n.endswith('.stl')])
+    if not os.path.exists(os.path.join(GERBERS, 'V1.1.GML')):
+        with zipfile.ZipFile(os.path.join(BUILD, 'Futura_Gerber.zip')) as z:
+            z.extractall(GERBERS, [n for n in z.namelist() if n.startswith('V1.1.') and '/' not in n])
 
 
 # ---- From its firmware (user_Libraries) --------------------------------------------------------------------------
@@ -92,24 +100,56 @@ SKATE_STL_CENTRE = (20.51, -0.955)              # "skate.stl": 10 x 10 x 3 mm
 WHEEL_RADIUS_MM = 16.0 + 1.0                    # its printed wheel and a tyre (assumed 1 mm: the photo's rubber)
 WHEEL_WIDTH_MM = 9.0
 
-# ---- From the photo of the kit (assumed: no board file at hand): sizes by its 32 mm wheels --------------------------
-# Its board: a rectangle between its wheels and a half disc for its nose (its sensors on the arc).
-TRACK_MM = 74.0                                 # the wheels' centres: its two motors end to end between them
-BOARD = dict(half_width=32.0, centre_y=10.0, back=-24.0, bottom=-14.0, thickness=1.6)
-SKATE_Y_MM = 33.0                               # its skate under its nose, 3 mm: the board 3 mm off the floor
+# ---- From its Gerber files (V1.1) -------------------------------------------------------------------------------
+# Its board: 74 x 100 mm, its nose an arc, a notch 9 x 32 mm each side for a wheel, its back corners cut at 45 deg.
+# Its Gerbers are in inches; the robot's origin there: the middle of its width, the middle of its wheels' notches.
+GERBER_ORIGIN_IN = (8.8532, 5.169450)
+BOARD_BOTTOM_MM = -14.0                         # assumed: 3 mm off the floor (its skate's height)
+BOARD_THICKNESS_MM = 1.6                        # assumed: its Gerbers do not say
+BOARD_TOP_MM = BOARD_BOTTOM_MM + BOARD_THICKNESS_MM
+NOTCH_X_MM = 28.0                               # the notches' inner edge (the board: +-37 mm)
+NOTCH_HALF_MM = 16.0                            # the notches: 32 mm long, centred on the axle
+# Its encoder boards stand up against the notches' inner edges (1.6 mm), its wheels outside them: their centres.
+TRACK_MM = 2 * (NOTCH_X_MM + 1.6 + 0.4 + WHEEL_WIDTH_MM / 2)
+MOTOR_MOUNT_HOLES = [(sx * 14.85, sy * 9.0) for sx in (-1, 1) for sy in (-1, 1)]   # its four 2.3 mm holes (M2)
+# Its IR pairs, each an emitter (SFH4545, 5 mm) and a phototransistor (TEFT4300, 3 mm) lying on the board, their
+# leads bent down into two holes (V1.1.TXT, mm in the robot's frame): each one looks square to the line of its two
+# holes, ahead (their silkscreen outlines). LF and RF at the board's edges, 7 deg out; DL and DR by its middle,
+# 60 deg out to the sides.
+IR_LEADS = {      # name: (emitter's holes, phototransistor's holes)
+    'LF': (((-31.77, 30.99), (-29.25, 31.30)), ((-26.54, 41.51), (-24.02, 41.82))),
+    'DL': (((-3.70, 54.15), (-2.43, 56.35)), ((-14.20, 50.65), (-12.93, 52.86))),
+}
+IR_LEADS['RF'] = tuple(tuple((-x, y) for x, y in reversed(h)) for h in IR_LEADS['LF'])
+IR_LEADS['DR'] = tuple(tuple((-x, y) for x, y in reversed(h)) for h in IR_LEADS['DL'])
+EMITTER_LEN_MM, RECEIVER_LEN_MM = 10.0, 6.5     # the leads' holes to the lens's tip (their silkscreen outlines)
+IR_Z_MM = BOARD_TOP_MM + 2.5                    # their axes: a 5 mm emitter lying on the board
+
+
+def ir_axis(holes):
+    """The axis (deg from +x) of a part lying on the board, looking square to the line of its two holes, ahead."""
+    (x0, y0), (x1, y1) = holes
+    deg = math.degrees(math.atan2(x1 - x0, -(y1 - y0)))     # a normal of the line of its holes
+    return deg % 360 if math.sin(math.radians(deg)) > 0 else (deg + 180) % 360
+
+
+def lens_tip(holes, length):
+    (x0, y0), (x1, y1) = holes
+    a = math.radians(ir_axis(holes))
+    return ((x0 + x1) / 2 + length * math.cos(a), (y0 + y1) / 2 + length * math.sin(a))
+
+
+def _ir_sensor(name):
+    """Each IR pair as the simulator sees it: the middle of its emitter's and phototransistor's lens tips, looking
+    along its emitter."""
+    em, rx = IR_LEADS[name]
+    (ex, ey), (rx_, ry) = lens_tip(em, EMITTER_LEN_MM), lens_tip(rx, RECEIVER_LEN_MM)
+    return (round((ex + rx_) / 2, 2), round((ey + ry) / 2, 2)), round(ir_axis(em), 1)
+
+
+IR_SENSORS = {n: _ir_sensor(n) for n in ('LF', 'RF', 'DL', 'DR')}
+SKATE_Y_MM = 45.0                               # assumed (no hole for it): under its nose, its 3 mm skate
 GROUND_Z_MM = -WHEEL_RADIUS_MM
-# Each IR pair on the arc of its nose (the photo: seven parts along it; LF and RF look ahead, DL and DR 45 deg out):
-# its middle (x, y) and axis (deg from +x).
-IR_Z_MM = BOARD['bottom'] + BOARD['thickness'] + 3.0
-
-
-def _on_arc(deg, inset=3.0):
-    r = BOARD['half_width'] - inset
-    return (round(r * math.cos(math.radians(deg)), 2), round(BOARD['centre_y'] + r * math.sin(math.radians(deg)), 2))
-
-
-IR_SENSORS = {'LF': (_on_arc(115), 90.0), 'RF': (_on_arc(65), 90.0),
-              'DL': (_on_arc(150), 135.0), 'DR': (_on_arc(30), 45.0)}
 
 # ---- Assumed (nothing measured) ----------------------------------------------------------------------------------
 # The IR pairs: the light back as the inverse square of the distance along the beam; its template prints the raw
@@ -123,7 +163,9 @@ MASS_KG = 0.085
 COM_MM = (0.0, 8.0, -4.0)                       # ahead of its axle (its board's nose), on its skate
 BATTERY_V = 7.6                                 # 2S 120 mAh (its kit: "3.7V 120mah 25C lipo", two in series)
 # Its motors: "a 6V faulhaber motor" (pwm.c's comment), as its maker's own mice: Faulhaber 1717 006 SR (13800 rpm
-# free, 3.4 ohm), its gear as theirs, 12:40 (Green Giant V2.2), its encoders 512 lines x4 a motor turn.
+# free, 3.4 ohm), its gear as theirs, 12:40 (Green Giant V2.2). Its encoders counted as 512 lines x4 a motor turn:
+# its encoder boards (encoder-V1.1.pdf) read a magnetic ring by the wheel (AS5304/AS5306), a ring its page does not
+# name.
 GEAR = 40 / 12
 MOTOR_R_OHM = 3.4
 MOTOR_KE = 6.0 / (13800 * 2 * math.pi / 60)    # V s/rad

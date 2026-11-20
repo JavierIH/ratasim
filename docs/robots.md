@@ -251,19 +251,30 @@ are published, no firmware: Futura is the one with code.
   are renamed to the chip's (Keil's library calls `fputc`). What it runs (`user/main.c`): a 2 s beep, then over
   and over its IR pairs, gyro, battery and encoders read and printed, "mous" on its display, both motors at 100 of
   999, a second's wait. Its buttons' handlers are empty; it reads nothing from its serial port.
-- **Model:** its printed wheels and skate, its page's STL files (`futura-3D-printing-model.zip`, downloaded and
-  pinned as the firmware), and the rest made here from the photo of its kit (no board file was at hand): its board,
-  a rectangle between its wheels and a half disc for its nose, generated as a mesh; its chips, display, buzzer, IR
-  pairs, motors in their white printed mounts, encoder boards and battery as simple shapes where the photo shows
-  them. Collisions: its board (a box and a disc), its skate, its tyres.
-- **Sensors:** its schematic's four SFH4545 emitters and TEFT4300 phototransistors on the arc of its nose, LF and RF
-  looking ahead, DL and DR 45° out (`config.py`, by the photo); its template prints the raw difference lit minus
-  dark and has no threshold: the light back assumed as the inverse square of the distance along the beam, ~1900
-  counts at 40 mm, ~300 at a cell. Its LY3200ALH gyro (0.67 mV/dps) at the template's own zero (1859.6 counts), its
-  battery through its divider (the template's 809/3248).
+- **Model:** its board from its Gerber files (`Futura_Gerber.zip`, V1.1, downloaded and pinned as the firmware;
+  `ratasim/futura/pcb.py`): its outline (74 x 100 mm, its nose an arc, a 9 x 32 mm notch each side for a wheel),
+  its two faces textured from its layers (copper under the mask, tinned pads, silkscreen, holes), and its parts
+  where its pads and holes are, at their packages' sizes: the STM32F405, the gyro, regulators, H-bridges and their
+  drivers, the tantalum capacitors, a resistor or capacitor on every pair of 0603 and 0805 pads, the HCMS-2903
+  display, the buzzer, the three buttons, the header, the power switch and the battery's two sockets. Its IR
+  emitters and phototransistors lie on the board along the axes their holes give (square to the line of their two
+  leads, as their silkscreen outlines draw them). Its two motors, end to end over the H-bridges, sit in white printed
+  mounts screwed through the board's four 2.3 mm holes; its encoder boards (an AS5304/AS5306 magnetic encoder, its
+  page's `encoder-V1.1.pdf`) stand at the notches' inner edges and its wheels outside them: a 69 mm track. Its
+  printed wheels and skate are its page's STL files (`futura-3D-printing-model.zip`). Assumed, from the photo of its
+  kit: its motors' size and height, its mounts' shape, its battery behind the motors, its board 3 mm off the floor,
+  its skate under its nose (no hole marks it). Collisions: its board's outline as a convex hull up to its mounts'
+  top, its skate, its tyres.
+- **Sensors:** its schematic's four SFH4545 emitters and TEFT4300 phototransistors, placed by its Gerbers: LF and RF
+  at the board's edges looking ahead, 7° out; DL and DR by its middle, 60° out to the sides (`config.py`); each pair
+  seen from between its two lenses' tips. Its template prints the raw difference lit minus dark and has no
+  threshold: the light back assumed as the inverse square of the distance along the beam, ~1900 counts at 40 mm,
+  ~300 at a cell. Its LY3200ALH gyro (0.67 mV/dps) at the template's own zero (1859.6 counts), its battery through
+  its divider (the template's 809/3248).
 - **Physics, assumed:** 85 g, 2S 120 mAh (its kit's batteries); its motors "a 6V faulhaber" (its `pwm.c`): a
-  Faulhaber 1717 006 SR, geared 12:40 as its maker's Green Giant, its encoders 512 lines x4 a motor turn; its
-  printed 32 mm wheels with a 1 mm tyre. At 100 of 999 it rolls at about 0.85 m/s.
+  Faulhaber 1717 006 SR, geared 12:40 as its maker's Green Giant; its encoders counted as 512 lines x4 a motor turn
+  (its encoder boards read a magnetic ring by the wheel with an AS5304/AS5306, whose counts a turn depend on a ring
+  its page does not name); its printed 32 mm wheels with a 1 mm tyre. At 100 of 999 it rolls at about 0.85 m/s.
 - **Run:** `ratasim futura --maze oshwdem2026 [--echo] [--headless] [--record out.mp4] [--max-s 15]`: put down in the
   start cell, facing north, and switched on. In the OSHWDEM 2026 maze it rolls ten cells up the west column, from
   0.35 s to 2.3 s, and stays against the wall that ends it (a touch a second, reported), its four sensors printing

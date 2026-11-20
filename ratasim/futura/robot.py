@@ -243,7 +243,7 @@ class FRobot:
 
     def crashed(self):
         m, d = self.model, self.data
-        hulls = {m.geom('hull').id, m.geom('hull_front').id}
+        hulls = {m.geom('hull').id}
         for i in range(d.ncon):
             c = d.contact[i]
             for a, b in ((c.geom1, c.geom2), (c.geom2, c.geom1)):

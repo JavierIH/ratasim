@@ -285,7 +285,7 @@ Every robot belongs to its authors (above); their repositories are submodules an
 ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's and Fujin's repositories carry no licence; Perenquén's design is CC BY-SA
 4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,
 Eurobotics Engineering) GPLv2+; Gamusino's gyro library, STM32duino LSM6DSR (STMicroelectronics, BSD-3), is
-downloaded at build time. Futura's page (Green Ye, micromouseusa.com) gives no licence: its firmware template and
-printed parts are downloaded at build time, pinned by their SHA-256, and stay out of git; ST's library is not used
+downloaded at build time. Futura's page (Green Ye, micromouseusa.com) gives no licence: its firmware template, its
+board's Gerber files and its printed parts are downloaded at build time, pinned by their SHA-256, and stay out of git; ST's library is not used
 (`ratasim/futura/fw` simulates the part of its API the template calls).
 The meshes made from ZoroBot3's, Gamusino's, Bulebule's and Fujin's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.

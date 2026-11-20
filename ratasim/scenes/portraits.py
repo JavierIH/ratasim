@@ -23,7 +23,7 @@ ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation
     'nezumibot': ('n_', 0.20, 215, -28),
     'perenquen': ('p_', 0.20, 215, -30),
     'fujin': ('f_', 0.20, 215, -30),
-    'futura': ('u_', 0.16, 215, -32),
+    'futura': ('u_', 0.18, 215, -32),
     'ukmarsbot': ('k_', 0.22, 215, -32),
 }
 SKY = 'rgb1="0.17 0.18 0.21" rgb2="0.04 0.04 0.05"'          # a dark studio
