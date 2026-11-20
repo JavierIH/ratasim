@@ -67,7 +67,7 @@ cells of 180 mm).
 <td></td>
 </tr>
 <tr>
-<td align="center">ATmega328 · 1 ultrasonic · hacked servos · ratasim's program, not its authors'</td>
+<td align="center">ATmega328 · 1 ultrasonic · hacked servos</td>
 <td></td>
 <td></td>
 </tr>
