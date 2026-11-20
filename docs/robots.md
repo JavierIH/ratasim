@@ -283,13 +283,13 @@ schematics and layouts are published, no firmware: Futura is the one with code.
   drivers, the tantalum capacitors, a resistor or capacitor on every pair of 0603 and 0805 pads, the HCMS-2903
   display, the buzzer, the three buttons, the header, the power switch and the battery's two sockets. Its IR
   emitters and phototransistors lie on the board along the axes their holes give (square to the line of their two
-  leads, as their silkscreen outlines draw them). Its two motors, end to end over the H-bridges, sit in white printed
-  mounts screwed through the board's four 2.3 mm holes; its encoder boards (an AS5304/AS5306 magnetic encoder, its
+  leads, as their silkscreen outlines draw them). Its two motors, end to end over the H-bridges, sit in its white printed
+  mount (`Futura enhanced spacer.stl`, in the same zip: 9 mm tall blocks at the wheels joined by two bridges, the
+  holes 31 mm apart along the axle, squeezed to the board's 29.7) screwed through its four 2.3 mm holes; its encoder boards (an AS5304/AS5306 magnetic encoder, its
   page's `encoder-V1.1.pdf`) stand at the notches' inner edges and its wheels outside them: a 69 mm track. Its
   printed wheels and skate are its page's STL files (`futura-3D-printing-model.zip`). Assumed, from the photo of its
-  kit: its motors' size and height, its mounts' shape, its battery behind the motors, its board 3 mm off the floor,
-  its skate under its nose (no hole marks it). Collisions: its board's outline as a convex hull up to its mounts'
-  top, its skate, its tyres.
+  kit: its motors' size and height (12 mm cans just over the mount's blocks), its battery behind the motors, its board 3 mm off the floor,
+  its skate under its nose (no hole marks it). Collisions: its board's outline as a convex hull up to 13 mm over it, its skate, its tyres.
 - **Sensors:** its schematic's four SFH4545 emitters and TEFT4300 phototransistors, placed by its Gerbers: LF and RF
   at the board's edges looking ahead, 7° out; DL and DR by its middle, 60° out to the sides (`config.py`); each pair
   seen from between its two lenses' tips. Its firmware reads the difference lit minus dark: the light back assumed

@@ -2,10 +2,10 @@
 silkscreen and holes), its parts where its pads and holes are (their sizes their packages'): its STM32F405, its
 HCMS-2903 display, its buzzer, its gyro, regulators and H-bridges, its capacitors and resistors (every pair of
 0603 and 0805 pads), its IR emitters and phototransistors lying along the axes their holes give, its buttons, header,
-switch and battery connectors; its two motors end to end in white printed mounts screwed through its four holes,
-its encoder boards standing at its wheels' notches, its printed wheels and skate (their own STL files, downloaded at
+switch and battery connectors; its two motors end to end in its white printed mount (its "Futura enhanced spacer.stl")
+screwed through its four holes, its encoder boards standing at its wheels' notches, its printed wheels and skate (their own STL files, downloaded at
 build time) and its battery behind the motors, where the photo of its kit shows them. Its frame: origin between the
-wheels at the axle's height. Collisions: its board's outline as a convex hull up to its mounts' top, its skate, its
+wheels at the axle's height. Collisions: its board's outline as a convex hull up to 13 mm over it, its skate, its
 tyres.
 """
 import math
@@ -31,8 +31,9 @@ CERAMIC = (0.62, 0.52, 0.36, 1)
 GREEN = (0.07, 0.41, 0.17, 1)
 KAPTON = (0.85, 0.5, 0.08, 1)
 TOP = F.BOARD_TOP_MM
-MOTOR_Z = TOP + 6.5                             # its motors' axis (the photo: their cans just over the board)
-MOUNT_TOP = TOP + 13.0                          # its printed mounts' top
+MOTOR_Z = TOP + 6.0                             # its motors' axis (the photo: their cans stand just over its mounts' blocks)
+MOUNT_TOP = TOP + 9.0                           # its printed mount's top (its blocks: 9 mm, its STL)
+HULL_TOP = TOP + 13.0                           # the collision hull's top
 
 
 def _read_stl(path):
@@ -58,7 +59,7 @@ def _write_stl(path, tris):
 def meshes():
     """Its meshes in MESHES (made again when pcb.py or config.py is newer): its board's faces and their textures
     (pcb.py), its wheel (centred, its axis x) and its skate (centred, on z = 0)."""
-    path = {k: os.path.join(MESHES, f'{k}.stl') for k in ('wheel', 'skate')}
+    path = {k: os.path.join(MESHES, f'{k}.stl') for k in ('wheel', 'skate', 'mount')}
     path.update({k: os.path.join(MESHES, f'{k}.obj') for k in ('pcb_top', 'pcb_bottom', 'pcb_side')})
     made = [os.path.join(MESHES, n) for n in ('top.png', 'bottom.png')] + list(path.values())
     sources = [pcb.__file__, F.__file__]
@@ -74,6 +75,12 @@ def meshes():
     s = _read_stl(os.path.join(F.PRINTS, 'skate.stl'))
     s -= (F.SKATE_STL_CENTRE[0], F.SKATE_STL_CENTRE[1], 0.0)
     _write_stl(path['skate'], s)
+    m = _read_stl(os.path.join(F.PRINTS, 'Futura enhanced spacer.stl'))
+    m -= (F.MOUNT_STL_CENTRE[0], F.MOUNT_STL_CENTRE[1], 0.0)
+    m = m[..., [1, 0, 2]]                               # its length (STL y) along the axle (x)
+    m[..., 0] *= F.MOTOR_MOUNT_HOLES[-1][0] / F.MOUNT_STL_HOLE_X     # its holes 31 mm apart, to the board's 29.7
+    m[..., 2] += F.BOARD_TOP_MM
+    _write_stl(path['mount'], m[:, ::-1])               # (the swap of two axes mirrors it: its faces turned back)
     return path
 
 
@@ -92,7 +99,7 @@ def assets_xml():
     out += ''.join(f'<mesh name="u_{k}" file="{p}" scale="{_f(MM, MM, MM)}"{shell}/>'
                    for k, p in path.items() for shell in [' inertia="shell"' if p.endswith('.obj') else ''])
     hull = ' '.join(f'{x * MM:.5f} {y * MM:.5f} {z * MM:.5f}' for x, y in pcb.outline()
-                    for z in (F.BOARD_BOTTOM_MM, MOUNT_TOP))
+                    for z in (F.BOARD_BOTTOM_MM, HULL_TOP))
     return out + f'<mesh name="u_hull" vertex="{hull}"/>'
 
 
@@ -186,15 +193,13 @@ def _motors():
     for s in (-1, 1):
         out += _rod((s * 1.5, 0, MOTOR_Z), (s * 13.0, 0, MOTOR_Z), 6.0, SILVER)
         out += _rod((s * 0.8, 0, MOTOR_Z), (s * 1.5, 0, MOTOR_Z), 4.0, BLACK)                # its brushes' cap
-        out += _box((s * 20.0, 0, (TOP + MOUNT_TOP) / 2), (7.5, 6.5, (MOUNT_TOP - TOP) / 2), WHITE)
         for hx, hy in F.MOTOR_MOUNT_HOLES:
             if hx * s > 0:
-                out += _rod((hx, hy, TOP), (hx, hy, TOP + 5.0), 3.0, WHITE)
-                out += _rod((hx, hy, TOP + 5.0), (hx, hy, TOP + 5.8), 1.9, SILVER)            # its screw
+                out += _rod((hx, hy, MOUNT_TOP), (hx, hy, MOUNT_TOP + 0.8), 1.9, SILVER)      # its screw's head
         x0 = s * (F.NOTCH_X_MM + 0.8)
         out += _box((x0, 0, -1.5), (0.8, 10.0, 10.5), GREEN)                                 # its encoder board
         out += _box((x0 + s * 1.2, 0, 0), (0.4, 2.5, 3.0), BLACK)                            # AS5304, at its ring
-    out += _box((0, 9.0, TOP + 2.0), (14.85, 1.5, 2.0), WHITE)                                # its mounts' bridge
+    out += f'<geom class="uvisual" type="mesh" mesh="u_mount" rgba="{_f(*WHITE)}"/>'         # its printed mount
     return out
 
 

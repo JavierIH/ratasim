@@ -119,6 +119,8 @@ GYRO_V_PER_DPS = 0.00067                        # LY3200ALH (its schematic): 0.6
 
 # ---- Its printed parts (futura-3D-printing-model.zip) ------------------------------------------------------------
 WHEEL_STL_CENTRE = (28.95, -6.005)              # "solid wheel wide.stl": 32 mm across, 9 mm wide, its axis z
+MOUNT_STL_CENTRE = (15.5, 0.1)                  # "Futura enhanced spacer.stl": 27 x 39 x 9 mm, its four 2.4 mm holes' middle
+MOUNT_STL_HOLE_X = 15.5                         # ... 31 mm by 18 apart, the board's 29.7 by 18 (scaled along the axle)
 SKATE_STL_CENTRE = (20.51, -0.955)              # "skate.stl": 10 x 10 x 3 mm
 WHEEL_RADIUS_MM = 16.0 + 1.0                    # its printed wheel and a tyre (assumed 1 mm: the photo's rubber)
 WHEEL_WIDTH_MM = 9.0
