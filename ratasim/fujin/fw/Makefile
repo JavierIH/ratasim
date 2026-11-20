@@ -4,6 +4,8 @@
 # C++23, as its CMakeLists: g++ 13 or later, or clang++ 15 or later (fujin/robot.py picks one: CXX, CXXFLAGS_EXTRA,
 # LDFLAGS_EXTRA).
 # -Bsymbolic: its globals are its own (the robots' libraries share names).
+# -U_FORTIFY_SOURCE: Ubuntu's g++ defines _FORTIFY_SOURCE at -O2, and glibc's headers then turn its printf calls into
+# __printf_chk, past fconsole.cpp's printf: what it prints (its states) would go to the terminal, not the simulator.
 FUJIN_DIR ?= $(abspath ../../../external/fujin)
 FW        := $(FUJIN_DIR)/firmware
 BUILD     := ../build
@@ -12,13 +14,14 @@ LIB       := $(BUILD)/libfujinfw.so
 CXX       ?= g++
 CXXFLAGS_EXTRA ?=
 LDFLAGS_EXTRA ?=
-CXXFLAGS  := -std=gnu++2b -O2 -g -fPIC -w -fno-builtin-printf -I. -I$(FW)/inc -include utils/types.hpp $(CXXFLAGS_EXTRA)
+CXXFLAGS  := -std=gnu++2b -O2 -g -fPIC -w -fno-builtin-printf -U_FORTIFY_SOURCE -I. -I$(FW)/inc -include utils/types.hpp \
+             $(CXXFLAGS_EXTRA)
 
 APP := $(FW)/src/main.cpp $(wildcard $(FW)/src/fsm/*.cpp $(FW)/src/fsm/states/*.cpp $(FW)/src/algorithms/*.cpp \
          $(FW)/src/utils/*.cpp $(FW)/src/services/*.cpp)
 OURS := fchip.cpp fbsp.cpp fconsole.cpp
 OBJS := $(patsubst $(FW)/src/%.cpp,$(OBJ)/app/%.o,$(APP)) $(patsubst %.cpp,$(OBJ)/%.o,$(OURS))
-HEADERS := $(wildcard $(FW)/inc/*/*.hpp) fsim.h
+HEADERS := $(wildcard $(FW)/inc/*/*.hpp) fsim.h Makefile
 
 .PHONY: all clean
 all: $(LIB)
