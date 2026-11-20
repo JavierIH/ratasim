@@ -259,7 +259,7 @@ ratasim/ukmarsbot/  UKMARSBOT: its model from its KiCad boards and Gerbers (cad.
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
 ratasim/start.py    starting a robot as its makers do (its config's sequence), with the hand of hand.py
 ratasim/stopwatch.py the runs' times, from the start cell to the goal (every robot)
-ratasim/scenes/     several robots: drag race, a race in the maze, crash, loop, pictures
+ratasim/scenes/     several robots: drag race, a race in the maze, minisumo, crash, loop, pictures
 ratasim/trace.py    a run traced (--trace) for the race in the maze
 ratasim/mazes/      competition mazes (micromouseonline text format)
 external/           the robots' repositories (submodules)
@@ -281,10 +281,20 @@ The other scenes have no firmware: each robot follows the speed profile its firm
 Bulebule's speed limit at its force, Futura's, Perenquén's, Gamusino's; NezumiBot's 40 % PWM) and keeps its lane;
 Ratatron's and ZoroBot3's motor models, the others a speed servo as quick as Ratatron's.
 
+Minisumo puts them all at once on a minisumo dohyo (77 cm across with its 2.5 cm white border, 2.5 cm high),
+evenly spaced round its edge facing its centre, in one simulation: they push each other, each with its own mass,
+tyres and power. Their firmwares know no sumo: the scene drives them all with the same simple control of its own,
+full speed (each its drag race profile's) to the centre, then at the nearest robot left, back to the centre over the
+white border, backing off when stuck; ZoroBot3's and Fujin's fans off (minisumo's rules forbid suction). A robot is
+out when its centre leaves the dohyo or it lies toppled; the last one left wins (`ratasim minisumo --help`). It
+prints the order they went out in and the winner, the same every run.
+
 ```sh
 ratasim maze-race maze-race.mp4     # Ratatron, ZoroBot3, Bulebule, Fujin, UKMARSBOT: their searches, x4
 ratasim drag-race race.mp4          # 3 m, all nine: start lights, lanes, a checkered finish
 ratasim drag-race race.mp4 --robots fujin,zorobot
+ratasim minisumo sumo.mp4           # all nine on one dohyo, the last one left wins (all nine: Fujin, at 12.0 s)
+ratasim minisumo sumo.mp4 --robots ratatron,zorobot,fujin
 ratasim crash crash.mp4 --ramp      # Ratatron and ZoroBot3 head-on on the maze's longest straight, over a ramp
 ratasim loop loop.mp4               # Ratatron and ZoroBot3 through a loop-the-loop beside the maze
 ratasim portraits                   # the pictures above
@@ -292,7 +302,8 @@ ratasim portraits                   # the pictures above
 
 | ![A race in the maze](docs/images/maze-race.jpg) | ![Drag race](docs/images/drag-race.jpg) |
 |:-:|:-:|
-| ![Head-on on a ramp](docs/images/crash-ramp.jpg) | ![Loop-the-loop](docs/images/loop.jpg) |
+| ![Minisumo](docs/images/minisumo.jpg) | ![Head-on on a ramp](docs/images/crash-ramp.jpg) |
+| ![Loop-the-loop](docs/images/loop.jpg) | |
 
 ## Credits and licences
 
