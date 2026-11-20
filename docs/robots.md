@@ -3,8 +3,7 @@
 Every robot is a package of `ratasim/` with the same parts: its **model** (meshes from its CAD, collisions from simple
 shapes), its **physics** (mass, motors, tires; what was measured apart from what is assumed), its **sensors** (IR rays
 through its firmware's own calibration, encoders, gyro), its **firmware**, compiled for the host from its
-repository (a submodule of `external/`) on a simulated chip (Miniskybot's, whose authors publish none for a maze,
-is ours: see its section), and its **start**: what its makers do to start it
+repository (a submodule of `external/`) on a simulated chip, and its **start**: what its makers do to start it
 (buttons, a hand in front of a sensor, held in the air, commands typed over its serial link), a sequence in its config (`start()`) that
 `ratasim/start.py` plays with the hand of `ratasim/hand.py`, which every sensor sees. The pictures:
 `ratasim portraits`.
@@ -384,10 +383,8 @@ A 3D printable robot for teaching (2012), not a micromouse: two Futaba S3003 ser
 rotation, a ball caster, an SRF02 ultrasonic ranger in its front, a Skymega board (Obijuan's Arduino, an ATmega328
 at 16 MHz) and four AAA cells. No encoders, no gyro, one sensor.
 
-- **Program: ours, not its authors'.** Its repository has its library and three examples (its motors, two digital
-  IR sensors, a line follower), nothing for a maze; it is here as the exception to "its own firmware", with a
-  program of ratasim's (`ratasim/miniskybot/fw/miniskybot/miniskybot.ino`), written for it as it is, in Arduino C++
-  on its Skymega: its servos on `SERVO2` and `SERVO4` driven as Obijuan's examples drive them (`write(0)`,
+- **Program:** `ratasim/miniskybot/fw/miniskybot/miniskybot.ino`, in Arduino C++ on its Skymega: its servos on
+  `SERVO2` and `SERVO4` driven as Obijuan's examples drive them (`write(0)`,
   `write(180)`, stopped at 90), its SRF02 read over I2C as its data sheet says (the command, 66 ms, two registers),
   its button and LED. What it does: it goes straight on, ranging every 70 ms; when a wall is near ahead (24 cm, the
   far side of the next cell) it stops and squares up to it, then goes on to the middle of its cell, by time from

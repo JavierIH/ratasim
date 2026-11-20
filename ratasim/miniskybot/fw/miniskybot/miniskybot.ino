@@ -1,10 +1,10 @@
 //----------------------------------------------------------------------------------------------------------------
 //-- Miniskybot 2 in a micromouse maze
 //--
-//-- ratasim's program, not its authors': Obijuan's Miniskybot publishes none for a maze. Written for the robot as
-//-- it is: a Skymega board (Arduino, ATmega328P), its two Futaba S3003 servos hacked for continuous rotation on
-//-- SERVO2 (right) and SERVO4 (left), driven as Obijuan's examples drive them (motor_test.ino), and its one sensor,
-//-- the SRF02 ultrasonic ranger in its front, on the I2C bus. No encoders: its moves are timed.
+//-- For the robot as it is: a Skymega board (Arduino, ATmega328P), its two Futaba S3003 servos hacked for
+//-- continuous rotation on SERVO2 (right) and SERVO4 (left), driven as Obijuan's examples drive them
+//-- (motor_test.ino), and its one sensor, the SRF02 ultrasonic ranger in its front, on the I2C bus. No encoders:
+//-- its moves are timed.
 //--
 //-- What it does, the simplest that keeps it going round the maze:
 //--   - it waits for its button (its LED blinking), then

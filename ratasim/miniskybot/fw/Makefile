@@ -1,4 +1,4 @@
-# Miniskybot's program (miniskybot/miniskybot.ino, ratasim's own) as a shared library for the simulator: built for
+# Miniskybot's program (miniskybot/miniskybot.ino) as a shared library for the simulator: built for
 # its Skymega board (an ATmega328P at 16 MHz) on the simulated Arduino core of arduino/ and mchip.cpp.
 # -Bsymbolic: its globals are its own (the robots' libraries share names).
 BUILD    := ../build

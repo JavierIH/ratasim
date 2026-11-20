@@ -1,5 +1,4 @@
-"""Miniskybot 2 in the simulator, with ratasim's own program for it (its authors publish none for a maze; config.py,
-fw/miniskybot/miniskybot.ino): switched on in the start cell, its button pressed, it goes straight on until its
+"""Miniskybot 2 in the simulator, (config.py, fw/miniskybot/miniskybot.ino): switched on in the start cell, its button pressed, it goes straight on until its
 ultrasonic ranger sees a wall near ahead, stops in the middle of that cell and turns, by time, to a way that is open,
 trying first one side and then the other at each cell it turns in.
 
@@ -34,7 +33,7 @@ def main(argv=None):
     a = p.parse_args(argv)
     r = MRobot(Maze.load(maze_path(a.maze)), seed=a.seed)
     clock = Stopwatch(r.maze)
-    rec = make_view(r, a, 'Miniskybot 2 (Obijuan) with ratasim\'s program', led=r.led, clock=clock)
+    rec = make_view(r, a, 'Miniskybot 2 (Obijuan)', led=r.led, clock=clock)
     a.max_s = time_limit(a, rec, 120)
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()

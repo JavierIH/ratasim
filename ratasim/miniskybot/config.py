@@ -9,8 +9,6 @@ and the STL files it ships (its chassis, battery holder, servo wheel and the Fut
 parts list, the SRF02 ultrasonic ranger at its front, four AAA cells) and the Skymega board's (its ATmega328 at
 16 MHz, its pin table, its schematic: the test button to ground on D12, the test LED on D13, the I2C bus's 4K7
 pull-ups).
-
-Its program is ours (fw/miniskybot/miniskybot.ino): its authors publish none for a maze.
 """
 import math
 import os

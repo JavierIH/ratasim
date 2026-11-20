@@ -18,7 +18,7 @@ does not do its run (Ratatron: the search to the goal and back, then race 2.4 on
 to the goal; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
 the goal and back; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
 following, away from the start; Gamusino: its 1.5 m and back; Futura: its controller sample's cells and pivots, up
-to the maze's north rows; Miniskybot, whose program is ours: through 10 cells, not toppled). Wall touches as in the short check. The stopwatch's times are reported; Ratatron,
+to the maze's north rows; Miniskybot: through 10 cells, not toppled). Wall touches as in the short check. The stopwatch's times are reported; Ratatron,
 ZoroBot3, Fujin and UKMARSBOT, which reach the goal, fail without one.
 
 A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
@@ -254,7 +254,7 @@ def ukmarsbot(full):
 
 
 def miniskybot(full):
-    """Its program is ratasim's (its authors publish none for a maze): straight on, a turn at each wall. Short check:
+    """Straight on, a turn at each wall. Short check:
     it says go and leaves the start cell. Full: in 120 s it also does not topple and goes through at least 10 of the
     maze's cells."""
     if not full:
