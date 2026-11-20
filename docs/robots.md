@@ -200,8 +200,10 @@ made from the submodule at build time)
   the start to the goal and back, its map in its EEPROM.
 - **Model:** its STEP, `boards/Fujin_V1/Fujin_Body_Full.step` (its board with every component, its printed frame,
   motors, gears, Mini-Z wheels and fan), tessellated with gmsh at build time (`ratasim/fujin/cad.py`, as ZoroBot3's)
-  and merged per body and colour; the axle found from its tyres. Collisions: boxes over its board's outline, its
-  tyres, two skids. Its tyres are drawn at its firmware's radius (13.25 mm; 12.6 in its CAD).
+  and merged per body and colour; the axle found from its tyres. Its colours are its team's photos'
+  ([raiju.team](https://raiju.team)), not its STEP's: its board sky blue, its printed frame, wheels and fan black,
+  its tyres and its battery's tape black, its gears white, its emitters water-clear. Collisions: boxes over its
+  board's outline, its tyres, two skids. Its tyres are drawn at its firmware's radius (13.25 mm; 12.6 in its CAD).
 - **Sensors:** where its STEP puts the emitters: the front pair looking ahead, the side pair crossed, 50 deg off
   ahead. The side readings scaled to its firmware's references with the robot centred in a cell (180 mm left,
   165 mm right; its mm are not the beam's), the front ones the beam. Its firmware's side sensor angle (56.5 deg, for
