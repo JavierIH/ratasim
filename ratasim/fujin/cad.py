@@ -32,6 +32,13 @@ BOARD_RGB = (105, 178, 212)         # its board, printed sky blue (its art left 
                                     # which the studio's lights wash out)
 PRINTED_RGB = (34, 34, 36)          # its frame, wheels, encoders' hubs and fan: black PLA
 TYRE_RGB = (22, 22, 22)
+# Its fan's coreless motor (the 8523 standing on the board, 26.5 mm tall; the wheels' are lying), as a drone's: a polished
+# aluminium can, a steel shaft out of its bottom, a black plastic rear cap.
+FAN_MOTOR_RGB = (118, 121, 128)       # polished aluminium (lighter ones wash out to white under the studio's lights)
+FAN_SHAFT_RGB = (85, 87, 93)
+FAN_CAP_RGB = (30, 30, 33)
+FAN_SHAFT_MM = 3.0                  # up to here (from the STEP's floor) the shaft; the can over it
+FAN_CAP_MM = 25.38                  # from here the cap (both on rings of the STEP's vertices, so a clean edge)
 METAL_RGB = (190, 192, 198)
 PART_RGB = (                        # name contains: colour
     (('MM_frame', 'MM_wheel', 'MM_Encoder_hub', 'MM_fan'), PRINTED_RGB),
@@ -173,6 +180,12 @@ def build(step=F.CAD_STEP, out=F.CAD_MESHES):
     groups = {}
     for name, rgb, t in parts:
         t = t - axle
+        if '8523_motor' in name and np.ptp(t[..., 2]) > 20:
+            z = t[..., 2] + axle[2]
+            shaft, cap = z.max(1) <= FAN_SHAFT_MM + 0.01, z.min(1) >= FAN_CAP_MM
+            for sel, c in ((shaft, FAN_SHAFT_RGB), (~shaft & ~cap, FAN_MOTOR_RGB), (cap, FAN_CAP_RGB)):
+                groups.setdefault((body(name, t[sel]), c), []).append((name, t[sel]))
+            continue
         rgb = colour(name, rgb, t)
         if rgb == BOARD_RGB:
             t = board_faces(t, out)
