@@ -1,94 +1,30 @@
-"""Miniskybot 2 assembled as its OpenSCAD model's show_robot() puts it together (parts/Openscad/main.scad), from the
-STL files its repository ships: its printed chassis (exported upside down, ready to print: turned back), its battery
-holder under it, its two Futaba S3003 and its two wheels on their horns; with what its STL files leave out, as its
-photo and its parts list show them: the wheels' black O-rings and black 4-arm horns, the Ø16 marble of its ball
-caster, its SRF02 ranger in the front's hole (fake_ultrasound.scad's board and transducer, black as in its photo) and
-its Skymega board on four spacers over its top plate (its blue board, its ATmega328 in its socket, its headers, its
-power connector, LED and button; drawn plainly, not from its files). Its frame: origin on the floor under its
-wheels' axle. Collisions: a box round its chassis and battery holder, its ranger, its board, its marble, its tyres.
+"""Miniskybot 2 assembled as its OpenSCAD model's show_robot() puts it together (parts/Openscad/main.scad), its meshes
+made by cad.py from the STL files its repository ships and from its OpenSCAD model's dimensions: its printed chassis,
+battery holder and wheels (blue PLA; white in its photo), its two Futaba S3003, its wheels' black O-rings and 4-arm
+horns, its Skymega's hex spacers, its servos' cables and its battery's wires; drawn here, as its photo, its parts list
+and their data sheets show them: the Ø16 marble of its ball caster, its SRF02 ranger in the front's hole (its board
+behind the front's face, its transducer out of it) and its Skymega board over its top plate (its blue board, its
+ATmega328 in its socket, its headers and its servos' plugs, its power connector, LED and button; drawn plainly, not
+from its files). Its frame: origin on the floor under its wheels' axle. Collisions: a box round its chassis and
+battery holder, its ranger, its board, its marble, its tyres.
 """
-import os
-import struct
-
-import numpy as np
-
 from .. import config as C
 from ..hand import hand_xml
 from ..model import MM, ROBOT_GROUP, WALL_GROUP, _f, maze_xml
+from . import cad
 from . import config as S
 
-MESHES = os.path.join(S.BUILD, 'meshes')
-WHITE = (0.94, 0.94, 0.91, 1)                   # its printed parts (white ABS, its photo)
+# Its printed parts (chassis, battery holder, wheels) in blue PLA, RGB (25, 95, 200); the rest as in its photo
+PRINTED = (0.10, 0.37, 0.78, 1)
 BLACK = (0.05, 0.05, 0.05, 1)
-SERVO = (0.10, 0.10, 0.11, 1)
-HOLDER = (0.16, 0.16, 0.18, 1)
-BLUE = (0.10, 0.25, 0.62, 1)                    # the Skymega's solder mask
+SERVO = (0.09, 0.09, 0.10, 1)                   # the Futaba S3003's black case
+RUBBER = (0.03, 0.03, 0.03, 1)                  # its O-rings
+BLUE = (0.05, 0.13, 0.36, 1)                    # the Skymega's solder mask, darker than its printed parts
+STEEL = (0.55, 0.56, 0.59, 1)
+WIRE = {'black': (0.06, 0.06, 0.06, 1), 'red': (0.75, 0.08, 0.06, 1), 'white': (0.92, 0.92, 0.88, 1)}
 GREEN = (0.10, 0.42, 0.20, 1)
-SILVER = (0.75, 0.76, 0.78, 1)
 GLASS = (0.78, 0.86, 0.92, 0.55)
 CREAM = (0.93, 0.91, 0.84, 1)
-
-
-# ---- its meshes from its STL files ---------------------------------------------------------------------------------
-def _read_stl(path):
-    """An STL file's triangles (n, 3, 3): OpenSCAD's ASCII, or binary."""
-    data = open(path, 'rb').read()
-    if not data.lstrip().startswith(b'solid') or b'facet' not in data[:1000]:
-        n = struct.unpack('<I', data[80:84])[0]
-        rec = np.frombuffer(data[84:84 + 50 * n], dtype=np.dtype([('n', '<f4', 3), ('v', '<f4', 9), ('a', '<u2')]))
-        return rec['v'].reshape(-1, 3, 3).astype(np.float64)
-    v = [line.split()[1:4] for line in data.decode(errors='replace').splitlines() if line.strip().startswith('vertex')]
-    return np.array(v, np.float64).reshape(-1, 3, 3)
-
-
-def _write_stl(path, tris):
-    tris = np.asarray(tris, np.float32)
-    rec = np.zeros(len(tris), dtype=np.dtype([('n', '<f4', 3), ('v', '<f4', 9), ('a', '<u2')]))
-    rec['v'] = tris.reshape(-1, 9)
-    with open(path + '.part', 'wb') as f:
-        f.write(b'ratasim miniskybot'.ljust(80, b' ') + struct.pack('<I', len(tris)) + rec.tobytes())
-    os.replace(path + '.part', path)
-
-
-def _rx(deg):
-    c, s = (round(v) for v in (np.cos(np.radians(deg)), np.sin(np.radians(deg))))
-    return np.array([[1, 0, 0], [0, c, -s], [0, s, c]], float)
-
-
-def _to_robot(p):
-    """Points of main.scad's frame in the robot's."""
-    x, y, z = np.moveaxis(p, -1, 0)
-    return np.stack(S.scad_to_robot(x, y, z), axis=-1)
-
-
-def meshes():
-    """Its meshes in MESHES (made again when model.py or config.py is newer): its parts in the robot's frame, its
-    wheels in their own (their axle's middle, their axis x)."""
-    names = ('chassis', 'battery_holder', 'servo_r', 'servo_l', 'wheel_r', 'wheel_l')
-    path = {k: os.path.join(MESHES, f'{k}.stl') for k in names}
-    sources = [__file__, S.__file__]
-    if all(os.path.exists(p) for p in path.values()) and \
-            min(map(os.path.getmtime, path.values())) > max(map(os.path.getmtime, sources)):
-        return path
-    os.makedirs(MESHES, exist_ok=True)
-    stl = {k: _read_stl(os.path.join(S.MINISKYBOT_DIR, p)) for k, p in S.STL.items()}
-    # its chassis as printed: rotate([0, 180, 0]) translate([0, 0, -servo_c1 - top_plate_thickness]), undone
-    ch = stl['chassis'] * (-1, 1, -1) + (0, 0, S.SERVO_C1 + S.TOP_PLATE_THICKNESS)
-    _write_stl(path['chassis'], _to_robot(ch))
-    # its battery holder: battery() under the frame, its top battery_top_gap under the plate's bottom
-    b = stl['battery_holder'] - (0, 0, S.BATTERY_C3 / 2)
-    b = b + (S.BATTERY_C1 / 2, S.MID_Y_SCAD, -S.BATTERY_C3 / 2 - S.BATTERY_TOP_GAP)
-    _write_stl(path['battery_holder'], _to_robot(b))
-    # its servos: translate([servo_c4 / 2, servo_c3, servo_c1 / 2]) rotate([+-90, 0, 0])
-    for side, deg, dy in (('r', 90, 0.0), ('l', -90, 0.1)):
-        sv = stl['servo'] @ _rx(deg).T + (S.SERVO_C4 / 2, S.SERVO_C3 + dy, S.SERVO_C1 / 2)
-        _write_stl(path[f'servo_{side}'], _to_robot(sv))
-    # its wheels, about their own axle: rotate([+-90, 0, 0]) and the robot's axes (its axis along x)
-    for side, deg in (('r', 90), ('l', -90)):
-        w = stl['wheel'] @ _rx(deg).T                  # main.scad's frame, about the wheel's middle
-        w = np.stack([-w[..., 1], w[..., 0], w[..., 2]], axis=-1)
-        _write_stl(path[f'wheel_{side}'], w)
-    return path
 
 
 # ---- its parts drawn -----------------------------------------------------------------------------------------------
@@ -103,48 +39,52 @@ def _rod(p0, p1, r, rgba, cls='mvisual'):
 
 
 def _srf02():
-    """Its SRF02 in the front's hole: its board behind the front part's face, its transducer through it."""
+    """Its SRF02 in the front's hole: its board (24 x 20 mm, as its data sheet gives it) right behind the front
+    part's face, its transducer out of the hole to its front (17 mm over the board's back, as its data sheet gives
+    it), its two screws' heads on the face."""
     x, y, z = S.SRF02_POS
-    base = y - S.ULTRASOUND_LENGTH
     face = S.scad_to_robot(S.BATTERY_C1 + S.FRONT_C1, 0, 0)[1]
-    bx, by, bz = S.ULTRASOUND_BASE
-    return (_box((x, base - bz / 2, z), (by / 2, bz / 2, bx / 2), GREEN)
-            + _rod((x, base, z), (x, y - 0.4, z), S.ULTRASOUND_HOLE / 2 - 0.2, BLACK)
-            + _rod((x, y - 0.4, z), (x, y, z), S.ULTRASOUND_HOLE / 2 - 1.5, (0.22, 0.22, 0.23, 1))
-            + ''.join(_rod((x - dx, face, z + dz), (x - dx, face + 1.0, z + dz), 2.6, SILVER)    # its two screws
+    inner = face - S.FRONT_THICKNESS
+    return (_box((x, inner - 0.8 - 0.05, z), (10.0, 0.8, 12.0), GREEN)
+            + _rod((x, inner - 0.05, z), (x, y - 0.4, z), S.ULTRASOUND_HOLE / 2 - 0.2, BLACK)
+            + _rod((x, y - 0.4, z), (x, y, z), S.ULTRASOUND_HOLE / 2 - 1.5, (0.20, 0.20, 0.21, 1))
+            + ''.join(_rod((x - dx, face, z + dz), (x - dx, face + 1.2, z + dz), 2.6, STEEL)    # its two screws
                       for dx, dz in ((-8, -9), (7, 9))))
 
 
 def _skymega():
-    """Its Skymega on four spacers: its board, its ATmega328 in its socket, its expansion port and ICSP headers,
-    its eight servo connectors, its power connector, test LED and button (the board's photo and pin table)."""
-    cx, cy, _ = S.scad_to_robot(S.SKYMEGA_X_SCAD, S.MID_Y_SCAD, 0)
-    z0 = S.scad_to_robot(0, 0, S.SKYMEGA_BOTTOM_SCAD)[2]
-    top = z0 + S.PCB_MM
+    """Its Skymega on four hex spacers (meshes): its board, its ATmega328 in its socket, its expansion port and ICSP
+    headers, its eight servo headers with its servos' plugs in two of them, its power connector, test LED and button
+    (the board's photo and pin table)."""
+    cx, cy, top = cad.board_top()
+    z0 = top - S.PCB_MM
     h = S.SKYMEGA_MM / 2
     g = [_box((cx, cy, z0 + S.PCB_MM / 2), (h, h, S.PCB_MM / 2), BLUE)]
-    plate = S.scad_to_robot(0, 0, S.SERVO_C1 + S.TOP_PLATE_THICKNESS)[2]
     for dx in (-1, 1):
         for dy in (-1, 1):
             p = (cx + dx * S.SKYMEGA_DRILL, cy + dy * S.SKYMEGA_DRILL)
-            g.append(_rod((*p, plate), (*p, z0), 2.5, WHITE))              # its spacers
-            g.append(_rod((*p, top), (*p, top + 2.0), 2.7, SILVER))        # their screws' heads
+            g.append(_rod((*p, top), (*p, top + 2.0), 2.7, STEEL))        # its spacers' screws' heads
     g.append(_box((cx + 4, cy - 2, top + 1.5), (3.9, 18.0, 1.5), BLACK))   # DIP-28 socket and its ATmega328
     g.append(_box((cx + 4, cy - 2, top + 4.0), (3.6, 17.5, 1.0), (0.13, 0.13, 0.14, 1)))
     g.append(_box((cx - 6, cy + 17, top + 4.5), (10.0, 4.5, 4.5), BLACK))  # its expansion port (2 x 5, boxed)
     g.append(_box((cx + 17, cy + 13, top + 4.5), (4.5, 6.5, 4.5), BLACK))  # ICSP (2 x 3, boxed)
-    for k in range(4):                                                     # its servo connectors: 2 rows of 4 x 3 pins
-        for row in (-1, 1):
-            g.append(_box((cx - 17 + row * 2.6, cy - 12 + k * 4.2, top + 1.25), (1.27, 1.9, 1.25), BLACK))
-            for pin in range(3):
-                py = cy - 12 + k * 4.2 + (pin - 1) * 1.27
-                g.append(_box((cx - 17 + row * 2.6, py, top + 4.5), (0.32, 0.32, 3.2), (0.85, 0.75, 0.30, 1)))
-    g.append(_box((cx - 20, cy + 10, top + 3.5), (2.5, 4.0, 3.5), CREAM))  # its 2-pin power connector
+    hx, hy, n = cad.SERVO_HEADER['x0'], cad.SERVO_HEADER['y'], cad.SERVO_HEADER['n']
+    g.append(_box((cx + hx + 1.27 * (n - 1), cy + hy, top + 1.25), (1.27 * n, 3.81, 1.25), BLACK))
+    plugged = set(cad.SERVO_PLUGGED.values())
+    for k in range(n):                                                     # its servo headers: 3 pins each
+        px = cx + hx + 2.54 * k
+        if k in plugged:
+            g.append(_box((px, cy + hy, top + 2.5 + cad.PLUG_H / 2), (1.25, 3.8, cad.PLUG_H / 2), BLACK))
+            continue
+        for pin in range(3):
+            g.append(_box((px, cy + hy + 2.54 * (pin - 1), top + 4.5), (0.32, 0.32, 3.2), (0.85, 0.75, 0.30, 1)))
+    px, py = cx + cad.POWER[0], cy + cad.POWER[1]
+    g.append(_box((px, py, top + 3.5), (2.5, 4.0, 3.5), CREAM))           # its 2-pin power connector
     g.append(_box((cx + 18, cy - 16, top + 1.75), (3.0, 3.0, 1.75), BLACK))   # test button
     g.append(_rod((cx + 18, cy - 16, top + 3.5), (cx + 18, cy - 16, top + 4.5), 1.75, (0.25, 0.25, 0.27, 1)))
     g.append(f'<geom class="mvisual" type="sphere" pos="{_f(*(v * MM for v in (cx + 21, cy - 21, top + 3)))}" '
              f'size="{1.6 * MM:.5f}" rgba="0.2 0.8 0.3 0.9"/>')                 # its green test LED
-    g.append(_box((cx + 12, cy - 22, top + 1.8), (5.5, 2.3, 1.8), SILVER))  # its crystal (low profile)
+    g.append(_box((cx + 12, cy - 22, top + 1.8), (5.5, 2.3, 1.8), STEEL))   # its crystal (low profile)
     return ''.join(g)
 
 
@@ -155,19 +95,9 @@ def _caster():
 
 
 def _wheel_visuals(s):
-    sign = 1 if s == 'r' else -1
-    w = S.WHEEL_WIDTH_MM / 2
-    g = [f'<geom class="mvisual" type="mesh" mesh="m_wheel_{s}" rgba="{_f(*WHITE)}"/>',
-         _rod((-S.WHEEL_OR_DIAM / 2, 0, 0), (S.WHEEL_OR_DIAM / 2, 0, 0), S.WHEEL_RADIUS_MM, BLACK),   # its O-ring
-         _rod((-S.WHEEL_OR_DIAM / 2 - 0.05, 0, 0), (S.WHEEL_OR_DIAM / 2 + 0.05, 0, 0), S.WHEEL_RADIUS_MM - 3.0, WHITE)]
-    # its 4-arm horn on its outer face, its screw
-    x = sign * (w + 0.6)
-    for a in (0, 90):
-        g.append(f'<geom class="mvisual" type="box" pos="{_f(x * MM, 0, 0)}" size="{_f(0.6 * MM, 16 * MM, 2.6 * MM)}" '
-                 f'euler="{a} 0 0" rgba="{_f(*BLACK)}"/>')
-    g.append(_rod((x - 0.6 * sign, 0, 0), (x + 1.8 * sign, 0, 0), 5.0, BLACK))
-    g.append(_rod((x + 1.8 * sign, 0, 0), (x + 2.3 * sign, 0, 0), 2.6, SILVER))
-    return ''.join(g)
+    """Its wheel's meshes: the printed wheel, its O-ring, its horn and its screws."""
+    return ''.join(f'<geom class="mvisual" type="mesh" mesh="m_{k}_{s}" rgba="{_f(*rgba)}"/>'
+                   for k, rgba in (('wheel', PRINTED), ('o_ring', RUBBER), ('horn', BLACK), ('horn_screws', STEEL)))
 
 
 # ---- MuJoCo -----------------------------------------------------------------------------------------------------
@@ -181,7 +111,8 @@ def defaults_xml():
 
 
 def assets_xml():
-    return ''.join(f'<mesh name="m_{k}" file="{p}" scale="{_f(MM, MM, MM)}"/>' for k, p in meshes().items())
+    return ''.join(f'<mesh name="m_{k}" file="{p}" scale="{_f(MM, MM, MM)}" inertia="shell"/>'
+                   for k, p in cad.build().items())
 
 
 def robot_xml(start_xy=(0.5, 0.5), prefix=''):
@@ -197,8 +128,8 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
         {_wheel_visuals(s)}
       </body>'''
     body = ''.join(f'<geom class="mvisual" type="mesh" mesh="m_{k}" rgba="{_f(*rgba)}"/>'
-                   for k, rgba in (('chassis', WHITE), ('battery_holder', HOLDER), ('servo_r', SERVO),
-                                   ('servo_l', SERVO)))
+                   for k, rgba in (('printed', PRINTED), ('servos', SERVO), ('spacers', STEEL),
+                                   *((f'wire_{c}', WIRE[c]) for c in WIRE)))
     lo = S.scad_to_robot(-S.REAR_C1 - S.BALL_SIZE / 2 - S.BALL_WALL - S.BALL_AIRGAP, S.REAR_C2, -S.BATTERY_C3 - S.BATTERY_TOP_GAP)
     hi = S.scad_to_robot(S.BATTERY_C1 + S.FRONT_C1, 0, S.SERVO_C1 + S.TOP_PLATE_THICKNESS)
     hull = _box([(a + b) / 2 for a, b in zip(lo, hi)], [abs(b - a) / 2 for a, b in zip(lo, hi)], (0, 0, 1, 0.1), 'mhull')

@@ -62,11 +62,11 @@ def scad_to_robot(x, y, z):
 # the rear part's back (x = 0 in main.scad); it touches the floor when the robot stands on its wheels.
 CASTER_R_MM = 8.0
 CASTER_Y_MM = -(BALL_SIZE / 2 + BALL_WALL + BALL_AIRGAP) - AXLE_X_SCAD
-# Its SRF02 (fake_ultrasound.scad, show_robot()): its transducer's front 12.5 mm out of its board, which sits behind
-# the front part's face; its axis at main.scad's z = SERVO_C1 - ULTRASOUND_HOLE / 2 - 5.
-SRF02_FRONT_SCAD_X = BATTERY_C1 + FRONT_C1 - FRONT_THICKNESS + ULTRASOUND_LENGTH + ULTRASOUND_BASE[2]   # 71.5
+# Its SRF02 (fake_ultrasound.scad, show_robot()): its transducer's front 12.5 mm out of the front part's face; its axis
+# at main.scad's z = SERVO_C1 - ULTRASOUND_HOLE / 2 - 5.
+SRF02_FRONT_SCAD_X = BATTERY_C1 + FRONT_C1 - FRONT_THICKNESS + ULTRASOUND_LENGTH + ULTRASOUND_BASE[2]   # 74.5
 SRF02_Z_SCAD = SERVO_C1 - ULTRASOUND_HOLE / 2 - 5
-SRF02_POS = scad_to_robot(SRF02_FRONT_SCAD_X, MID_Y_SCAD, SRF02_Z_SCAD)     # (0, 41.2, 30.8)
+SRF02_POS = scad_to_robot(SRF02_FRONT_SCAD_X, MID_Y_SCAD, SRF02_Z_SCAD)     # (0, 44.2, 26.9)
 # Its Skymega board on the top plate's four holes (top_plate_arduino_uno()), on 10 mm spacers (its photo)
 SKYMEGA_X_SCAD = TOP_PLATE_C1 / 2 - REAR_C1 - (TOP_PLATE_C1 - SKYMEGA_MM) / 2 + 3
 SKYMEGA_SPACER_MM = 10.0
