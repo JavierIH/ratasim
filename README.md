@@ -253,7 +253,7 @@ ratasim/nezumibot/  NezumiBot: its assembled 3D model (assets/), its simulated c
 ratasim/perenquen/  Perenquén: its meshes from its FreeCAD assembly (assets/, cad.py), its simulated dsPIC (fw/), runner
 ratasim/fujin/      Fujin: its model from its STEP (cad.py), its firmware on our BSP and simulated STM32G474 (fw/), runner
 ratasim/futura/     Futura: its files downloaded at build time, its model, its simulated STM32F405 and ST library (fw/)
-ratasim/ukmarsbot/  UKMARSBOT: its model from its KiCad boards (kicad.py), its Arduino Nano's ATmega328P (fw/), runner
+ratasim/ukmarsbot/  UKMARSBOT: its model from its KiCad boards and Gerbers (cad.py, pcb.py), its Nano's ATmega328P (fw/)
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
 ratasim/start.py    starting a robot as its makers do (its config's sequence), with the hand of hand.py
 ratasim/stopwatch.py the runs' times, from the start cell to the goal (every robot)

@@ -3,7 +3,8 @@ mazerunner-core (Peter Harrison, github.com/ukmars/mazerunner-core) as Peter's O
 its geometry and the physics assumed for it. Robot frame (mm): x right, y forward, z up, origin on the floor under
 its wheels' axle.
 
-Sources: its boards' KiCad files (ecad/kicad: mainboard, wall-sensor-advanced; kicad.py reads them), its firmware's
+Sources: its boards' KiCad files (ecad/kicad: mainboard, wall-sensor-advanced; kicad.py reads them, cad.py places
+their parts' 3D models) and Gerber files (hardware/: pcb.py textures their faces from them), its firmware's
 hardware and robot configurations (config-ukmarsbot.h, config-robot-orion.h: its pins, its odometry, its sensors'
 calibration, its motors' measured constants), its photos and renders (renders/).
 

@@ -306,13 +306,18 @@ By the [UK Micromouse and Robotics Society](https://ukmars.org/projects/ukmarsbo
   gains it keeps were set for. What it runs: function 2 of its switches, its search to the goal and back,
   mapping the maze by flood fill (3: a left wall follower).
 - **Model:** its two boards from their KiCad files (`ecad/kicad`: `mainboard`, `wall-sensor-advanced`, read by
-  `ratasim/ukmarsbot/kicad.py`): their outlines as plates, and where their footprints are, its parts as simple solids
-  of their sizes: the Arduino Nano on its sockets, the TB6612FNG module, the gearmotors in their printed brackets
-  (their footprint: encoder, motor, gearbox, shaft), the IR emitters over the sensor board and the phototransistors
-  under it along their axes, capacitors, resistors, switches, button; the PP3 battery standing behind the motors and
-  the 32 mm wheels where its photos and renders put them, two skids. Collisions: the main board's outline up to the
-  battery, its tyres (their contact 2 mm wide, at its `MOUSE_RADIUS`: a 7 mm cylinder touches the floor at its
-  edges, and its turns in place came out 10° short), its skids.
+  `ratasim/ukmarsbot/kicad.py`) and the Gerber files its repository ships for them (`hardware/`: the main board's
+  V1.3-alpha, the sensor board's V1.2): their outlines, their faces textured with their copper, solder mask, pads,
+  silkscreen and holes (`pcb.py`); every part their footprints place, its 3D model where KiCad puts it (`cad.py`: each
+  footprint's model, its offset, rotation and scale, flipped under the board for the phototransistors; its library
+  parts where `kicad-cli pcb export step` puts them, to 0.1 mm): KiCad's library models (its STEP files, downloaded at
+  build time as Bulebule's; the IR emitters water-clear as in its photos), the repository's own for the gearmotors in
+  their brackets with their encoders (lifted 0.5 mm onto the board, their gearboxes on the wheels' axle), the
+  TB6612FNG module and the switches (coloured as its renders show them: gmsh reads none of their colours), the Arduino
+  Nano's X3D model. Not on its boards: the PP3 battery standing behind the motors and the 32 mm wheels, where its
+  photos and renders put them, two skids. Collisions: the main board's outline up to the battery, its tyres (their
+  contact 2 mm wide, at its `MOUSE_RADIUS`: a 7 mm cylinder touches the floor at its edges, and its turns in place
+  came out 10° short), its skids.
 - **Sensors:** where the sensor board puts each SFH4545 emitter and TEFT4300 phototransistor: the front pair at the
   sides looking 10° out, the diagonal pair at the nose looking 60° out; channels and emitters as its board's
   connector and its config. The light back from a wall: a diffuse reflector, cos(incidence) A / (d + 13.3 mm)², three

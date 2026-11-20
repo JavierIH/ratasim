@@ -1,25 +1,27 @@
-"""The MuJoCo scene with UKMARSBOT: the maze (ratasim/model.py) and the robot as its KiCad boards lay it out
-(kicad.py): its two boards' outlines (Edge.Cuts) as plates, and on them, where their footprints are, its parts as
-simple solids of their sizes: the Arduino Nano on its sockets, the TB6612FNG module, the gearmotors in their printed
-brackets (their footprint's outline: encoder, motor, gearbox, shaft), the IR emitters and phototransistors along
-their axes, the capacitors, resistors, switches and button; the PP3 battery standing behind the motors and the 32 mm
-wheels where its photos and renders put them.
+"""The MuJoCo scene with UKMARSBOT: the maze (ratasim/model.py) and the robot as its KiCad boards lay it out: its two
+boards, their outlines (Edge.Cuts, kicad.py) and their faces textured from their Gerber files (pcb.py), and every
+part their footprints place, their 3D models where KiCad puts them (cad.py): the Arduino Nano, the TB6612FNG module,
+the gearmotors in their brackets with their encoders, the IR emitters and phototransistors, the capacitors,
+resistors, diodes, headers, switches and button; the PP3 battery standing behind the motors and the 32 mm wheels,
+which its boards do not place, where its photos and renders put them.
 Collisions: the main board's outline as a convex hull up to the battery's top, its two tyres (2 mm wide, at its
 firmware's MOUSE_RADIUS), its two skids.
 """
+import json
 import math
+import os
 
 from .. import config as C
 from ..hand import hand_xml
 from ..model import MM, ROBOT_GROUP, WALL_GROUP, _f, maze_xml
+from . import cad
 from . import config as U
+from . import pcb
 from .kicad import Board
 
-GREEN = (0.05, 0.42, 0.22, 1)
+EDGE = (0.55, 0.60, 0.42, 1)                # the boards' edges: FR4
 BLACK = (0.06, 0.06, 0.07, 1)
 SILVER = (0.72, 0.72, 0.74, 1)
-BRASS = (0.78, 0.66, 0.38, 1)
-PRINTED = (0.10, 0.14, 0.34, 1)        # its brackets, dark blue (photos)
 SKID = (0.92, 0.92, 0.90, 1)
 WHEEL_W = 7.0                          # Pololu 32 x 7 mm wheels
 CONTACT_W = 2.0                        # the tyres' collision: their contact centred where its firmware's turns
@@ -64,21 +66,6 @@ def _triangulate(poly):
     return tris
 
 
-def _plate(poly, z0, z1):
-    """A board: its outline extruded from z0 to z1 (mm), as a mesh's vertices and faces (m)."""
-    n = len(poly)
-    verts = [(x, y, z0) for x, y in poly] + [(x, y, z1) for x, y in poly]
-    faces = []
-    for a, b, c in _triangulate(poly):
-        faces += [(a, c, b), (a + n, b + n, c + n)]
-    for i in range(n):
-        j = (i + 1) % n
-        faces += [(i, j, j + n), (i, j + n, i + n)]
-    v = ' '.join(f'{x * MM:.5f} {y * MM:.5f} {z * MM:.5f}' for x, y, z in verts)
-    f = ' '.join(f'{a} {b} {c}' for a, b, c in faces)
-    return v, f
-
-
 def _box(lo, hi, rgba):
     c = [(a + b) / 2 * MM for a, b in zip(lo, hi)]
     s = [abs(b - a) / 2 * MM for a, b in zip(lo, hi)]
@@ -90,38 +77,9 @@ def _rod(p0, p1, r, rgba, kind='cylinder'):
     return f'<geom class="kvisual" type="{kind}" fromto="{a}" size="{r * MM:.5f}" rgba="{_f(*rgba)}"/>'
 
 
-def _along(p, deg, d, z):
-    a = math.radians(deg)
-    return p[0] + d * math.cos(a), p[1] + d * math.sin(a), z
-
-
 # ---- its parts ---------------------------------------------------------------------------------------------------
-def _motor(sign):
-    """A gearmotor in its bracket (the footprint's outline, the right one; sign -1 mirrors it to the left): its
-    encoder board x 5.8-7.3, its motor can x 7.3-20 (12 wide), its gearbox x 20-31.5, its shaft to the wheel; the
-    printed bracket over the gearbox x 23-31.5, its tabs to y +-13.2 with their screws."""
-    z = U.MAIN_TOP + U.MOTOR_AXIS_OVER_BOARD
-    t = U.MAIN_TOP
-
-    def x(a, b):
-        return sorted((sign * a, sign * b))
-    g = []
-    (a, b) = x(5.8, 7.3)
-    g.append(_rod((a, 0, z), (b, 0, z), 6.0, GREEN))
-    (a, b) = x(6.6, 7.3)
-    g.append(_rod((a, 0, z), (b, 0, z), 2.0, BLACK))                    # its magnetic disc
-    (a, b) = x(7.3, 20.0)
-    g.append(_box((a, -6.0, z - 5.0), (b, 6.0, z + 5.0), SILVER))
-    (a, b) = x(20.0, 23.0)
-    g.append(_box((a, -6.0, z - 5.0), (b, 6.0, z + 5.0), BRASS))
-    (a, b) = x(23.0, 31.5)
-    g.append(_box((a, -7.5, t), (b, 7.5, z + 6.5), PRINTED))
-    g.append(_box((a, -13.2, t), (b, 13.2, t + 2.5), PRINTED))
-    for y in (-9.0, 9.0):
-        g.append(_rod(((a + b) / 2, y, t + 2.5), ((a + b) / 2, y, t + 4.5), 2.6, SILVER))      # its M3 nuts
-    (a, b) = x(31.5, U.MOUSE_RADIUS_MM - WHEEL_W / 2)
-    g.append(_rod((a, 0, z), (b, 0, z), 1.5, SILVER))
-    return ''.join(g)
+def _meshes():
+    return json.load(open(os.path.join(cad.ensure(), 'manifest.json')))
 
 
 def _wheel(s):
@@ -140,103 +98,20 @@ def _wheel(s):
 
 
 def _chassis():
-    main, sensor = boards()
-    t, st, sb = U.MAIN_TOP, U.SENSOR_TOP, U.SENSOR_BOTTOM
-    g = ['<geom class="kvisual" type="mesh" mesh="k_mainboard" rgba="{}"/>'.format(_f(*GREEN)),
-         '<geom class="kvisual" type="mesh" mesh="k_sensorboard" rgba="{}"/>'.format(_f(*GREEN))]
-    # the Arduino Nano on its two sockets, its USB end at its pin 1 (x -33)
-    nano = main.footprint(lib='Arduino_Nano')[0]
-    x0, y0, x1, y1 = nano.bbox(('F.Fab',))
-    nb = sb
-    g.append(_box((x0, y0, nb), (x1, y1, nb + U.PCB_THICK), (0.08, 0.25, 0.62, 1)))
-    for y in (y0 + 1.2, y1 - 1.2):
-        g.append(_box((x0 + 1.5, y - 1.25, t), (x1 - 4.5, y + 1.25, nb), BLACK))
-    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-    top = nb + U.PCB_THICK
-    g.append(_box((cx - 3.5, cy - 3.5, top), (cx + 3.5, cy + 3.5, top + 1.0), BLACK))           # its ATmega328P
-    g.append(_box((x0 - 1.5, cy - 3.8, top), (x0 + 7.5, cy + 3.8, top + 4.0), SILVER))          # its mini USB
-    g.append(_box((cx + 7, cy - 2.2, top), (cx + 11, cy + 2.2, top + 1.5), SILVER))           # its crystal
-    g.append(_box((x1 - 6.5, cy - 1.5, top), (x1 - 3.5, cy + 1.5, top + 1.5), (0.85, 0.85, 0.85, 1)))   # reset
-    # the TB6612FNG module on its pins
-    tb = main.footprint(lib='TB6612FNG-module')[0]
-    x0, y0, x1, y1 = tb.bbox()
-    g.append(_box((x0 + 0.5, y0 + 0.5, t + 2.5), (x1 - 0.5, y1 - 0.5, t + 2.5 + U.PCB_THICK), (0.78, 0.10, 0.12, 1)))
-    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-    g.append(_box((cx - 4.0, cy - 2.6, t + 4.1), (cx + 4.0, cy + 2.6, t + 5.3), BLACK))
-    for y in (y0 + 1.5, y1 - 1.5):
-        g.append(_box((x0 + 1.0, y - 1.25, t), (x1 - 1.0, y + 1.25, t + 2.5), BLACK))
-    # the sensor board's connector: a socket on the main board, its header
-    j = main.footprint(lib='1X14_LOCK')[0]
-    x0, y0, x1, y1 = j.bbox()
-    g.append(_box((x0, y0 + 0.4, t), (x1, y1 - 0.4, sb), BLACK))
-    # the gearmotors, the battery standing behind them (a rechargeable PP3: 48.5 x 26.5 x 17.5 mm), its leads' plug
-    g += [_motor(1), _motor(-1)]
+    t = U.MAIN_TOP
+    g = [f'<geom class="kvisual" type="mesh" mesh="k_{b}_{face}" material="k_{b}_{face}"/>'
+         for b in pcb.BOARDS for face in ('top', 'bottom')]
+    g += [f'<geom class="kvisual" type="mesh" mesh="k_{b}_side" rgba="{_f(*EDGE)}"/>' for b in pcb.BOARDS]
+    g += [f'<geom class="kvisual" type="mesh" mesh="k_{e["file"][:-4]}" rgba="{_f(*e["rgba"])}"/>' for e in _meshes()]
+    # the battery standing behind the motors (a rechargeable PP3: 48.5 x 26.5 x 17.5 mm), its leads' plug
     g.append(_box((-24.75, -33.75, t), (23.75, -16.25, t + 26.5), (0.94, 0.94, 0.92, 1)))
     g.append(_box((-24.80, -33.80, t + 8), (23.80, -16.20, t + 18), (0.95, 0.55, 0.10, 1)))
     for x in (-6.0, 6.0):
         g.append(_rod((x, -25.0, t + 26.5), (x, -25.0, t + 29.0), 3.0, SILVER))
-    # its switches, button, capacitors, resistors (main board)
-    for f in main.footprints:
-        if 'SW_DIP' in f.lib:
-            x0, y0, x1, y1 = f.bbox()
-            g.append(_box((x0 + 1.5, y0 + 1.5, t), (x1 - 1.5, y1 - 1.5, t + 3.5), (0.80, 0.10, 0.10, 1)))
-            for k in range(4):
-                y = y0 + 1.5 + (k + 0.5) * (y1 - y0 - 3) / 4
-                g.append(_box(((x0 + x1) / 2 - 1.5, y - 0.6, t + 3.5), ((x0 + x1) / 2, y + 0.6, t + 4.3), SKID))
-        elif 'TACTILE' in f.lib:
-            x0, y0, x1, y1 = f.bbox(('F.Fab',))
-            cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-            g.append(_box((cx - 3, cy - 3, t), (cx + 3, cy + 3, t + 3.5), BLACK))
-            g.append(_rod((cx, cy, t + 3.5), (cx, cy, t + 6.5), 1.8, (0.75, 0.08, 0.08, 1)))
-        elif 'SW_MINI-SPDT' in f.lib:
-            x0, y0, x1, y1 = f.bbox()
-            cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-            g.append(_box((cx - 3.5, cy - 4.0, t), (cx + 3.5, cy + 4.0, t + 9.0), (0.85, 0.15, 0.15, 1)))
-            g.append(_rod((cx, cy, t + 9.0), (cx, cy - 2.0, t + 18.0), 1.2, SILVER, 'capsule'))
-        elif 'CP_Radial_D8' in f.lib:
-            p = f.point(1.25, 0)
-            g.append(_rod((p[0], p[1], t), (p[0], p[1], t + 11.5), 4.0, (0.10, 0.12, 0.30, 1)))
-        elif 'R_Axial' in f.lib:
-            g.append(_resistor(f, t))
-        elif 'Molex_KK' in f.lib:
-            x0, y0, x1, y1 = f.bbox()
-            g.append(_box((x0 + 0.5, y0 + 0.5, t), (x1 - 0.5, y1 - 0.5, t + 9.0), (0.92, 0.90, 0.85, 1)))
-    # the sensor board: its emitters over it, its phototransistors under it, its capacitors, LED, resistors
-    for f in sensor.footprints:
-        if f.value == 'SFH4545':          # 5 mm, flange 5.45 mm from its pads, lens tip at 14.05
-            z = st + 3.0
-            g.append(_rod(f.point(1.27, 5.45) + (z,), f.point(1.27, 11.55) + (z,), 2.5, (0.80, 0.85, 0.92, 0.75)))
-            g.append(_rod(f.point(1.27, 11.55) + (z,), f.point(1.27, 11.56) + (z,), 2.5, (0.80, 0.85, 0.92, 0.75),
-                          'capsule'))
-        elif f.value == 'TEFT4300':       # 5 mm, its body under the board
-            z = sb - 3.0
-            g.append(_rod(f.point(1.27, -1.27) + (z,), f.point(1.27, -7.37) + (z,), 2.5, (0.20, 0.20, 0.22, 1)))
-            g.append(_rod(f.point(1.27, -7.37) + (z,), f.point(1.27, -7.38) + (z,), 2.5, (0.20, 0.20, 0.22, 1),
-                          'capsule'))
-        elif 'CP_Radial_D10' in f.lib:
-            p = f.point(1.25, 0)
-            g.append(_rod((p[0], p[1], st), (p[0], p[1], st + 12.5), 5.0, (0.08, 0.08, 0.10, 1)))
-        elif f.value == 'LED':
-            p = f.point(1.27, 0)
-            g.append(_rod((p[0], p[1], st), (p[0], p[1], st + 4.0), 1.5, (0.90, 0.15, 0.10, 0.85), 'capsule'))
-        elif 'TO-92' in f.lib:
-            p = f.point(2.54, 0)
-            g.append(_box((p[0] - 2.3, p[1] - 1.0, st), (p[0] + 2.3, p[1] + 1.0, st + 4.5), BLACK))
-        elif 'R_Axial' in f.lib:
-            g.append(_resistor(f, st))
     # its skids
     for y in (U.SKID_Y[0], U.SKID_Y[1]):
         g.append(_rod((0, y, U.MAIN_BOTTOM), (0, y, U.SKID_R + U.SKID_CLEARANCE_MM), U.SKID_R, SKID))
     return ''.join(g)
-
-
-def _resistor(f, z):
-    a, b = f.point(0, 0), f.point(7.62, 0)
-    m = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
-    d = math.dist(a, b)
-    ux, uy = (b[0] - a[0]) / d, (b[1] - a[1]) / d
-    return _rod((m[0] - ux * 3.15, m[1] - uy * 3.15, z + 1.25), (m[0] + ux * 3.15, m[1] + uy * 3.15, z + 1.25), 1.25,
-                (0.55, 0.70, 0.85, 1))
 
 
 # ---- MuJoCo -----------------------------------------------------------------------------------------------------
@@ -250,12 +125,15 @@ def defaults_xml():
 
 
 def assets_xml():
-    main, sensor = boards()
-    out = ''
-    for name, board, z0, z1 in (('mainboard', main, U.MAIN_BOTTOM, U.MAIN_TOP),
-                                ('sensorboard', sensor, U.SENSOR_BOTTOM, U.SENSOR_TOP)):
-        v, f = _plate(board.loops()[0], z0, z1)
-        out += f'<mesh name="k_{name}" vertex="{v}" face="{f}" inertia="shell"/>'
+    main, _ = boards()
+    d = cad.ensure()
+    out = ''.join(f'<texture name="k_{b}_{face}" type="2d" file="{d}/{b}_{face}.png"/>'
+                  f'<material name="k_{b}_{face}" texture="k_{b}_{face}" specular="0.3" shininess="0.4"/>'
+                  for b in pcb.BOARDS for face in ('top', 'bottom'))
+    out += ''.join(f'<mesh name="k_{b}_{part}" file="{d}/{b}_{part}.obj" scale="{_f(MM, MM, MM)}" inertia="shell"/>'
+                   for b in pcb.BOARDS for part in ('top', 'bottom', 'side'))
+    out += ''.join(f'<mesh name="k_{e["file"][:-4]}" file="{d}/{e["file"]}" scale="{_f(MM, MM, MM)}" inertia="shell"/>'
+                   for e in _meshes())
     hull = ' '.join(f'{x * MM:.5f} {y * MM:.5f} {z * MM:.5f}' for x, y in main.loops()[0]
                     for z in (U.MAIN_BOTTOM, U.MAIN_TOP + 26.5))
     return out + f'<mesh name="k_hull" vertex="{hull}"/>'
