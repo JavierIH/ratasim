@@ -30,7 +30,8 @@ CREASE_DEG = 35                 # faces meeting at less than this are shaded as 
 
 def read_stl(path):
     """An STL file's triangles (n, 3, 3): OpenSCAD's ASCII, or binary; its degenerate triangles dropped."""
-    data = open(path, 'rb').read()
+    with open(path, 'rb') as f:
+        data = f.read()
     if not data.lstrip().startswith(b'solid') or b'facet' not in data[:1000]:
         n = struct.unpack('<I', data[80:84])[0]
         rec = np.frombuffer(data[84:84 + 50 * n], dtype=np.dtype([('n', '<f4', 3), ('v', '<f4', 9), ('a', '<u2')]))
@@ -43,8 +44,9 @@ def read_stl(path):
 
 def write_obj(path, tris, crease=CREASE_DEG):
     """Triangles (n, 3, 3) as an OBJ file, each corner's normal the mean of its vertex's faces within the crease
-    angle of its own face (weighted by their areas)."""
+    angle of its own face (weighted by their areas); its degenerate triangles dropped."""
     tris = np.asarray(tris, np.float64)
+    tris = tris[np.linalg.norm(np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0]), axis=1) > 1e-6]
     v, idx = np.unique(tris.reshape(-1, 3).round(4), axis=0, return_inverse=True)
     idx = idx.reshape(-1, 3)
     fn = np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0])      # its length twice the area
@@ -174,7 +176,9 @@ def rounded(points, radius, n=8):
         t = np.linspace(0, 1, n)[:, None]
         out.extend((1 - t) ** 2 * p1 + 2 * t * (1 - t) * v + t ** 2 * p2)
     out.append(p[-1])
-    return np.array(out)
+    out = np.array(out)
+    keep = np.r_[True, np.linalg.norm(np.diff(out, axis=0), axis=1) > 1e-6]   # corners meeting on a short leg
+    return out[keep]
 
 
 def bezier(points, n=40):
