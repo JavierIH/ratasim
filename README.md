@@ -49,11 +49,11 @@ cells of 180 mm).
 <tr>
 <td align="center">by <a href="https://raiju.team">Team Raiju</a> · <a href="https://github.com/team-raiju/fujin">repo</a></td>
 <td align="center">by <a href="https://micromouseusa.com">Green Ye</a> · <a href="https://micromouseusa.com/?page_id=1342">page</a></td>
-<td align="center">by <a href="https://ukmars.org">UKMARS</a> · <a href="https://github.com/ukmars/ukmarsbot">repo</a> · <a href="https://github.com/ukmars/mazerunner-core">firmware</a></td>
+<td align="center">by <a href="https://ukmars.org">UKMARS</a> · <a href="https://github.com/ukmars/ukmarsbot">repo</a></td>
 </tr>
 <tr>
 <td align="center">STM32G474 · 4 IR · gyro · fan</td>
-<td align="center">STM32F405 · 4 IR · gyro · its page's controller sample</td>
+<td align="center">STM32F405 · 4 IR · gyro</td>
 <td align="center">ATmega328P · 4 IR · N20 motors</td>
 </tr>
 <tr>
