@@ -9,18 +9,21 @@ ready to print: turned back) and battery holder, its two Futaba S3003; its wheel
 files leave out, from its OpenSCAD model's dimensions and its photo: its wheels' O-rings in the V of their rims
 (Servo-wheel.scad's raw_wheel()), its black 4-arm horns in their wheels' recesses (horn4()), their screws; its
 Skymega's metal hex spacers, under it and over it; its servos' cables (black, red, white, Futaba's) and its battery's wires (red and black)
-up to its board.
+up to its board, their plugs' places from its board's pads (skymega.py: its Skymega, from Obijuan's KiCad and
+Gerber files, made at build time with its meshes).
 
 Frames: the body's meshes in the robot's (mm: x right, y forward, z up, origin on the floor under the wheels' axle);
 the wheels' in their own (their axle's middle, their axis x, their outer face towards +x for the right wheel, -x for
 the left).
 """
+import json
 import os
 import struct
 
 import numpy as np
 
 from . import config as S
+from . import skymega
 
 MESHES = os.path.join(S.BUILD, 'meshes')
 CREASE_DEG = 35                 # faces meeting at less than this are shaded as one smooth surface
@@ -243,14 +246,20 @@ def spacers():
                            for z0, z1 in ((plate, plate + S.SKYMEGA_SPACER_MM), (top, top + UPPER_SPACER_MM))])
 
 
-# Its board's servo headers (the robot's photo: a row of three-pin headers, 2.54 mm pitch, ahead of its middle), the
-# two its servos are plugged into, its power connector: where model.py draws them, robot frame.
-SERVO_HEADER = {'x0': -14.0, 'y': 8.0, 'n': 8}      # from the board's middle: the first's x, the middle pins' y
+# Its board's servo headers (skymega.py: Servo1..8, three pads each, 2.54 mm pitch), the two its servos are plugged
+# into (Obijuan's examples: SERVO2 and SERVO4), its power connector M1: where model.py draws their plugs.
 SERVO_PLUGGED = {'r': 2, 'l': 4}                    # SERVO2, SERVO4 (pins 8 and 9)
 RISE_Y = -9.5                                       # where their cables come up, from the board's middle
 PLUG_H = 14.0                                       # a servo plug's housing over the header's base
-POWER = (9.0, 1.0)                                  # its 2-pin power connector, near its right edge
-POWER_H = 10.0                                      # its housing's height over the board
+POWER_H = 7.1                                       # its connector's housing's height over the board (its model's)
+BAT_PLUG_H = 8.0                                    # its battery's plug (cream housing) on it
+PLUG_BASE = 2.5                                     # its headers' black bodies over the board
+
+
+def power():
+    """Its power connector's middle on the board: (x, y) from the board's middle."""
+    (x0, y0), (x1, y1) = skymega.power_connector()
+    return (x0 + x1) / 2, (y0 + y1) / 2
 
 
 def board_top():
@@ -261,7 +270,8 @@ def board_top():
 def plug(side):
     """A servo plug's place on its board: its middle pin's (x, y), its top's z."""
     cx, cy, top = board_top()
-    return cx + SERVO_HEADER['x0'] + 2.54 * SERVO_PLUGGED[side], cy + SERVO_HEADER['y'], top + 2.5 + PLUG_H
+    x, y = skymega.servo_header(SERVO_PLUGGED[side])[1]                # its middle pad
+    return cx + x, cy + y, top + PLUG_BASE + PLUG_H
 
 
 def wires():
@@ -281,12 +291,12 @@ def wires():
         for k, colour in enumerate(('black', 'red', 'white')):        # -, +, signal: across the plug
             out[colour].append(tube(path + (0, (k - 1) * 1.1, 0), r))
     # the battery's wires: from the holder's front, up through the top plate's front cutout, over to the connector
-    bx, by = cx + POWER[0], cy + POWER[1]
+    bx, by = cx + power()[0], cy + power()[1]
     y = S.scad_to_robot(S.BATTERY_C1 - 2, 0, 0)[1]
     for k, colour in enumerate(('red', 'black')):
         dx = (k - 0.5) * 1.4
         path = bezier([(8 + dx, y, plate - 18), (8 + dx, y, plate + 10), (4 + dx, y + 2, top + 16),
-                       (bx + dx, by + 12, top + POWER_H + 11), (bx + dx, by, top + POWER_H + 7), (bx + dx, by, top + POWER_H)], 50)
+                       (bx + dx, by + 12, top + POWER_H + BAT_PLUG_H + 11), (bx + dx, by, top + POWER_H + BAT_PLUG_H + 7), (bx + dx, by, top + POWER_H + BAT_PLUG_H)], 50)
         out[colour].append(tube(path, 0.6))
     return {k: np.concatenate(v) for k, v in out.items()}
 
@@ -296,18 +306,32 @@ BODY = ('printed', 'servos', 'spacers', 'wire_black', 'wire_red', 'wire_white')
 WHEEL = ('wheel', 'horn', 'horn_screws', 'o_ring')
 
 
+BOARD = ('skymega_top', 'skymega_bottom', 'skymega_side')      # its board's faces and edge (skymega.py)
+PARTS_JSON = os.path.join(MESHES, 'skymega_parts.json')       # its components' meshes' colours
+
+
 def names():
-    return list(BODY) + [f'{k}_{s}' for s in 'rl' for k in WHEEL]
+    return list(BODY) + [f'{k}_{s}' for s in 'rl' for k in WHEEL] + list(BOARD)
+
+
+def skymega_parts():
+    """Its components' meshes (one per colour): [(name, path, (r, g, b, a))], from build()."""
+    with open(PARTS_JSON) as f:
+        return [(n, p, tuple(c)) for n, p, c in json.load(f)]
 
 
 def build(out=MESHES):
     """Its meshes in out: {name: path}."""
     path = {k: os.path.join(out, f'{k}.obj') for k in names()}
-    sources = [__file__, S.__file__]
-    if all(os.path.exists(p) for p in path.values()) and \
-            min(map(os.path.getmtime, path.values())) > max(map(os.path.getmtime, sources)):
+    sources = [__file__, S.__file__, skymega.__file__]
+    if all(os.path.exists(p) for p in [*path.values(), PARTS_JSON]) and \
+            min(map(os.path.getmtime, [*path.values(), PARTS_JSON])) > max(map(os.path.getmtime, sources)):
         return path
     os.makedirs(out, exist_ok=True)
+    cx, cy, top = board_top()
+    colours = skymega.build(out, (cx, cy, top), write_obj)
+    with open(PARTS_JSON, 'w') as f:
+        json.dump(colours, f)
     stl = {k: read_stl(os.path.join(S.MINISKYBOT_DIR, p)) for k, p in S.STL.items()}
     # its chassis as printed: rotate([0, 180, 0]) translate([0, 0, -servo_c1 - top_plate_thickness]), undone
     ch = stl['chassis'] * (-1, 1, -1) + (0, 0, S.SERVO_C1 + S.TOP_PLATE_THICKNESS)

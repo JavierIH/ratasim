@@ -413,9 +413,19 @@ at 16 MHz) and four AAA cells. No encoders, no gyro, one sensor.
   in the V of its wheels' Ø56 rims (Ø50 x 3 mm: a 30.1 mm tyre), its black 4-arm horns in their wheels' recesses
   (`horn4()`) with the two screws on their arms. Drawn from its parts list, its photo and data sheets: the Ø16 marble of its caster,
   its SRF02 (its board behind the front's face, its transducer out of the hole, 17 mm in all as its data sheet
-  gives it, its screws and metal clamp), the Skymega on metal hex spacers under it and over it (its parts plainly,
-  not from its files, where its photo has them: its servo headers with its two servos' plugs, its ICSP's white boxed
-  header, its cream power connector, LED, button, its black expansion port, its red switch), its servos' cables (black, red, white) and its battery's wires up to the board.
+  gives it, its screws and metal clamp), the Skymega's metal hex spacers under it and over it, its servos' cables (black, red, white) and its battery's wires up to the board.
+  Its Skymega is Obijuan's own design, not drawn by eye (`ratasim/miniskybot/skymega.py`): the repository
+  [Obijuan/obijuan-designs](https://github.com/Obijuan/obijuan-designs/tree/master/Skymega-board) ships its v1.0 KiCad
+  project and Gerber files (CC BY-SA 3.0, its README), downloaded at build time and pinned by SHA-256, nothing of it in
+  git. Its outline (Edge.Cuts: 51.4 mm square, 3.175 mm corners), its four mounting holes (on the top plate's four
+  holes, on the spacers), every component its `.brd` places (its ATmega's socket, its servo headers, expansion port, ICSP,
+  I2C and serial headers, power connector, test LED and button, reset button, crystal, resistors, capacitors, switch),
+  each with the 3D model its zip ships (VRML, 0.1 in units, KiCad's legacy scale, offset and rotation), in the
+  positions of its design, and its two faces as textures drawn from its Gerber files (copper under a blue solder mask,
+  tinned pads, silkscreen, holes). The only part added is the ATmega's body, in its socket (the design's model shows
+  the socket alone). The parts' colours are its 3D models', so its connectors differ from those of the photographed
+  unit (a white ICSP header, a red switch). Its servo plugs go on Servo2 and Servo4's headers, its battery's plug on
+  M1, where its pads are.
   Collisions: a box round its chassis and holder, its ranger, its board, its marble, its tyres.
 - **Sensor:** its SRF02's echo: rays across its beam (55° wide), level from its transducer's face; a wall echoes
   where a ray meets it within 10° of square (ultrasound is mirrored, not scattered, by a flat wall); small faces
