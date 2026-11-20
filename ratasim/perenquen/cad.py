@@ -7,7 +7,8 @@ motor block where its designer placed them, each one shape with its faces' colou
 sub-assembly's parts' faces in order (motor_block_assembly.fcstd): split back into them, its two wheels (with their
 gears) become bodies of their own. The main board's shape is a fusion of its KiCad StepUp export (parts/mainboard.fcstd)
 in one colour: its parts are taken from that file in theirs, placed as the assembly places the board. The left side
-is the right one mirrored (the assembly's `_mirror` constraints: its designer drew one side).
+is the right one mirrored (the assembly's `_mirror` constraints: its designer drew one side): its meshes, each
+triangle turned over (mirror_mesh).
 
 Out (perenquen/assets, committed: CC BY-SA 4.0, as its CAD): one STL per body and colour (assembly frame, mm) and manifest.json: [{file, body, rgba}], body in
 chassis, wheel_fr, wheel_rr, wheel_fl, wheel_rl.
@@ -19,6 +20,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 import FreeCAD
+import Mesh
 import MeshPart
 import Part
 
@@ -64,31 +66,47 @@ def face_colour(cols, i):
 
 class Writer:
     def __init__(self):
-        self.parts = {}         # (body, rgba) -> [faces]
+        self.parts = {}         # (body, rgba) -> ([faces], [faces to mirror])
 
-    def add(self, body, face, rgba):
+    def add(self, body, face, rgba, mirrored=False):
         key = (body, tuple(round(c, 3) for c in rgba))
-        self.parts.setdefault(key, []).append(face)
+        self.parts.setdefault(key, ([], []))[mirrored].append(face)
 
     def write(self):
         os.makedirs(OUT, exist_ok=True)
         for f in os.listdir(OUT):
             os.unlink(os.path.join(OUT, f))
         manifest = []
-        for i, ((body, rgba), faces) in enumerate(sorted(self.parts.items())):
-            mesh = MeshPart.meshFromShape(Shape=Part.Compound(faces), LinearDeflection=0.1, AngularDeflection=0.5,
-                                          Relative=False)
+        for i, ((body, rgba), (faces, mirrored)) in enumerate(sorted(self.parts.items())):
+            mesh = Mesh.Mesh()
+            if faces:
+                mesh.addMesh(tessellate(faces))
+            if mirrored:
+                mesh.addMesh(mirror_mesh(tessellate(mirrored)))
             name = f'{body}_{i:02d}.stl'
             mesh.write(os.path.join(OUT, name))
-            manifest.append({'file': name, 'body': body, 'rgba': list(rgba), 'faces': len(faces)})
+            manifest.append({'file': name, 'body': body, 'rgba': list(rgba), 'faces': len(faces) + len(mirrored)})
         json.dump(manifest, open(os.path.join(OUT, 'manifest.json'), 'w'), indent=1)
         print(f'{len(manifest)} meshes to {OUT}')
 
 
+def tessellate(faces):
+    return MeshPart.meshFromShape(Shape=Part.Compound(faces), LinearDeflection=0.1, AngularDeflection=0.5,
+                                  Relative=False)
+
+
+def mirror_mesh(mesh):
+    """`mesh` mirrored in y (the left side from the right one), each triangle's winding reversed so that its normals
+    still point out. Mirroring the faces before meshing them (transformGeometry, or Shape.mirror) is no good: OCC
+    reverses some faces' orientation and not others' (814 of the motor block's 2396), and the meshes of those faced in:
+    the left tyres looked hollow, half of them missing."""
+    pts, tris = mesh.Topology
+    pts = [FreeCAD.Vector(p.x, -p.y, p.z) for p in pts]
+    return Mesh.Mesh([[pts[a], pts[c], pts[b]] for a, b, c in tris])
+
+
 def main():
     w = Writer()
-    mirror = FreeCAD.Matrix()
-    mirror.scale(1, -1, 1)
     robot = FreeCAD.openDocument(ROBOT)
     rcols = colours(ROBOT)
 
@@ -111,7 +129,7 @@ def main():
     for i, f in enumerate(enc.Shape.Faces):
         c = face_colour(rcols.get(enc.Name), i)
         w.add('chassis', f, c)
-        w.add('chassis', f.transformGeometry(mirror), c)
+        w.add('chassis', f, c, mirrored=True)
 
     # the motor block, split into its sub-assembly's parts, both sides
     block = FreeCAD.openDocument(BLOCK)
@@ -127,7 +145,7 @@ def main():
         for i in range(k, k + n):
             c = face_colour(cols, i)
             w.add(body + ('r' if body != 'chassis' else ''), faces[i], c)
-            w.add(body + ('l' if body != 'chassis' else ''), faces[i].transformGeometry(mirror), c)
+            w.add(body + ('l' if body != 'chassis' else ''), faces[i], c, mirrored=True)
         k += n
     w.write()
 
