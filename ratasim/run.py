@@ -232,7 +232,11 @@ class Session:
 
     def run_headless(self):
         wall0, sim0 = time.monotonic(), self.robot.fw.time_ms()
-        rec = Recorder(self, self.args.record) if self.args.record else None
+        if self.args.trace:
+            from .trace import Tracer
+            rec = Tracer(self.robot, self.args.trace)
+        else:
+            rec = Recorder(self, self.args.record) if self.args.record else None
         while not self.quit:
             self.step()
             if rec:
@@ -361,6 +365,7 @@ def make_parser():
     p.add_argument('--follow', action='store_true', help='the viewer camera follows the robot')
     p.add_argument('--record', metavar='MP4', help='headless: record a video (ffmpeg)')
     p.add_argument('--record-speed', type=float, default=2.0, help='video speed while the robot runs (default 2x)')
+    p.add_argument('--trace', metavar='NPZ', help='headless: its joints every 10 ms to this file (ratasim/trace.py)')
     p.add_argument('--save-maze', help='write the maze to this file and go on')
     return p
 

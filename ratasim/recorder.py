@@ -115,12 +115,16 @@ def add_view_args(p):
     p.add_argument('--headless', action='store_true', help='no window (with --record there is none either)')
     p.add_argument('--record', metavar='MP4')
     p.add_argument('--record-speed', type=float, default=1.0, help='the pace of window and video (x real time)')
+    p.add_argument('--trace', metavar='NPZ', help='no window: its joints every 10 ms to this file (ratasim/trace.py)')
 
 
 def make_view(robot, a, title, led=None, clock=None):
     """What shows the run: a video (--record), else MuJoCo's window, else (--headless, or no screen) nothing.
-    clock: a Stopwatch it shows."""
-    if a.record:
+    clock: a Stopwatch it shows. --trace: its run to a file (ratasim/trace.py), no window and no video."""
+    if a.trace:
+        from .trace import Tracer
+        view = Tracer(robot, a.trace)
+    elif a.record:
         view = Recorder(robot, a.record, title, speed=a.record_speed, led=led)
     elif a.headless:
         return None

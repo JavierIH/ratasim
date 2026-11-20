@@ -10,7 +10,8 @@
     ratasim fujin [options]         Fujin in a maze
     ratasim futura [options]        Futura in a maze
     ratasim ukmarsbot [options]     UKMARSBOT in a maze
-    ratasim crash|loop|drag-race OUT.mp4 [options]   scenes with both robots (videos)
+    ratasim maze-race|drag-race OUT.mp4 [--robots a,b,c]   scenes with any robots (videos)
+    ratasim crash|loop OUT.mp4 [options]   scenes with Ratatron and ZoroBot3 (videos)
     ratasim portraits [DIR]         a square picture of each robot
     ratasim help                    this
 """
@@ -37,6 +38,7 @@ COMMANDS = {
     'crash': 'ratasim.scenes.crash',
     'loop': 'ratasim.scenes.loop',
     'drag-race': 'ratasim.scenes.drag_race',
+    'maze-race': 'ratasim.scenes.maze_race',
     'portraits': 'ratasim.scenes.portraits',
 }
 

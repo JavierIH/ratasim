@@ -259,27 +259,40 @@ ratasim/ukmarsbot/  UKMARSBOT: its model from its KiCad boards and Gerbers (cad.
 ratasim/opencm3/    the part of libopencm3 the simulated chips of ZoroBot3 and NezumiBot share
 ratasim/start.py    starting a robot as its makers do (its config's sequence), with the hand of hand.py
 ratasim/stopwatch.py the runs' times, from the start cell to the goal (every robot)
-ratasim/scenes/     several robots: drag race, crash, loop, pictures
+ratasim/scenes/     several robots: drag race, a race in the maze, crash, loop, pictures
+ratasim/trace.py    a run traced (--trace) for the race in the maze
 ratasim/mazes/      competition mazes (micromouseonline text format)
 external/           the robots' repositories (submodules)
 tests/robots.py    every robot in the maze, checked by what it prints (the CI: one job per robot)
 docs/               robots.md (each robot, its authors), simulator.md (Ratatron in detail)
 ```
 
-## Off the maze
+## Scenes
 
-Scenes with several robots, no firmware: each robot follows its own speed profile (Ratatron's race preset,
-ZoroBot3's `SPEED_HAKI`) and keeps its lane.
+Several robots at once, picked by their commands' names (`--robots fujin,zorobot,ukmarsbot`, or `all`).
+
+The race in the maze puts the robots' own runs together: each robot runs alone with its firmware, started as its
+makers start it (as `tests/robots.py` does), its run traced (`--trace`, cached in `build/scenes/traces`); then the
+runs are replayed in one maze, each from the moment it leaves the start cell, the robots going through each other
+(they never met). The stopwatch's times to the goal, a camera on the leader, each robot's trail.
+
+The other scenes have no firmware: each robot follows the speed profile its firmware gives its straights
+(Ratatron's race preset, ZoroBot3's `SPEED_HAKI`, Fujin's "super" forward with its fan, UKMARSBOT's fast run,
+Bulebule's speed limit at its force, Futura's, Perenquén's, Gamusino's; NezumiBot's 40 % PWM) and keeps its lane;
+Ratatron's and ZoroBot3's motor models, the others a speed servo as quick as Ratatron's.
 
 ```sh
-ratasim drag-race race.mp4          # 3 m: start lights, lanes, a checkered finish
-ratasim crash crash.mp4 --ramp      # head-on on the maze's longest straight, over a ramp
-ratasim loop loop.mp4               # a loop-the-loop beside the maze
+ratasim maze-race maze-race.mp4     # Ratatron, ZoroBot3, Bulebule, Fujin, UKMARSBOT: their searches, x4
+ratasim drag-race race.mp4          # 3 m, all nine: start lights, lanes, a checkered finish
+ratasim drag-race race.mp4 --robots fujin,zorobot
+ratasim crash crash.mp4 --ramp      # Ratatron and ZoroBot3 head-on on the maze's longest straight, over a ramp
+ratasim loop loop.mp4               # Ratatron and ZoroBot3 through a loop-the-loop beside the maze
 ratasim portraits                   # the pictures above
 ```
 
-| ![Drag race](docs/images/drag-race.jpg) | ![Head-on on a ramp](docs/images/crash-ramp.jpg) | ![Loop-the-loop](docs/images/loop.jpg) |
-|:-:|:-:|:-:|
+| ![A race in the maze](docs/images/maze-race.jpg) | ![Drag race](docs/images/drag-race.jpg) |
+|:-:|:-:|
+| ![Head-on on a ramp](docs/images/crash-ramp.jpg) | ![Loop-the-loop](docs/images/loop.jpg) |
 
 ## Credits and licences
 
