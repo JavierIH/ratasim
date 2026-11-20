@@ -1,5 +1,6 @@
-"""What the scenes share: one MuJoCo scene with Ratatron (unprefixed) and ZoroBot3 (prefixed z_), their drives without
-firmware (each robot's own speed profile and motor model), and an mp4 writer."""
+"""What the scenes share: one MuJoCo scene with Ratatron (unprefixed) and ZoroBot3 (prefixed z_), the other robots
+added by name (ROBOTS: each its prefix), their drives without firmware (each robot's own speed profile and motor
+model), and an mp4 writer."""
 import math
 import os
 import re
@@ -13,18 +14,60 @@ from PIL import ImageFont   # noqa: E402
 from .. import config as C, model as RM   # noqa: E402
 from ..robot import TAU_S   # noqa: E402
 from ..zorobot import config as Z, model as ZM   # noqa: E402
-from ..gamusino import model as GM   # noqa: E402
-from ..bulebule import model as BM   # noqa: E402
-from ..nezumibot import model as NM   # noqa: E402
-from ..perenquen import model as PM   # noqa: E402
-from ..fujin import model as FM   # noqa: E402
-from ..futura import model as UM   # noqa: E402
-from ..ukmarsbot import model as KM   # noqa: E402
+from ..gamusino import config as GC, model as GM   # noqa: E402
+from ..bulebule import config as BC, model as BM   # noqa: E402
+from ..nezumibot import config as NC, model as NM   # noqa: E402
+from ..perenquen import config as PC, model as PM   # noqa: E402
+from ..fujin import config as FC, model as FM   # noqa: E402
+from ..futura import config as UC, model as UM   # noqa: E402
+from ..ukmarsbot import config as KC, model as KM   # noqa: E402
 
 MM = 0.001
 RAT_V, RAT_A = 0.9, 2.0                 # Ratatron's race preset: FAST_FULL_SPEED, RACE_ACCEL_MM_S2
 HAKI = dict(v=6.5, a_hard=30.0, v_hard=4.5, a_soft=25.0, fan=0.90)   # ZoroBot3's SPEED_HAKI (2S fan 90 %)
 FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans{}.ttf'
+
+# Every robot by its name (its command's): its prefix in the scene, scene_xml's flag that adds it (Ratatron and
+# ZoroBot3 are always there), its name on screen, its colour there, its wheels' radius (m) and its mass (kg).
+ROBOTS = {
+    'ratatron': dict(prefix='', flag=None, name='Ratatron', colour=(255, 215, 60), r=C.TIRE_RADIUS_MM * MM, mass=None),
+    'zorobot': dict(prefix='z_', flag=None, name='ZoroBot3', colour=(200, 140, 255), r=Z.TIRE_CAD_RADIUS_MM * MM,
+                    mass=Z.MASS_KG),
+    'gamusino': dict(prefix='g_', flag='gamusino', name='Gamusino', colour=(255, 140, 40), r=GC.WHEEL_RADIUS_M,
+                     mass=GC.MASS_KG),
+    'bulebule': dict(prefix='b_', flag='bulebule', name='Bulebule', colour=(255, 80, 80), r=BC.WHEEL_RADIUS * MM,
+                     mass=BC.MASS_KG),
+    'nezumibot': dict(prefix='n_', flag='nezumibot', name='NezumiBot', colour=(90, 220, 230),
+                      r=NC.WHEEL_RADIUS_MM * MM, mass=NC.MASS_KG),
+    'perenquen': dict(prefix='p_', flag='perenquen', name='Perenquén', colour=(120, 230, 110),
+                      r=PC.WHEEL_RADIUS_MM * MM, mass=PC.MASS_KG),
+    'fujin': dict(prefix='f_', flag='fujin', name='Fujin', colour=(90, 160, 255), r=FC.TIRE_CAD_RADIUS_MM * MM,
+                  mass=FC.MASS_KG),
+    'futura': dict(prefix='u_', flag='futura', name='Futura', colour=(255, 120, 200), r=UC.WHEEL_RADIUS_MM * MM,
+                   mass=UC.MASS_KG),
+    'ukmarsbot': dict(prefix='k_', flag='ukmarsbot', name='UKMARSBOT', colour=(235, 235, 235),
+                      r=KC.AXLE_Z * MM, mass=KC.MASS_KG),
+}
+
+
+def robot_names(text):
+    """'a,b,c' (or 'all') as a list of ROBOTS' names; a ValueError naming the ones there are."""
+    names = list(ROBOTS) if text.strip() == 'all' else [n.strip().lower() for n in text.split(',') if n.strip()]
+    bad = [n for n in names if n not in ROBOTS]
+    if bad or not names:
+        raise ValueError(f'no robot {", ".join(bad) or "given"}: the robots are {", ".join(ROBOTS)} (or all)')
+    return list(dict.fromkeys(names))
+
+
+def scene_of(maze, names, **kw):
+    """scene_xml() with the robots of names added (Ratatron and ZoroBot3 are in it anyway: park() the others)."""
+    return scene_xml(maze, **{ROBOTS[n]['flag']: True for n in names if ROBOTS[n]['flag']}, **kw)
+
+
+def park(m, d, names):
+    """Ratatron and ZoroBot3 out of the way (5 m off) when they are not in names."""
+    for i, n in enumerate(n for n in ('ratatron', 'zorobot') if n not in names):
+        Bot(m, d, ROBOTS[n]['prefix']).place(-5.0 - i, -5.0, 0.0)
 
 
 def scene_xml(maze, with_maze=True, rat_mass=0.200, hull_solref=None, gamusino=False, bulebule=False, nezumibot=False,
@@ -141,15 +184,17 @@ class Bot:
 
 
 class RatatronDrive:
-    """Ratatron's motor model (robot.py): torque b * (w_target - w), b from the joint damping."""
+    """Ratatron's motor model (robot.py): torque b * (w_target - w), b from the joint damping. Another robot's (radius
+    r m, mass kg): the same speed servo, as quick (WheelServo)."""
 
-    def __init__(self, bot):
+    def __init__(self, bot, r=None, mass=None, tau=TAU_S):
         m, self.bot = bot.m, bot
-        self.r = C.TIRE_RADIUS_MM * MM
+        self.r = r or C.TIRE_RADIUS_MM * MM
+        mass = mass or C.MASS_KG
         self.b = {}
         for s in 'lr':
             jw = m.body_inertia[m.body(f'{bot.p}wheel_{s}').id][0] + m.dof_armature[bot.dof[s]]
-            self.b[s] = (0.5 * C.MASS_KG * self.r ** 2 + jw) / TAU_S
+            self.b[s] = (0.5 * mass * self.r ** 2 + jw) / tau
         self.engage(True)
 
     def engage(self, on):
@@ -162,6 +207,11 @@ class RatatronDrive:
     def drive(self, v_l, v_r):
         for s, v in (('l', v_l), ('r', v_r)):
             self.bot.d.ctrl[self.bot.act[s]] = self.b[s] * v / self.r
+
+
+def WheelServo(bot, name):
+    """A drive for the robot of ROBOTS' name: a speed servo at its wheels' radius and its mass."""
+    return RatatronDrive(bot, ROBOTS[name]['r'], ROBOTS[name]['mass'])
 
 
 class ZoroDrive:

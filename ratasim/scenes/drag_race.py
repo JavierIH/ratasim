@@ -1,12 +1,17 @@
 """Drag race: the robots on a straight strip, one lane each, from the start lights to a checkered finish (no
-firmware: each robot's own speed profile, lane keeping). A video: the lights in real time, the fastest robot's run
-in slow motion (x4), the rest in real time; a finish camera inset and the times.
+firmware: each robot's own speed profile from its firmware, lane keeping). A video: the lights in real time, the
+fastest robot's run in slow motion (x4), the rest in real time; a finish camera inset and the times.
 
-    ratasim drag-race out.mp4 [--length 3]
+    ratasim drag-race out.mp4 [--robots all] [--length 3]       # --robots ratatron,zorobot,fujin: any, by name
     ratasim drag-race --still out.png       # the robots at the start line
+
+Their profiles (ROBOTS): Ratatron's race preset, ZoroBot3's SPEED_HAKI (and its fan), Fujin's "super" forward
+(movement_params.cpp, its fan on), UKMARSBOT's FAST_RUN_SPEED_MAX and FAST_RUN_ACCELERATION (ORION), Bulebule's
+LINEAR_SPEED_LIMIT at 2 F / MOUSE_MASS (its runner's 0.25 N), Futura's 2 m/s at 6 m/s^2, Perenquen's traj_speed
+1000 at its ACC_DIST, Gamusino's 1.6 m/s at 3 m/s^2, NezumiBot's 40 % PWM (velBase: no profile, its motors' step).
+Their motors: Ratatron's and ZoroBot3's models, the others a speed servo as quick as Ratatron's (WheelServo).
 """
 import argparse
-import math
 import os
 
 import mujoco
@@ -20,10 +25,27 @@ from . import common as K
 
 LANE_W = 0.22
 RUNOFF = 1.4
-ROBOTS = {      # prefix, speed profile, front from the axle (m), brake (m/s^2), label colour
-    'ratatron': dict(prefix='', profile=K.ratatron_race, front=0.045, brake=2.0, name='Ratatron', colour=(255, 215, 60)),
-    'zorobot': dict(prefix='z_', profile=K.haki, front=0.0512, brake=30.0, name='ZoroBot3', colour=(200, 140, 255)),
+
+
+def ramp(v, a):
+    """From rest at t = 0: a (m/s^2) up to v (m/s)."""
+    return lambda t: min(a * t, v) if t > 0 else 0.0
+
+
+NEZUMI_V = 0.40 * K.NC.BATTERY_V / K.NC.MOTOR_KE / K.NC.GEAR * K.NC.WHEEL_RADIUS_MM * K.MM     # 0.54 m/s free
+ROBOTS = {      # speed profile, brake after the line (m/s^2), fan (N down, or ZoroBot3's duty)
+    'ratatron': dict(profile=K.ratatron_race, brake=2.0),
+    'zorobot': dict(profile=K.haki, brake=30.0, fan=K.HAKI['fan']),
+    'gamusino': dict(profile=ramp(1.6, 3.0), brake=3.0),
+    'bulebule': dict(profile=ramp(2.0, 2 * 0.25 / 0.11), brake=2 * 0.25 / 0.11),
+    'nezumibot': dict(profile=ramp(NEZUMI_V, 10.0), brake=5.0),
+    'perenquen': dict(profile=ramp(1.96, 5.9), brake=5.9),
+    'fujin': dict(profile=ramp(6.5, 35.0), brake=35.0, fan=K.FC.FAN_DOWNFORCE_N),
+    'futura': dict(profile=ramp(2.0, 6.0), brake=6.0),
+    'ukmarsbot': dict(profile=ramp(2.5, 3.0), brake=3.0),
 }
+for _k, _spec in ROBOTS.items():
+    _spec.update(name=K.ROBOTS[_k]['name'], colour=K.ROBOTS[_k]['colour'], prefix=K.ROBOTS[_k]['prefix'])
 TEX = os.path.join(paths.SIM_BUILD, 'scenes')
 
 
@@ -100,7 +122,8 @@ def scenery(lanes, length):
     box((0.0, 0, 0.0003), (0.012, half_w, 0.0001), white)
     box((length + 0.025, 0, 0.0003), (0.025, half_w, 0.0002), material='chk_line')
     for k, y in lanes.items():
-        tex_quad(f'lane_{k}', f'lane_{k}.png', 0.16, 0.04, 'xy', (-0.30, y, 0.0003), '0 0 90')
+        dw = min(0.16, 0.85 * LANE_W)
+        tex_quad(f'lane_{k}', f'lane_{k}.png', dw, dw / 4, 'xy', (-0.30, y, 0.0003), '0 0 90')
     for mk in (1, 2):
         tex_quad(f'mark{mk}', f'mark_{mk}.png', 0.06, 0.06, 'xy', (mk, -half_w - 0.06, 0.0003), '0 0 90')
     for name, x in (('salida', -0.02), ('meta', length + 0.025)):      # one post on the far side, a cantilever
@@ -126,16 +149,33 @@ def scenery(lanes, length):
     return ''.join(assets), ''.join(world), lights
 
 
+def nose(bot):
+    """How far its front is ahead of its body's origin (m), facing +x: the farthest of its geoms' boxes."""
+    m, d = bot.m, bot.d
+    bot.place(0.0, 0.0, 0.0)
+    mujoco.mj_kinematics(m, d)
+    x0, far = float(d.xpos[bot.body][0]), -1.0
+    corners = np.array([[i, j, k] for i in (-1, 1) for j in (-1, 1) for k in (-1, 1)], float)
+    for g in range(m.ngeom):
+        if m.body_rootid[m.geom_bodyid[g]] != bot.body or m.geom_type[g] == mujoco.mjtGeom.mjGEOM_PLANE:
+            continue
+        c, h = m.geom_aabb[g][:3], m.geom_aabb[g][3:]
+        pts = d.geom_xpos[g] + (c + corners * h) @ d.geom_xmat[g].reshape(3, 3).T
+        far = max(far, float(pts[:, 0].max()))
+    return far - x0
+
+
 class Racer(K.Bot):
     def __init__(self, m, d, key, y):
         spec = ROBOTS[key]
         super().__init__(m, d, spec['prefix'])
         self.key, self.spec, self.y = key, spec, y
         self.finish_t = self.finish_v = None
-        self.place(-spec['front'] - 0.004, y, 0.0)
+        self.nose = nose(self)
+        self.place(-self.nose - 0.004, y, 0.0)
 
     def front(self):
-        return float(self.pos()[0]) + self.spec['front']
+        return float(self.pos()[0]) + self.nose
 
     def v_ref(self, t):
         if self.finish_t is not None:
@@ -143,18 +183,18 @@ class Racer(K.Bot):
         return self.spec['profile'](t)
 
 
-def build(length):
-    keys = list(ROBOTS)
+def build(length, keys):
     lanes = {k: (i - (len(keys) - 1) / 2) * LANE_W for i, k in enumerate(keys)}
     textures(keys)
     assets, world, lights = scenery(lanes, length)
-    xml = K.scene_xml(Maze.load(maze_path('oshwdem2026')), with_maze=False)
+    xml = K.scene_of(Maze.load(maze_path('oshwdem2026')), keys, with_maze=False)
     xml = xml.replace('</asset>', assets + '</asset>', 1).replace('</worldbody>', world + '</worldbody>', 1)
     m, d = K.compile(xml)
     racers = [Racer(m, d, k, lanes[k]) for k in keys]
-    drives = {'ratatron': K.RatatronDrive, 'zorobot': K.ZoroDrive}
+    K.park(m, d, keys)
     for r in racers:
-        r.drive = drives[r.key](r)
+        r.drive = (K.RatatronDrive(r) if r.key == 'ratatron' else K.ZoroDrive(r) if r.key == 'zorobot'
+                   else K.WheelServo(r, r.key))
     return m, d, racers, lights
 
 
@@ -165,7 +205,9 @@ def control(m, d, racers, lights, t, length):
             print(f'{r.spec["name"]:9s} {t:.3f} s, {r.speed():.2f} m/s at the line')
         r.drive.drive(*K.lane_keep(r, r.v_ref(t), 0.0, float(r.pos()[1]) - r.y))
         if r.key == 'zorobot':
-            r.drive.fan(K.HAKI['fan'], down=(0, 0, -1))
+            r.drive.fan(r.spec['fan'], down=(0, 0, -1))
+        elif r.spec.get('fan'):
+            d.xfrc_applied[r.body, :3] = (0, 0, -r.spec['fan'])
     for i, name in enumerate(lights):           # three reds come on, then out and green
         mid = m.material(name).id
         on = (-1.2 + 0.4 * i <= t < 0) if i < 3 else t >= 0
@@ -173,10 +215,14 @@ def control(m, d, racers, lights, t, length):
         m.mat_emission[mid] = 0.9 if on else 0.0
 
 
-def still(path):
+def lane_width(keys):
+    return 0.22 if len(keys) <= 3 else 0.17
+
+
+def still(path, keys):
     global LANE_W
-    LANE_W = 0.13
-    m, d, racers, lights = build(3.0)
+    LANE_W = 0.13 if len(keys) <= 3 else 0.15
+    m, d, racers, lights = build(3.0, keys)
     t = -2.0
     while t < -1.6:
         control(m, d, racers, lights, t, 3.0)
@@ -184,13 +230,16 @@ def still(path):
         t += m.opt.timestep
     ren, cam = mujoco.Renderer(m, 1080, 1920), mujoco.MjvCamera()
     cam.lookat[:] = (-0.05, 0.0, 0.015)
-    cam.distance, cam.elevation, cam.azimuth = 0.36, -26, 215
+    cam.distance, cam.elevation, cam.azimuth = (0.36, -26, 215) if len(keys) <= 3 else (0.75 * len(keys) * LANE_W, -42, 205)
     ren.update_scene(d, cam)
     Image.fromarray(ren.render()).save(path)
 
 
-def race(out, length):
-    m, d, racers, lights = build(length)
+def race(out, length, keys):
+    global LANE_W
+    LANE_W = lane_width(keys)
+    width = max(1.0, 0.6 * len(keys) * LANE_W / 0.44)     # the cameras farther for a wider strip (two lanes: 1)
+    m, d, racers, lights = build(length, keys)
     dt, t = m.opt.timestep, -1.9
     while t < -1.6:
         control(m, d, racers, lights, t, length)
@@ -201,7 +250,7 @@ def race(out, length):
     ren, pip = mujoco.Renderer(m, h, w), mujoco.Renderer(m, ph, pw)
     cam, fcam = mujoco.MjvCamera(), mujoco.MjvCamera()
     fcam.lookat[:] = (length + 0.02, 0.0, 0.10)
-    fcam.distance, fcam.elevation, fcam.azimuth = 1.05, -14, 75
+    fcam.distance, fcam.elevation, fcam.azimuth = 1.05 * width, -14, 75
     big, mid_f, small = K.font(30), K.font(22), K.font(20, bold=False)
     fastest = max(racers, key=lambda r: r.v_ref(10.0))
     slow_until = 0.75 * length / 3.0
@@ -218,7 +267,7 @@ def race(out, length):
         speed = 4.0 if 0 <= t < slow_until else 1.0         # video seconds per simulated second
         next_frame += 1.0 / 30 / speed
         if t < 0:
-            new, target, dd, el, az = 'start', np.array([0.0, 0.0, 0.04]), 0.95, -20, 125
+            new, target, dd, el, az = 'start', np.array([0.0, 0.0, 0.04]), 0.95 * width, -20, 125
         elif fastest.finish_t is None or t < fastest.finish_t + 0.2:
             new, target, dd, el, az = 'fastest', np.array([max(0.15, float(fastest.pos()[0])), fastest.y - 0.05, 0.03]), 0.62, -16, 108
         else:
@@ -227,7 +276,7 @@ def race(out, length):
             ys = [r.y for r in (pending or racers)]
             new = 'pack'
             target = np.array([(min(xs) + max(xs)) / 2, float(np.mean(ys)) - 0.05, 0.03])
-            dd, el, az = max(0.8, 0.8 * (max(xs) - min(xs)) + 0.55), -22, 105
+            dd, el, az = max(0.8, 0.8 * (max(xs) - min(xs)) + 0.55, 1.3 * (max(ys) - min(ys)) + 0.5), -22, 105
         if new != shot:
             look = dist = None                               # a cut
             shot = new
@@ -248,11 +297,11 @@ def race(out, length):
         g.text((w // 2 - 60, 12), 'preparados...' if t < 0 else f'{t:5.2f} s', font=mid_f, fill=(255, 220, 60))
         g.text((w - 230, 14), '' if t < 0 else ('cámara lenta x4' if speed > 1 else 'tiempo real'), font=small, fill=(255, 220, 60))
         order = sorted(racers, key=lambda r: (r.finish_t is None, r.finish_t or 0, -r.front()))
-        g.rectangle((10, 60, 330, 70 + 36 * len(racers)), fill=(0, 0, 0))
+        g.rectangle((10, 60, 350, 70 + 36 * len(racers)), fill=(0, 0, 0))
         for i, r in enumerate(order):
             res = f'{r.finish_t:.2f} s' if r.finish_t is not None else f'{max(0.0, r.speed()):.1f} m/s'
             g.text((20, 68 + 36 * i), f'{i + 1}. {r.spec["name"]}', font=mid_f, fill=r.spec['colour'])
-            g.text((230, 68 + 36 * i), res, font=mid_f, fill=(255, 255, 255) if r.finish_t else (180, 180, 180))
+            g.text((250, 68 + 36 * i), res, font=mid_f, fill=(255, 255, 255) if r.finish_t else (180, 180, 180))
         video.write(img)
     video.close()
 
@@ -261,13 +310,19 @@ def main(argv=None):
     p = argparse.ArgumentParser(prog='ratasim drag-race', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('out', nargs='?', help='the mp4')
     p.add_argument('--length', type=float, default=3.0, help='start to finish, m')
+    p.add_argument('--robots', default='all', help=f'which, by name, in their lanes\' order: {",".join(ROBOTS)} '
+                   '(default all)')
     p.add_argument('--still', metavar='PNG', help='only a picture of the robots at the start line')
     a = p.parse_args(argv)
+    try:
+        keys = K.robot_names(a.robots)
+    except ValueError as e:
+        p.error(str(e))
     if a.still:
-        still(a.still)
+        still(a.still, keys)
         print('->', a.still)
     elif a.out:
-        race(a.out, a.length)
+        race(a.out, a.length, keys)
         print('->', a.out)
     else:
         p.error('give the mp4, or --still PNG')
