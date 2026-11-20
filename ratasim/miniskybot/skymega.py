@@ -21,7 +21,6 @@ import numpy as np
 
 from . import config as S
 
-COMMIT = 'master'
 URL = 'https://raw.githubusercontent.com/Obijuan/obijuan-designs/master/Skymega-board/'
 FILES = {       # name: its SHA-256
     'skymega-1.0-kicad-src.zip': 'da69f3d44c50454bd22d155def2a45ca5ae133fd4d0a0c7f61b22d03d9e1bf83',
@@ -368,7 +367,7 @@ def parts():
     return {k: np.concatenate(v) for k, v in groups.items()}
 
 
-def board_meshes(out, origin, flat=False):
+def board_meshes(out, origin):
     """skymega_top.obj and skymega_bottom.obj (UVs on the textures) and skymega_side.obj, in the robot's frame (the
     board's, its middle at origin = (x, y, z of its top face))."""
     poly = outline()
