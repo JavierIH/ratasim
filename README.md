@@ -75,8 +75,7 @@ cells of 180 mm).
 
 Each robot's firmware comes from its own repository, a submodule of `external/` pinned to a commit (Futura's, which
 has none, from its page at build time, pinned by its hash); its authors are credited in [robots.md](docs/robots.md),
-with what was taken from where. The exception is Miniskybot, a teaching robot whose authors publish no program for
-a maze: it runs one of ratasim's, written for it ([robots.md](docs/robots.md#miniskybot)).
+with what was taken from where.
 
 ## Getting started
 
@@ -253,8 +252,7 @@ ratasim miniskybot --maze oshwdem2026 --echo --record miniskybot.mp4
 ```
 
 Obijuan's printable robot, two hacked servos and an ultrasonic ranger on an Arduino (its Skymega's ATmega328,
-simulated), with **a program of ratasim's, not its authors'** (they publish none for a maze;
-[robots.md](docs/robots.md#miniskybot)): it goes straight on until its ranger sees a wall near ahead, squares up to
+simulated): it goes straight on until its ranger sees a wall near ahead, squares up to
 it with the ranger's echo, stops in the middle of the cell and turns, by time (it has no encoders), to a way that
 is open, trying first one side and then the other. It searches nothing: in the OSHWDEM 2026 maze it wanders the
 west column and the north-west of the maze. Switched on in the start cell, its button pressed; `--echo` prints what
@@ -374,5 +372,4 @@ controller sample, its board's Gerber files and its printed parts are downloaded
 SHA-256, and stay out of git; ST's library is not used
 (`ratasim/futura/fw` simulates the part of its API the template calls). Fujin's team's photos of its board
 (raiju.team), its art's only source, are downloaded at build time, pinned by their SHA-256, and stay out of git.
-Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES); the program it runs here is
-ratasim's. The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's and Miniskybot's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
+Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES). The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's and Miniskybot's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
