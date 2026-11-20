@@ -84,12 +84,17 @@ Linux (the firmware runs in a `ucontext` coroutine; on Windows, WSL2), Python 3.
 
 ```sh
 sudo apt install git python3-venv build-essential ffmpeg
-git clone --recurse-submodules https://github.com/JavierIH/ratasim
+git clone https://github.com/JavierIH/ratasim
 cd ratasim
+git submodule update --init
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e .
 ```
+
+Not `--recursive` (nor `git clone --recurse-submodules`): Perenquén's repository has a submodule with no URL, on which
+the recursion fails. If a submodule is missing when a robot needs it, `ratasim` asks whether to download it (only that
+one) and otherwise prints the command.
 
 ### Ratatron in a maze
 

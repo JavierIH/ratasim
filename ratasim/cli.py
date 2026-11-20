@@ -20,6 +20,8 @@
 import runpy
 import sys
 
+from ratasim import paths
+
 COMMANDS = {
     'batch': 'ratasim.batch',
     'curves': 'ratasim.curves',
@@ -53,9 +55,15 @@ def main(argv=None):
         print(__doc__)
         return 0
     if args and args[0] in COMMANDS:
+        args_command = args[0]
         module, name, args = COMMANDS[args[0]], 'ratasim ' + args[0], args[1:]
     else:
+        args_command = 'ratatron'
         module, name = 'ratasim.run', 'ratasim'
+    message = paths.require(args_command)
+    if message:
+        print('ratasim: ' + message, file=sys.stderr)
+        return 1
     sys.argv = [name] + args
     runpy.run_module(module, run_name='__main__')     # sys.argv[0] stays the command's name (argparse prog)
     return 0
