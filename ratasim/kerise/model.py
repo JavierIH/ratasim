@@ -67,6 +67,30 @@ def _box(pos, half, rgba):
     return f'<geom class="evisual" type="box" pos="{_f(*(v * MM for v in pos))}" size="{_f(*(v * MM for v in half))}" rgba="{rgba}"/>'
 
 
+def _rounded_box(pos, half, r, rgba):
+    """A box with its edges rounded (radius r): three slabs, twelve edge cylinders, eight corner spheres."""
+    (x, y, z), (a, b, c) = pos, half
+    g = _box(pos, (a, b - r, c - r), rgba) + _box(pos, (a - r, b, c - r), rgba) + _box(pos, (a - r, b - r, c), rgba)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            for sz in (-1, 1):
+                at = (x + sx * (a - r), y + sy * (b - r), z + sz * (c - r))
+                g += f'<geom class="evisual" type="sphere" pos="{_f(*(v * MM for v in at))}" size="{r * MM:.5f}" rgba="{rgba}"/>'
+    for sy in (-1, 1):
+        for sz in (-1, 1):                                                       # along x
+            g += (f'<geom class="evisual" type="cylinder" pos="{_f(x * MM, (y + sy * (b - r)) * MM, (z + sz * (c - r)) * MM)}" '
+                  f'size="{_f(r * MM, (a - r) * MM)}" euler="0 90 0" rgba="{rgba}"/>')
+    for sx in (-1, 1):
+        for sz in (-1, 1):                                                       # along y
+            g += (f'<geom class="evisual" type="cylinder" pos="{_f((x + sx * (a - r)) * MM, y * MM, (z + sz * (c - r)) * MM)}" '
+                  f'size="{_f(r * MM, (b - r) * MM)}" euler="90 0 0" rgba="{rgba}"/>')
+    for sx in (-1, 1):
+        for sy in (-1, 1):                                                       # along z
+            g += (f'<geom class="evisual" type="cylinder" pos="{_f((x + sx * (a - r)) * MM, (y + sy * (b - r)) * MM, z * MM)}" '
+                  f'size="{_f(r * MM, (c - r) * MM)}" rgba="{rgba}"/>')
+    return g
+
+
 def _cyl_x(pos, r, half_len, rgba):
     return (f'<geom class="evisual" type="cylinder" pos="{_f(*(v * MM for v in pos))}" size="{_f(r * MM, half_len * MM)}" '
             f'euler="0 90 0" rgba="{rgba}"/>')
@@ -85,7 +109,7 @@ def robot_xml(start_xy=(0.5, 0.5), prefix='', cell_mm=K.CELL_MM):
         body += _cyl_x((x0 - s * 20.0, y, zm), 8.0, 3.0, BLACK)
         body += _cyl_x((s * 13.5, y, zm), 1.6, 1.0, '0.75 0.72 0.6 1')          # its pinion, by the gear
     # its battery: two cells (LG325-0120) on its motors
-    body += _box((0, 0, zm + 8.5 + 3.4), (12.5, 17.0, 3.4), BATTERY)
+    body += _rounded_box((0, 0, zm + 8.5 + 3.4), (12.5, 17.0, 3.4), 1.5, BATTERY)
     sites = ''.join(f'<site name="ir_{n}" pos="{_f(x * MM, y * MM, K.IR_Z_MM * MM)}" size="0.0012" group="4" '
                     f'rgba="1 0 0 0.6"/>' for n, ((x, y), _d) in K.IR_SENSORS.items())
     wheels = ''
