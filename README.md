@@ -368,6 +368,9 @@ ratasim portraits                   # the pictures above
 
 ## Credits and licences
 
+ratasim is free software under the GNU General Public License v3 or later (`LICENSE`, Copyright (C) 2026 JavierIH); each
+robot keeps its authors' licence, as below, and what is a submodule or is downloaded at build time is not relicensed.
+
 Every robot belongs to its authors (above); their repositories are submodules and nothing of them is copied here.
 ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's and Fujin's repositories carry no licence; Perenquén's design is CC BY-SA
 4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,

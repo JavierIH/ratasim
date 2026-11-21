@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,6 +7,8 @@ name = "ratasim"
 version = "0.1.0"
 description = "Micromouse robots in MuJoCo, each driven by its own firmware"
 requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 dependencies = ["mujoco>=3.2", "numpy", "pillow"]
 
 [project.optional-dependencies]
