@@ -283,13 +283,7 @@ schematics and layouts are published, no firmware: Futura is the one with code.
   drivers, the tantalum capacitors, a resistor or capacitor on every pair of 0603 and 0805 pads, the HCMS-2903
   display, the buzzer, the three buttons, the header, the power switch and the battery's two sockets. Its IR
   emitters and phototransistors lie on the board along the axes their holes give (square to the line of their two
-  leads, as their silkscreen outlines draw them). Its two motors, end to end over the H-bridges, sit in its white printed
-  mount (`Futura enhanced spacer.stl`, in the same zip: 9 mm tall blocks at the wheels joined by two bridges, the
-  holes 31 mm apart along the axle, squeezed to the board's 29.7) screwed through its four 2.3 mm holes; its encoder boards (an AS5304/AS5306 magnetic encoder, its
-  page's `encoder-V1.1.pdf`) stand at the notches' inner edges and its wheels outside them: a 69 mm track. Its
-  printed wheels and skate are its page's STL files (`futura-3D-printing-model.zip`). Assumed, from the photo of its
-  kit: its motors' size and height (12 mm cans just over the mount's blocks), its battery behind the motors, its board 3 mm off the floor,
-  its skate under its nose (no hole marks it). Collisions: its board's outline as a convex hull up to 13 mm over it, its skate, its tyres.
+  leads, as their silkscreen outlines draw them). Its two motors, Pololu 10:1 Micro Metal Gearmotors HP (its guide's parts list, `Guide-for-Mounting-EncoderMotor.pptx`; Pololu's dimension diagram: 10 x 12 mm, a 9 mm gearbox, a 15 mm can, a 3 mm shaft out 8.5 mm), lie end to end on the wheels' axle, their rear caps at the middle, each in a Pololu extended bracket (white plastic; no drawing of it is published) screwed through the board's four 2.3 mm holes to its white printed mount (`Futura enhanced spacer.stl`, in the same zip: 9 mm tall blocks at the wheels joined by two bridges, the holes 31 mm apart along the axle, squeezed to the board's 29.7). Its encoder boards come from their own Gerber files (`encoder_gerber.zip`, `ratasim/futura/pcb.py` reads them as the main board's: a U with a 16 mm slot, 26.2 x 31 mm): each stands over its bracket, the shaft through its slot, its two legs on the main board's header holes (x +-20.38), the AS5304A (SSOP-20) on the wheel's side 1 mm off the AS5000-MR20-44 magnetic ring glued on the wheel's open face, its four 0603/0805 parts on the inner face, and its wheel outside it: a 69 mm track. Its printed wheels and skate are its page's STL files (`futura-3D-printing-model.zip`; the left wheel turned so that both open faces look in, as its guide's photos). Assumed: the brackets' shape and size (from its photos), the encoder boards' 1.6 mm thickness, the ring's diameters (22 x 30 mm, 1.5 mm: from its guide's photos), the IC's height (SSOP-20: 1.75 mm), its battery behind the motors, its board 3 mm off the floor, its skate under its nose (no hole marks it). Collisions: its board's outline as a convex hull up to 13 mm over it, its skate, its tyres.
 - **Sensors:** its schematic's four SFH4545 emitters and TEFT4300 phototransistors, placed by its Gerbers: LF and RF
   at the board's edges looking ahead, 7° out; DL and DR by its middle, 60° out to the sides (`config.py`); each pair
   seen from between its two lenses' tips. Its firmware reads the difference lit minus dark: the light back assumed
@@ -298,8 +292,7 @@ schematics and layouts are published, no firmware: Futura is the one with code.
   battery through its divider (the template's 809/3248).
 - **Physics, assumed:** 85 g, 2S 120 mAh (its kit's batteries); its motors "a 6V faulhaber" (its `pwm.c`): a
   Faulhaber 1717 006 SR, geared 12:40 as its maker's Green Giant; its encoders counted as 512 lines x4 a motor turn
-  (its encoder boards read a magnetic ring by the wheel with an AS5304/AS5306, whose counts a turn depend on a ring
-  its page does not name); its printed 32 mm wheels with a 1 mm tyre.
+  (its encoder boards read a magnetic ring by the wheel with an AS5304/AS5306, whose counts a turn depend on the ring: its AS5000-MR20-44's pole count is not in what its page publishes); its printed 32 mm wheels with a 1 mm tyre.
 - **Run:** `ratasim futura --maze oshwdem2026 [--echo] [--headless] [--record out.mp4] [--max-s 60]`: put down in the
   start cell, facing north, and switched on. A beep, "run " on its display, and a second later it goes: cell after
   cell at 0.5 m/s, kept within 6 mm of the cells' middle; at each wall it stops in the cell's middle (its front

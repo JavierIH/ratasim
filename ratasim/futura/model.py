@@ -2,9 +2,10 @@
 silkscreen and holes), its parts where its pads and holes are (their sizes their packages'): its STM32F405, its
 HCMS-2903 display, its buzzer, its gyro, regulators and H-bridges, its capacitors and resistors (every pair of
 0603 and 0805 pads), its IR emitters and phototransistors lying along the axes their holes give, its buttons, header,
-switch and battery connectors; its two motors end to end in its white printed mount (its "Futura enhanced spacer.stl")
-screwed through its four holes, its encoder boards standing at its wheels' notches, its printed wheels and skate (their own STL files, downloaded at
-build time) and its battery behind the motors, where the photo of its kit shows them. Its frame: origin between the
+switch and battery connectors; its two Pololu micro metal gearmotors end to end in their extended brackets on its white
+printed mount (its "Futura enhanced spacer.stl") screwed through its four holes, its encoder boards (from their own
+Gerber files) straddling the brackets with their ICs facing the magnetic rings on its wheels, its printed wheels and skate
+(their own STL files, downloaded at build time) and its battery behind the motors, where the photo of its kit shows them. Its frame: origin between the
 wheels at the axle's height. Collisions: its board's outline as a convex hull up to 13 mm over it, its skate, its
 tyres.
 """
@@ -59,9 +60,10 @@ def _write_stl(path, tris):
 def meshes():
     """Its meshes in MESHES (made again when pcb.py or config.py is newer): its board's faces and their textures
     (pcb.py), its wheel (centred, its axis x) and its skate (centred, on z = 0)."""
-    path = {k: os.path.join(MESHES, f'{k}.stl') for k in ('wheel', 'skate', 'mount')}
-    path.update({k: os.path.join(MESHES, f'{k}.obj') for k in ('pcb_top', 'pcb_bottom', 'pcb_side')})
-    made = [os.path.join(MESHES, n) for n in ('top.png', 'bottom.png')] + list(path.values())
+    path = {k: os.path.join(MESHES, f'{k}.stl') for k in ('wheel', 'skate', 'mount', 'ring')}
+    path.update({k: os.path.join(MESHES, f'{k}.obj')
+                 for k in ('pcb_top', 'pcb_bottom', 'pcb_side', 'enc_top', 'enc_bottom', 'enc_side')})
+    made = [os.path.join(MESHES, n) for n in ('top.png', 'bottom.png', 'enc_top.png', 'enc_bottom.png')] + list(path.values())
     sources = [pcb.__file__, F.__file__]
     if all(os.path.exists(p) for p in made) and \
             min(map(os.path.getmtime, made)) > max(map(os.path.getmtime, sources)):
@@ -81,7 +83,25 @@ def meshes():
     m[..., 0] *= F.MOTOR_MOUNT_HOLES[-1][0] / F.MOUNT_STL_HOLE_X     # its holes 31 mm apart, to the board's 29.7
     m[..., 2] += F.BOARD_TOP_MM
     _write_stl(path['mount'], m[:, ::-1])               # (the swap of two axes mirrors it: its faces turned back)
+    _write_stl(path['ring'], _annulus(*F.RING_MM))
     return path
+
+
+def _annulus(d_in, d_out, thickness, n=96):
+    """A flat ring (mm), its axis x, centred: outward-facing triangles."""
+    a = np.linspace(0, 2 * np.pi, n + 1)
+    c, s = np.cos(a), np.sin(a)
+    t = thickness / 2
+    tris = []
+    for i in range(n):
+        for r, flip in ((d_out / 2, False), (d_in / 2, True)):               # the two walls
+            p = [(-t, r * c[i], r * s[i]), (-t, r * c[i + 1], r * s[i + 1]), (t, r * c[i + 1], r * s[i + 1]), (t, r * c[i], r * s[i])]
+            tris += [(p[0], p[2], p[1]), (p[0], p[3], p[2])] if flip else [(p[0], p[1], p[2]), (p[0], p[2], p[3])]
+        ri, ro = d_in / 2, d_out / 2
+        for x, up in ((t, True), (-t, False)):                                # the two faces
+            q = [(x, ri * c[i], ri * s[i]), (x, ro * c[i], ro * s[i]), (x, ro * c[i + 1], ro * s[i + 1]), (x, ri * c[i + 1], ri * s[i + 1])]
+            tris += [(q[0], q[1], q[2]), (q[0], q[2], q[3])] if up else [(q[0], q[2], q[1]), (q[0], q[3], q[2])]
+    return np.array(tris)
 
 
 def defaults_xml():
@@ -95,7 +115,7 @@ def defaults_xml():
 def assets_xml():
     path = meshes()
     out = ''.join(f'<texture name="u_{t}" type="2d" file="{MESHES}/{t}.png"/>'
-                  f'<material name="u_{t}" texture="u_{t}" specular="0.3" shininess="0.4"/>' for t in ('top', 'bottom'))
+                  f'<material name="u_{t}" texture="u_{t}" specular="0.3" shininess="0.4"/>' for t in ('top', 'bottom', 'enc_top', 'enc_bottom'))
     out += ''.join(f'<mesh name="u_{k}" file="{p}" scale="{_f(MM, MM, MM)}"{shell}/>'
                    for k, p in path.items() for shell in [' inertia="shell"' if p.endswith('.obj') else ''])
     hull = ' '.join(f'{x * MM:.5f} {y * MM:.5f} {z * MM:.5f}' for x, y in pcb.outline()
@@ -186,19 +206,81 @@ def _ir_pairs():
     return out
 
 
-def _motors():
-    """Its two motors end to end over its H-bridges, their cans (12 mm, its photo) from the middle out into its
-    printed mounts, screwed through the board's four holes; its encoder boards upright at the notches."""
+GOLD = (0.85, 0.7, 0.3, 1)
+STEEL = (0.38, 0.38, 0.41, 1)
+CAN = (0.47, 0.48, 0.51, 1)
+BRACKET = (0.9, 0.9, 0.86, 1)
+ENC_BOTTOM_Z = TOP + F.ENC_RISE_MM              # its encoder boards' bottom edge
+
+
+def _enc_pt(s, lx, ly, lz):
+    """A point on an encoder board (its Gerbers' frame, mm from the middle of its bottom edge: lx along the board,
+    ly up it, lz out of its top face, towards its wheel) in the robot's frame; s = -1 left, 1 right."""
+    return (s * (F.ENC_X_MM + F.ENC_THICKNESS_MM / 2 + lz), s * lx, ENC_BOTTOM_Z + ly)
+
+
+def _enc_part(s, lx, ly, lz0, size, rgba, deg=0.0):
+    """A box on an encoder board: its size (along the board, up it, out of it), its bottom at lz0 out of the middle
+    of its thickness (negative: on the inner face)."""
+    c = _enc_pt(s, lx, ly, lz0 + size[2] / 2)
+    return _box(c, (size[2] / 2, size[0] / 2, size[1] / 2), rgba)
+
+
+def _encoders(s):
+    """Its encoder board on one side: its Gerbers' faces standing at the notch's edge, its AS5304A (SSOP-20) on the
+    wheel's side facing the ring, its four 0603/0805 parts on the inner side, its two right-angle headers on its
+    legs, plunged into the main board's pins, and the magnetic ring on the wheel."""
     out = ''
+    xy = '0 1 0 0 0 1' if s > 0 else '0 -1 0 0 0 1'                  # its x along +-y, its y up, its z out
+    pos = _f(*(v * MM for v in (s * (F.ENC_X_MM + F.ENC_THICKNESS_MM / 2), 0, ENC_BOTTOM_Z)))
+    for k in ('top', 'bottom'):
+        out += f'<geom class="uvisual" type="mesh" mesh="u_enc_{k}" material="u_enc_{k}" pos="{pos}" xyaxes="{xy}"/>'
+    out += f'<geom class="uvisual" type="mesh" mesh="u_enc_side" rgba="{_f(*GREEN)}" pos="{pos}" xyaxes="{xy}"/>'
+    t = F.ENC_THICKNESS_MM / 2
+    iy = (1.081 - F.ENC_ORIGIN_IN[1]) * 25.4                           # its IC's middle (its pads, GTP)
+    out += _enc_part(s, 0.0, iy, t, (7.2, 5.3, F.ENC_IC_HEIGHT_MM), BLACK)                       # AS5304A, SSOP-20
+    out += _enc_part(s, -2.6, iy - 1.8, t + F.ENC_IC_HEIGHT_MM, (0.9, 0.9, 0.04), (0.7, 0.7, 0.72, 1))   # its pin 1's dot
+    for (x0, y0, x1, y1), big in (((0.4392, 1.1131, 0.4392, 1.18), True), ((0.525, 1.18, 0.525, 1.1131), True),
+                                  ((0.296, 1.0869, 0.2448, 1.0869), False), ((0.2448, 1.0101, 0.296, 1.0101), False)):
+        cx = ((x0 + x1) / 2 - F.ENC_ORIGIN_IN[0]) * 25.4
+        cy = ((y0 + y1) / 2 - F.ENC_ORIGIN_IN[1]) * 25.4
+        vertical = abs(x0 - x1) < 1e-6
+        size = (1.0, 2.0, 0.7) if big and vertical else (2.0, 1.0, 0.6) if not vertical else (1.0, 1.6, 0.5)
+        out += _enc_part(s, cx, cy, -t - size[2], size, CERAMIC if big else BLACK)
+    for cx in (-10.54, 10.54):                                           # its two right-angle headers, 2 pins at 2.54 mm
+        h0, h1 = F.ENC_PINS_X_MM - 1.27, F.ENC_X_MM                       # from the pins' x to the board's inner face
+        out += _box((s * (h0 + h1) / 2, s * cx, ENC_BOTTOM_Z + 1.27), ((h1 - h0) / 2, 2.54, 1.27), BLACK)
+        for dx in (-1.27, 1.27):
+            out += _rod((s * F.ENC_PINS_X_MM, s * (cx + dx), ENC_BOTTOM_Z + 1.27), (s * F.ENC_PINS_X_MM, s * (cx + dx), TOP - 1.0), 0.3, GOLD)
+    # the ring: on the wheel's open face
+    rx = s * (F.WHEEL_FACE_MM - F.RING_MM[2] / 2)
+    out += f'<geom class="uvisual" type="mesh" mesh="u_ring" pos="{_f(rx * MM, 0, 0)}" rgba="0.10 0.10 0.11 1"/>'
+    return out
+
+
+def _motors():
+    """Its two Pololu micro metal gearmotors HP (config: dimensions from Pololu's diagram) end to end on the wheels'
+    axle, their rear caps (black, two gold terminals) at the middle, each gearbox's shaft out to its wheel's hub; each in
+    its extended bracket (white plastic) screwed through the board's four holes to its printed mount; its two encoder
+    boards and magnetic rings."""
+    out = ''
+    cw, ch = F.MOTOR_CAN_MM
+    gx = F.MOTOR_GEARBOX_X_MM
+    can0, box0 = gx - F.MOTOR_GEARBOX_LEN_MM - F.MOTOR_CAN_LEN_MM, gx - F.MOTOR_GEARBOX_LEN_MM
     for s in (-1, 1):
-        out += _rod((s * 1.5, 0, MOTOR_Z), (s * 13.0, 0, MOTOR_Z), 6.0, SILVER)
-        out += _rod((s * 0.8, 0, MOTOR_Z), (s * 1.5, 0, MOTOR_Z), 4.0, BLACK)                # its brushes' cap
+        out += _box((s * (can0 + box0) / 2, 0, 0), ((box0 - can0) / 2, cw / 2, ch / 2), CAN)               # its can
+        out += _box((s * (box0 + gx) / 2, 0, 0), ((gx - box0) / 2, cw / 2, ch / 2), STEEL)                  # its gearbox
+        out += _box((s * (can0 - 0.35), 0, 0), (0.35, cw / 2 - 0.4, ch / 2 - 0.4), BLACK)                  # its rear cap
+        for dy in (-2.5, 2.5):
+            out += _box((s * (can0 - 0.9), dy, 1.8), (0.5, 0.5, 1.2), GOLD)                                  # its terminals
+        out += _rod((s * gx, 0, 0), (s * (gx + F.MOTOR_SHAFT_MM[1] + 0.5), 0, 0), F.MOTOR_SHAFT_MM[0] / 2, SILVER)
+        bx0 = gx - F.BRACKET_LEN_MM
+        out += _box((s * (bx0 + gx) / 2, 0, 0), (F.BRACKET_LEN_MM / 2, F.BRACKET_HALF_WIDTH_MM, F.BRACKET_HALF_HEIGHT_MM), BRACKET)
         for hx, hy in F.MOTOR_MOUNT_HOLES:
             if hx * s > 0:
-                out += _rod((hx, hy, MOUNT_TOP), (hx, hy, MOUNT_TOP + 0.8), 1.9, SILVER)      # its screw's head
-        x0 = s * (F.NOTCH_X_MM + 0.8)
-        out += _box((x0, 0, -1.5), (0.8, 10.0, 10.5), GREEN)                                 # its encoder board
-        out += _box((x0 + s * 1.2, 0, 0), (0.4, 2.5, 3.0), BLACK)                            # AS5304, at its ring
+                out += _box((hx, hy * 0.92, MOUNT_TOP + 1.2), (1.8, 1.9, 1.2), BRACKET)                        # its ear
+                out += _rod((hx, hy, MOUNT_TOP + 2.4), (hx, hy, MOUNT_TOP + 3.4), 1.85, SILVER)               # its screw's head
+        out += _encoders(s)
     out += f'<geom class="uvisual" type="mesh" mesh="u_mount" rgba="{_f(*WHITE)}"/>'         # its printed mount
     return out
 
@@ -241,7 +323,7 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
         <joint name="{p}wheel_{side}" type="hinge" axis="-1 0 0" armature="{F.MOTOR_ROTOR_INERTIA * F.GEAR ** 2:.3g}"/>
         <geom name="{p}tire_{side}" class="utire" type="cylinder" size="{_f(r, (F.WHEEL_WIDTH_MM - 1) / 2 * MM)}" euler="0 90 0" mass="0.004"/>
         <geom class="uvisual" type="cylinder" size="{_f(r, (F.WHEEL_WIDTH_MM - 1) / 2 * MM)}" euler="0 90 0" rgba="{_f(*BLACK)}"/>
-        <geom class="uvisual" type="mesh" mesh="u_wheel" rgba="{_f(*GREY)}"/>
+        <geom class="uvisual" type="mesh" mesh="u_wheel" euler="0 0 {0 if sign > 0 else 180}" rgba="{_f(*GREY)}"/>
       </body>'''
     sites = ''.join(f'<site name="{p}ir_{n}" pos="{_f(x * MM, y * MM, F.IR_Z_MM * MM)}" size="0.0015" group="4" rgba="1 0 0 0.6"/>'
                     for n, ((x, y), _) in F.IR_SENSORS.items())

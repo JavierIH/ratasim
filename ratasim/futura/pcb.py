@@ -17,20 +17,30 @@ OX, OY = F.GERBER_ORIGIN_IN[0] * IN, F.GERBER_ORIGIN_IN[1] * IN
 MASK, COPPER, TIN, SILK, HOLE = (14, 92, 38), (28, 118, 48), (205, 205, 200), (236, 236, 228), (20, 20, 20)
 
 
-def _path(layer):
-    return os.path.join(F.GERBERS, f'V1.1.{layer}')
+class Board:
+    """A set of Gerber files: where its layers are (a layer's extension to its path) and the point (mm, in the
+    Gerbers' own frame) that is the origin of what this module returns."""
+
+    def __init__(self, path, origin_mm):
+        self.path, self.ox, self.oy = path, origin_mm[0], origin_mm[1]
 
 
-def parse(layer):
+MAIN = Board(lambda layer: os.path.join(F.GERBERS, f'V1.1.{layer}'), (OX, OY))
+# Its encoder board (encoder_gerber.zip): origin at the middle of its bottom edge, where its legs stand.
+ENCODER = Board(lambda layer: os.path.join(F.ENC_GERBERS, f'encoder V1.1.{layer}'),
+                (F.ENC_ORIGIN_IN[0] * IN, F.ENC_ORIGIN_IN[1] * IN))
+
+
+def parse(layer, b=MAIN):
     """A Gerber layer's shapes (mm, robot frame): ('line', aperture, points), ('flash', aperture, (x, y)) and
     ('region', None, points); an aperture is ('C', [diameter]) or ('R', [width, height])."""
-    s = open(_path(layer)).read()
+    s = open(b.path(layer)).read()
     assert 'G70*' in s or '%MOIN' in s, f'{layer}: not in inches'
     scale = IN / 10 ** int(re.search(r'%FSLAX(\d)(\d)Y', s).group(2))
     aps = {int(m.group(1)): (m.group(2), [float(v) * IN for v in m.group(3).split('X')])
            for m in re.finditer(r'%ADD(\d+)([A-Z0-9]+),([^*]*)\*%', s)}
     body = re.sub(r'%[^%]*%', '', s).replace('\n', '').replace('\r', '')
-    out, x, y, ap, mode, region = [], OX, OY, None, 1, None
+    out, x, y, ap, mode, region = [], b.ox, b.oy, None, 1, None
     for cmd in body.split('*'):
         for g in map(int, re.findall(r'G(\d+)', cmd)):
             if g in (1, 2, 3):
@@ -39,7 +49,7 @@ def parse(layer):
                 region = []
             elif g == 37:
                 if region:
-                    out.append(('region', None, [(u - OX, v - OY) for u, v in region]))
+                    out.append(('region', None, [(u - b.ox, v - b.oy) for u, v in region]))
                 region = None
         d = re.search(r'D(\d+)$', cmd)
         d = int(d.group(1)) if d else None
@@ -70,20 +80,20 @@ def parse(layer):
             if region is not None:
                 region += seg if not region else seg[1:]
             else:
-                out.append(('line', ap, [(u - OX, v - OY) for u, v in seg]))
+                out.append(('line', ap, [(u - b.ox, v - b.oy) for u, v in seg]))
         elif d == 2 and region:
-            out.append(('region', None, [(u - OX, v - OY) for u, v in region]))
+            out.append(('region', None, [(u - b.ox, v - b.oy) for u, v in region]))
             region = []
         elif d == 3:
-            out.append(('flash', ap, (nx - OX, ny - OY)))
+            out.append(('flash', ap, (nx - b.ox, ny - b.oy)))
         x, y = nx, ny
     return out
 
 
-def holes():
+def holes(b=MAIN):
     """Its drilled holes (V1.1.TXT, Excellon, inches): (x, y, diameter) mm."""
     tools, t, out = {}, None, []
-    for line in open(_path('TXT')).read().splitlines():
+    for line in open(b.path('TXT')).read().splitlines():
         m = re.match(r'T(\d+)C([\d.]+)', line)
         if m:
             tools[int(m.group(1))] = float(m.group(2)) * IN
@@ -94,14 +104,14 @@ def holes():
             continue
         m = re.match(r'X(\d+)Y(\d+)', line)
         if m:
-            out.append((int(m.group(1)) / 1e4 * IN - OX, int(m.group(2)) / 1e4 * IN - OY, tools[t]))
+            out.append((int(m.group(1)) / 1e4 * IN - b.ox, int(m.group(2)) / 1e4 * IN - b.oy, tools[t]))
     return out
 
 
-def pads(layer='GTP'):
+def pads(layer='GTP', b=MAIN):
     """Its pads on a layer (the top's solder paste by default): (x, y, width, height) mm."""
     out = []
-    for kind, ap, g in parse(layer):
+    for kind, ap, g in parse(layer, b):
         if kind == 'flash' and ap:
             w = ap[1][0]
             out.append((g[0], g[1], w, ap[1][1] if ap[0] == 'R' and len(ap[1]) > 1 else w))
@@ -112,7 +122,7 @@ def pads(layer='GTP'):
 
 
 # ---- its outline -------------------------------------------------------------------------------------------------
-def outline():
+def outline(b=MAIN):
     """Its board's outline (V1.1.GML: its edges drawn there and back, in pieces), one closed loop counter-clockwise,
     without collinear points."""
     pts, edges = [], set()
@@ -123,7 +133,7 @@ def outline():
                 return i
         pts.append(p)
         return len(pts) - 1
-    for kind, ap, g in parse('GML'):
+    for kind, ap, g in parse('GML', b):
         if kind != 'line' or not ap or ap[1][0] == 0:    # its width-0 circles: the motor mounts' holes
             continue
         for a, b in zip(g, g[1:]):
@@ -185,14 +195,14 @@ def _frame(poly):
     return min(xs) - 0.5, min(ys) - 0.5, max(xs) + 0.5, max(ys) + 0.5
 
 
-def _draw(img, layer, colour, frame, grow=0.0):
+def _draw(img, layer, colour, frame, grow=0.0, b=MAIN):
     from PIL import ImageDraw
     x0, y0, x1, y1 = frame
     d = ImageDraw.Draw(img)
 
     def px(p):
         return ((p[0] - x0) * PX_MM, (y1 - p[1]) * PX_MM)
-    for kind, ap, g in parse(layer):
+    for kind, ap, g in parse(layer, b):
         if kind == 'region':
             d.polygon([px(p) for p in g], fill=colour)
         elif kind == 'flash' and ap:
@@ -210,30 +220,34 @@ def _draw(img, layer, colour, frame, grow=0.0):
                 d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=colour)
 
 
-def textures(out):
-    """top.png and bottom.png: each face as its layers make it (both seen from above, as its Gerbers draw them)."""
+def textures(out, b=MAIN, prefix=''):
+    """top.png and bottom.png (with a prefix before the name): each face as its layers make it (both seen from above,
+    as its Gerbers draw them)."""
     from PIL import Image, ImageDraw
-    frame = _frame(outline())
+    frame = _frame(outline(b))
     size = (int(round((frame[2] - frame[0]) * PX_MM)), int(round((frame[3] - frame[1]) * PX_MM)))
-    for name, (copper, mask, silk) in (('top.png', ('GTL', 'GTS', 'GTO')), ('bottom.png', ('GBL', 'GBS', 'GBO'))):
+    for name, (copper, mask, silk) in ((prefix + 'top.png', ('GTL', 'GTS', 'GTO')), (prefix + 'bottom.png', ('GBL', 'GBS', 'GBO'))):
         img = Image.new('RGB', size, MASK)
-        _draw(img, copper, COPPER, frame)
-        _draw(img, mask, TIN, frame)
-        _draw(img, silk, SILK, frame)
+        _draw(img, copper, COPPER, frame, 0.0, b)
+        _draw(img, mask, TIN, frame, 0.0, b)
+        _draw(img, silk, SILK, frame, 0.0, b)
         d = ImageDraw.Draw(img)
-        for x, y, dia in holes():
+        for x, y, dia in holes(b):
             cx, cy, r = (x - frame[0]) * PX_MM, (frame[3] - y) * PX_MM, dia * PX_MM / 2
             d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=HOLE)
         img.save(os.path.join(out, name))
 
 
 # ---- its meshes --------------------------------------------------------------------------------------------------
-def meshes(out):
-    """pcb_top.obj and pcb_bottom.obj (UVs on the textures) and pcb_side.obj, mm."""
-    poly = outline()
+def meshes(out, b=MAIN, prefix='pcb_', z_top=None, z_bottom=None):
+    """pcb_top.obj and pcb_bottom.obj (UVs on the textures) and pcb_side.obj, mm (the prefix instead of pcb_; the
+    faces at z_top and z_bottom: the board's)."""
+    z_top = F.BOARD_TOP_MM if z_top is None else z_top
+    z_bottom = F.BOARD_BOTTOM_MM if z_bottom is None else z_bottom
+    poly = outline(b)
     tris = _triangulate(poly)
     x0, y0, x1, y1 = _frame(poly)
-    for name, z, flip in (('pcb_top.obj', F.BOARD_TOP_MM, False), ('pcb_bottom.obj', F.BOARD_BOTTOM_MM, True)):
+    for name, z, flip in ((prefix + 'top.obj', z_top, False), (prefix + 'bottom.obj', z_bottom, True)):
         with open(os.path.join(out, name), 'w') as f:
             for x, y in poly:
                 f.write(f'v {x:.4f} {y:.4f} {z:.4f}\n')
@@ -242,10 +256,10 @@ def meshes(out):
             for t in tris:
                 a, b, c = (i + 1 for i in (t[::-1] if flip else t))
                 f.write(f'f {a}/{a} {b}/{b} {c}/{c}\n')
-    with open(os.path.join(out, 'pcb_side.obj'), 'w') as f:
+    with open(os.path.join(out, prefix + 'side.obj'), 'w') as f:
         n = len(poly)
         for x, y in poly:
-            f.write(f'v {x:.4f} {y:.4f} {F.BOARD_TOP_MM:.4f}\nv {x:.4f} {y:.4f} {F.BOARD_BOTTOM_MM:.4f}\n')
+            f.write(f'v {x:.4f} {y:.4f} {z_top:.4f}\nv {x:.4f} {y:.4f} {z_bottom:.4f}\n')
         for i in range(n):
             j = (i + 1) % n
             t0, b0, t1, b1 = 2 * i + 1, 2 * i + 2, 2 * j + 1, 2 * j + 2
@@ -256,3 +270,5 @@ def build(out):
     os.makedirs(out, exist_ok=True)
     textures(out)
     meshes(out)
+    textures(out, ENCODER, 'enc_')                  # its encoder board, standing: the model turns it (z: its thickness)
+    meshes(out, ENCODER, 'enc_', F.ENC_THICKNESS_MM / 2, -F.ENC_THICKNESS_MM / 2)

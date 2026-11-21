@@ -6,9 +6,10 @@ Sources: its kit's firmware template (FuturaProject.zip: user/, user_Libraries/)
 (controller-sample.c) and its lecture's guide to testing it (Guide-for-testing-controller.docx), its schematic
 (Futura V1.1: STM32F405, LY3200ALH gyro, four SFH4545 and TEFT4300 IR pairs, TC4427 and ZXMHC3F381N8 H-bridges,
 HCMS-2903 display), its board's Gerber files (Futura_Gerber.zip, V1.1: its outline, its parts' pads, its holes), its
-encoder board's schematic (an AS5304/AS5306 magnetic encoder), its 3D printing files (futura-3D-printing-model.zip:
-wheel, skate) and the photo of the kit on its page.
-Its page publishes no licence: nothing of it is in this repository; its three zips and its controller sample are
+encoder board's schematic and Gerber files (an AS5304/AS5306 magnetic encoder), its 3D printing files (futura-3D-printing-model.zip:
+wheel, skate), its guide to mounting its motors and encoders (Guide-for-Mounting-EncoderMotor.pptx: its parts list
+and photos, read to design the model, not downloaded) and the photo of the kit on its page.
+Its page publishes no licence: nothing of it is in this repository; its four zips and its controller sample are
 downloaded at build time (download()), pinned by their SHA-256.
 """
 import hashlib
@@ -31,11 +32,14 @@ FILES = {       # name: URL, SHA-256
                                      '4db946b2dc12ea9a537e096e7bf4131c5c394aa34e36ecc0c0393432db95ef05'),
     'Futura_Gerber.zip': (UPLOADS + '2014/08/Futura_Gerber.zip',
                           'e17ace6c36edef936bd5bcc3a46c00e15087c37e28a7f58de2c0fa2310c378ff'),
+    'encoder_gerber.zip': (UPLOADS + '2014/08/encoder_gerber.zip',
+                           'd2e831054c12f013005d90bc2a8a92855f2200dce79eb5a77f2d1cdfd02224bf'),
     'controller-sample.c': (UPLOADS + '2016/04/controller-sample.c',
                             '93863da49af5786d7efb47dd181f59fded5c23e0db2f3a092d6a4f1a1da8c119'),
 }
 PROJECT = os.path.join(BUILD, 'FuturaProject')  # its firmware (FuturaProject.zip: user/, user_Libraries/)
 PRINTS = os.path.join(BUILD, 'prints')          # its printed parts (STL)
+ENC_GERBERS = os.path.join(BUILD, 'encoder-gerbers')  # its encoder board (encoder_gerber.zip: encoder V1.1.GTL...)
 GERBERS = os.path.join(BUILD, 'gerbers')        # its board (Futura_Gerber.zip: V1.1.GTL, .GTO, .GML, .TXT...)
 SAMPLE = os.path.join(BUILD, 'controller', 'controller-sample.c')   # its page's controller sample, mended
 # controller-sample.c is its lecture's code, never compiled as it is: the two places no compiler takes, mended here
@@ -94,6 +98,9 @@ def download():
     if not os.path.exists(os.path.join(GERBERS, 'V1.1.GML')):
         with zipfile.ZipFile(os.path.join(BUILD, 'Futura_Gerber.zip')) as z:
             z.extractall(GERBERS, [n for n in z.namelist() if n.startswith('V1.1.') and '/' not in n])
+    if not os.path.exists(os.path.join(ENC_GERBERS, 'encoder V1.1.GML')):
+        with zipfile.ZipFile(os.path.join(BUILD, 'encoder_gerber.zip')) as z:
+            z.extractall(ENC_GERBERS, [n for n in z.namelist() if n.startswith('encoder V1.1.') and '/' not in n])
     with open(os.path.join(BUILD, 'controller-sample.c')) as f:
         text = f.read()
     for old, new in SAMPLE_FIXES:
@@ -137,6 +144,34 @@ NOTCH_HALF_MM = 16.0                            # the notches: 32 mm long, centr
 # Its encoder boards stand up against the notches' inner edges (1.6 mm), its wheels outside them: their centres.
 TRACK_MM = 2 * (NOTCH_X_MM + 1.6 + 0.4 + WHEEL_WIDTH_MM / 2)
 MOTOR_MOUNT_HOLES = [(sx * 14.85, sy * 9.0) for sx in (-1, 1) for sy in (-1, 1)]   # its four 2.3 mm holes (M2)
+# Its parts, from its guide (Guide-for-Mounting-EncoderMotor.pptx, parts list): two Pololu 10:1 Micro Metal Gearmotor HP
+# (#999) in two Pololu Micro Metal Gearmotor Bracket Extended Pair (#1089), 2-56 x 20 mm screws, two AS5000-MR20-44
+# magnetic rings and two AS5304A encoder ICs on its encoder boards. Pololu's dimension diagram of the micro metal
+# gearmotors: body 10 x 12 mm, gearbox 9 mm long (all but the 1000:1), motor 15 mm, shaft 3 mm (D) out 8.5 mm.
+MOTOR_CAN_MM = (12.0, 10.0)                     # across (y) x high (z)
+MOTOR_CAN_LEN_MM = 15.0
+MOTOR_GEARBOX_LEN_MM = 9.0
+MOTOR_SHAFT_MM = (3.0, 8.5)                     # diameter, length out of the gearbox
+MOTOR_GEARBOX_X_MM = 25.5                       # its gearbox's face, on the axle's line: its shaft ends in the wheel's hub
+# The extended brackets (white plastic, the photos; no drawing of them is published: assumed): a block round the
+# gearbox, an ear each side at the screws' holes, on its printed mount.
+BRACKET_LEN_MM = 12.0
+BRACKET_HALF_WIDTH_MM = 7.0
+BRACKET_HALF_HEIGHT_MM = 6.2
+# Its encoder boards (Gerbers: 26.2 x 31 mm, 1.6 mm assumed) stand with their slot over the bracket: the motor's shaft
+# through it, the AS5304A (SSOP-20, 1.75 mm) on the wheel's side 1 mm off the magnetic ring (the guide), the two legs
+# on the main board's header holes (x +-20.38, y +-9.27 and +-11.81, the very pitch of the encoder's pins). The ring
+# (AS5000-MR20-44) is a flat black ring glued on the wheel's open face (the guide's photos: its outer diameter the
+# wheel's, its inner diameter about 0.73 of it; assumed 22 x 30 mm, 1.5 mm).
+ENC_ORIGIN_IN = (0.548, 0.018)                  # the middle of its bottom edge, in its Gerbers' inches
+ENC_THICKNESS_MM = 1.6
+ENC_IC_HEIGHT_MM = 1.75
+ENC_GAP_MM = 1.0                                # its IC to the ring
+RING_MM = (22.0, 30.0, 1.5)                     # inner and outer diameter, thickness
+WHEEL_FACE_MM = TRACK_MM / 2 - WHEEL_WIDTH_MM / 2         # the wheel's open face, where the ring is glued
+ENC_X_MM = WHEEL_FACE_MM - RING_MM[2] - ENC_GAP_MM - ENC_IC_HEIGHT_MM - ENC_THICKNESS_MM   # its inner face
+ENC_PINS_X_MM = 20.38                           # the main board's header holes
+ENC_RISE_MM = 0.3                               # its bottom over the main board's top
 # Its IR pairs, each an emitter (SFH4545, 5 mm) and a phototransistor (TEFT4300, 3 mm) lying on the board, their
 # leads bent down into two holes (V1.1.TXT, mm in the robot's frame): each one looks square to the line of its two
 # holes, ahead (their silkscreen outlines). LF and RF at the board's edges, 7 deg out; DL and DR by its middle,
