@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        robot: [ratatron, zorobot, gamusino, bulebule, nezumibot, perenquen, fujin, futura, ukmarsbot, miniskybot]
+        robot: [ratatron, zorobot, gamusino, bulebule, nezumibot, perenquen, fujin, futura, ukmarsbot, miniskybot, kerise]
     steps:
       - uses: actions/checkout@v4
       # The submodules one level deep, by hand: perenquen's has a submodule with no URL (KiCad_BOM_Wizard), on which
