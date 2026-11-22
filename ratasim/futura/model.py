@@ -62,6 +62,7 @@ def meshes():
     """Its meshes in MESHES (made again when pcb.py or config.py is newer): its board's faces and their textures
     (pcb.py), its wheel (centred, its axis x) and its skate (centred, on z = 0)."""
     parts = n20.meshes()
+    parts['battery'] = _rounded_box(BATTERY[2], 1.0)
     path = {k: os.path.join(MESHES, f'{k}.stl') for k in ('wheel', 'skate', 'mount', 'ring', *parts)}
     path.update({k: os.path.join(MESHES, f'{k}.obj')
                  for k in ('pcb_top', 'pcb_bottom', 'pcb_side', 'enc_top', 'enc_bottom', 'enc_side')})
@@ -106,6 +107,20 @@ def _annulus(d_in, d_out, thickness, n=96):
             q = [(x, ri * c[i], ri * s[i]), (x, ro * c[i], ro * s[i]), (x, ro * c[i + 1], ro * s[i + 1]), (x, ri * c[i + 1], ri * s[i + 1])]
             tris += [(q[0], q[1], q[2]), (q[0], q[2], q[3])] if up else [(q[0], q[2], q[1]), (q[0], q[3], q[2])]
     return np.array(tris)
+
+
+def _rounded_box(size, r, n=8):
+    """A box (mm, centred) with its edges and corners rounded to r: the hull of eight spheres."""
+    from scipy.spatial import ConvexHull
+    u, v = np.meshgrid(np.linspace(0, np.pi, n + 1), np.linspace(0, 2 * np.pi, 4 * n, endpoint=False))
+    ball = r * np.c_[(np.sin(u) * np.cos(v)).ravel(), (np.sin(u) * np.sin(v)).ravel(), np.cos(u).ravel()]
+    half = np.array(size) / 2 - r
+    pts = np.unique(np.round(np.concatenate([ball + half * np.array(c) for c in np.ndindex(2, 2, 2) for c in [np.array(c) * 2 - 1]]), 9), axis=0)
+    tris = pts[ConvexHull(pts).simplices]
+    n_ = np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0])
+    inward = np.einsum('ij,ij->i', n_, tris.mean(1)) < 0          # convex and centred: outward is away from 0
+    tris[inward] = tris[inward][:, ::-1]
+    return tris
 
 
 def defaults_xml():
@@ -165,6 +180,7 @@ BUZZER = (11.24, 36.05)                         # its two pins' holes, 5 mm apar
 BUTTONS = [((-31.80, 22.75), 0.0), ((32.0, -22.0), 0.0), ((26.80, -30.66), 45.0)]   # Reset, SW0, SW1: 6 x 6 mm
 HEADER = (-22.08, 22.24)                        # JTAG and serial: 2 x 4 pins, 2.54 mm
 POWER_SWITCH = (-33.0, -24.0)                   # its slide switch, 3 pins
+BATTERY = (0.0, -22.5, (30.0, 12.0, 7.0))       # its battery: where, its size (behind the motors, the photo)
 BATTERY_SOCKETS = [(-26.3, -24.21), (-26.3, -30.68)]   # two 2 mm sockets (JST PH): its two cells
 
 
@@ -346,7 +362,9 @@ def _parts():
     out += _on_board(*POWER_SWITCH, (3.5, 8.6, 3.5), BLACK)
     for x, y in BATTERY_SOCKETS:
         out += _on_board(x, y, (4.5, 6.0, 6.0), WHITE)
-    out += _on_board(0.0, -22.5, (30.0, 12.0, 7.0), KAPTON)                                   # 2S 120 mAh
+    x, y, size = BATTERY                                                                      # 2S 120 mAh, its edges rounded
+    out += (f'<geom class="uvisual" type="mesh" mesh="u_battery" pos="{_f(x * MM, y * MM, (TOP + size[2] / 2) * MM)}" '
+            f'rgba="{_f(*KAPTON)}"/>')
     return out
 
 
