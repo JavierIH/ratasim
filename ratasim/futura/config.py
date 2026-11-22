@@ -145,19 +145,16 @@ NOTCH_HALF_MM = 16.0                            # the notches: 32 mm long, centr
 TRACK_MM = 2 * (NOTCH_X_MM + 1.6 + 0.4 + WHEEL_WIDTH_MM / 2)
 MOTOR_MOUNT_HOLES = [(sx * 14.85, sy * 9.0) for sx in (-1, 1) for sy in (-1, 1)]   # its four 2.3 mm holes (M2)
 # Its parts, from its guide (Guide-for-Mounting-EncoderMotor.pptx, parts list): two Pololu 10:1 Micro Metal Gearmotor HP
-# (#999) in two Pololu Micro Metal Gearmotor Bracket Extended Pair (#1089), 2-56 x 20 mm screws, two AS5000-MR20-44
-# magnetic rings and two AS5304A encoder ICs on its encoder boards. Pololu's dimension diagram of the micro metal
-# gearmotors: body 10 x 12 mm, gearbox 9 mm long (all but the 1000:1), motor 15 mm, shaft 3 mm (D) out 8.5 mm.
-MOTOR_CAN_MM = (12.0, 10.0)                     # across (y) x high (z)
-MOTOR_CAN_LEN_MM = 15.0
-MOTOR_GEARBOX_LEN_MM = 9.0
-MOTOR_SHAFT_MM = (3.0, 8.5)                     # diameter, length out of the gearbox
-MOTOR_GEARBOX_X_MM = 25.5                       # its gearbox's face, on the axle's line: its shaft ends in the wheel's hub
-# The extended brackets (white plastic, the photos; no drawing of them is published: assumed): a block round the
-# gearbox, an ear each side at the screws' holes, on its printed mount.
-BRACKET_LEN_MM = 12.0
-BRACKET_HALF_WIDTH_MM = 7.0
-BRACKET_HALF_HEIGHT_MM = 6.2
+# (#999) in two Pololu Micro Metal Gearmotor Bracket Extended Pair (#1089), 2-56 x 20 mm screws (from under the board,
+# their nuts in the brackets' ears), two AS5000-MR20-44 magnetic rings and two AS5304A encoder ICs on its encoder
+# boards. Their shapes: n20.py (Pololu's dimensions). Each bracket's ear lies on its mount's 9 mm block with the motor's
+# bottom, its screw's hole 12.5 mm behind the gearbox's front plate: so the motors' axis is 14 mm over the board (5 mm
+# over the blocks), 1.6 mm over the wheels' (whose tyres are assumed 1 mm: the real ones are thicker), and the front
+# plates 27.35 mm off the middle; the brackets' top (20.5 mm over the board) then lies 0.8 mm under the encoder
+# boards' slot (21 mm deep, from 0.3 mm over the board), as the guide says: "place encoder board above motor bracket".
+MOTOR_MOUNT_Z_MM = 9.0                           # its mount's blocks over the board's top ("Futura enhanced spacer.stl")
+MOTOR_AXIS_MM = BOARD_TOP_MM + MOTOR_MOUNT_Z_MM + 5.0
+MOTOR_FRONT_X_MM = MOTOR_MOUNT_HOLES[-1][0] + 12.5
 # Its encoder boards (Gerbers: 26.2 x 31 mm, 1.6 mm assumed) stand with their slot over the bracket: the motor's shaft
 # through it, the AS5304A (SSOP-20, 1.75 mm) on the wheel's side 1 mm off the magnetic ring (the guide), the two legs
 # on the main board's header holes (x +-20.38, y +-9.27 and +-11.81, the very pitch of the encoder's pins). The ring

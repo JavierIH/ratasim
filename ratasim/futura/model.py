@@ -2,8 +2,9 @@
 silkscreen and holes), its parts where its pads and holes are (their sizes their packages'): its STM32F405, its
 HCMS-2903 display, its buzzer, its gyro, regulators and H-bridges, its capacitors and resistors (every pair of
 0603 and 0805 pads), its IR emitters and phototransistors lying along the axes their holes give, its buttons, header,
-switch and battery connectors; its two Pololu micro metal gearmotors end to end in their extended brackets on its white
-printed mount (its "Futura enhanced spacer.stl") screwed through its four holes, its encoder boards (from their own
+switch and battery connectors; its two Pololu micro metal gearmotors end to end in their extended brackets (both drawn
+in n20.py from Pololu's dimensions) on its white printed mount (its "Futura enhanced spacer.stl"), screwed through its
+four holes, its encoder boards (from their own
 Gerber files) straddling the brackets with their ICs facing the magnetic rings on its wheels, its printed wheels and skate
 (their own STL files, downloaded at build time) and its battery behind the motors, where the photo of its kit shows them. Its frame: origin between the
 wheels at the axle's height. Collisions: its board's outline as a convex hull up to 13 mm over it, its skate, its
@@ -19,7 +20,7 @@ from ..hand import hand_xml
 from ..model import MM, ROBOT_GROUP, WALL_GROUP, _f, maze_xml
 from .. import config as C
 from . import config as F
-from . import pcb
+from . import n20, pcb
 
 MESHES = os.path.join(F.BUILD, 'meshes')
 WHITE = (0.93, 0.93, 0.9, 1)
@@ -32,8 +33,8 @@ CERAMIC = (0.62, 0.52, 0.36, 1)
 GREEN = (0.07, 0.41, 0.17, 1)
 KAPTON = (0.85, 0.5, 0.08, 1)
 TOP = F.BOARD_TOP_MM
-MOTOR_Z = TOP + 6.0                             # its motors' axis (the photo: their cans stand just over its mounts' blocks)
-MOUNT_TOP = TOP + 9.0                           # its printed mount's top (its blocks: 9 mm, its STL)
+MOTOR_Z = F.MOTOR_AXIS_MM                       # its motors' axis: on its mount's blocks (config)
+MOUNT_TOP = TOP + F.MOTOR_MOUNT_Z_MM            # its printed mount's blocks' top
 HULL_TOP = TOP + 13.0                           # the collision hull's top
 
 
@@ -60,11 +61,12 @@ def _write_stl(path, tris):
 def meshes():
     """Its meshes in MESHES (made again when pcb.py or config.py is newer): its board's faces and their textures
     (pcb.py), its wheel (centred, its axis x) and its skate (centred, on z = 0)."""
-    path = {k: os.path.join(MESHES, f'{k}.stl') for k in ('wheel', 'skate', 'mount', 'ring')}
+    parts = n20.meshes()
+    path = {k: os.path.join(MESHES, f'{k}.stl') for k in ('wheel', 'skate', 'mount', 'ring', *parts)}
     path.update({k: os.path.join(MESHES, f'{k}.obj')
                  for k in ('pcb_top', 'pcb_bottom', 'pcb_side', 'enc_top', 'enc_bottom', 'enc_side')})
     made = [os.path.join(MESHES, n) for n in ('top.png', 'bottom.png', 'enc_top.png', 'enc_bottom.png')] + list(path.values())
-    sources = [pcb.__file__, F.__file__]
+    sources = [pcb.__file__, F.__file__, n20.__file__]
     if all(os.path.exists(p) for p in made) and \
             min(map(os.path.getmtime, made)) > max(map(os.path.getmtime, sources)):
         return path
@@ -84,6 +86,8 @@ def meshes():
     m[..., 2] += F.BOARD_TOP_MM
     _write_stl(path['mount'], m[:, ::-1])               # (the swap of two axes mirrors it: its faces turned back)
     _write_stl(path['ring'], _annulus(*F.RING_MM))
+    for k, tris in parts.items():
+        _write_stl(path[k], tris)
     return path
 
 
@@ -258,29 +262,63 @@ def _encoders(s):
     return out
 
 
+BRASS = (0.78, 0.6, 0.32, 1)
+CAN_STEEL = (0.6, 0.61, 0.64, 1)
+WIRE = (0.12, 0.45, 0.2, 1)
+MOTOR_PADS = (2.0, 1.27)                        # its motors' pads (holes, x +-2.0, y +-1.27): R_motor, L_motor
+
+
+def _motor_geoms(s):
+    """One gearmotor and its bracket (n20.py: their frame, x along the shaft), its shaft out to its wheel; s = -1 left,
+    1 right (the left one turned half round about z)."""
+    pos = (s * F.MOTOR_FRONT_X_MM * MM, 0, MOTOR_Z * MM)
+    turn = 0 if s > 0 else 180
+
+    def mesh(name, rgba, dx=0.0):
+        return (f'<geom class="uvisual" type="mesh" mesh="u_{name}" pos="{_f(pos[0] + s * dx * MM, 0, pos[2])}" '
+                f'euler="0 0 {turn}" rgba="{_f(*rgba)}"/>')
+
+    def at(lx, ly, lz):                                  # a point of its frame in the robot's
+        return (s * (F.MOTOR_FRONT_X_MM + lx), s * ly, MOTOR_Z + lz)
+
+    out = mesh('n20_can', CAN_STEEL) + mesh('n20_cap', BLACK) + mesh('n20_shaft', SILVER) + mesh('n20_bracket', BRACKET)
+    for dx in (0.0, -4.2, -n20.GEARBOX + n20.PLATE):     # its gearbox's three brass plates
+        out += mesh('n20_plate', BRASS, dx)
+    for (ly, lz), x0, x1 in (((4.9, 3.9), -8.2, -0.8), ((-4.9, -3.9), -8.2, -0.8)):   # their two pillars
+        out += _rod(at(x0, ly, lz), at(x1, ly, lz), 0.55, BRASS)
+    for x0, (ly, lz, r) in ((-7.9, (-1.4, 0.8, 3.6)), (-7.4, (1.9, -0.6, 3.0)), (-3.9, (1.4, 0.6, 3.6)),
+                            (-3.4, (-1.9, -0.4, 3.0))):                                  # its gears
+        out += _rod(at(x0, ly, lz), at(x0 + 0.5, ly, lz), r, BRASS if r > 3.2 else STEEL)
+        out += _rod(at(x0 + 0.5, ly, lz), at(x0 + 2.4, ly, lz), 1.1, STEEL)
+    out += _rod(at(0.0, 0, 0), at(n20.BUSHING[1], 0, 0), n20.BUSHING[0] / 2, BRASS)      # its bushing
+    apart, wide, thick, length = n20.TERMINALS
+    x_can = -n20.GEARBOX - n20.CAN
+    for ly in (-apart / 2, apart / 2):                   # its two terminals, green wires down to its pads (the photo)
+        c = at(x_can - length / 2 + 0.3, ly, 0)
+        out += _box(c, (length / 2, thick / 2, wide / 2), GOLD)
+        tip = at(x_can - length + 0.6, ly, 0)
+        pad = (s * MOTOR_PADS[0], math.copysign(MOTOR_PADS[1], tip[1]))
+        bend = (*pad, TOP + 1.5)
+        out += _rod(tip, bend, 0.3, WIRE, 'capsule') + _rod(bend, (*pad, TOP), 0.3, WIRE)
+    for hx, hy in F.MOTOR_MOUNT_HOLES:                   # its screws (2-56 x 20 mm) up through board, mount and ear
+        if hx * s < 0:
+            continue
+        ear_top = MOTOR_Z - n20.HEIGHT / 2 + n20.EAR[3]
+        nut_z = ear_top - n20.NUT_POCKET[1] + n20.NUT[1] / 2
+        out += (f'<geom class="uvisual" type="mesh" mesh="u_nut" pos="{_f(hx * MM, hy * MM, nut_z * MM)}" '
+                f'rgba="{_f(*SILVER)}"/>')
+        out += _rod((hx, hy, ear_top - 1.0), (hx, hy, F.BOARD_BOTTOM_MM + 20.0), 1.09, SILVER)    # its thread
+        out += _rod((hx, hy, F.BOARD_BOTTOM_MM - 1.4), (hx, hy, F.BOARD_BOTTOM_MM), 1.9, SILVER)  # its pan head
+        for deg in (0, 90):
+            out += _box((hx, hy, F.BOARD_BOTTOM_MM - 1.4), (1.2, 0.25, 0.3), DARK, deg)        # its cross
+    return out
+
+
 def _motors():
-    """Its two Pololu micro metal gearmotors HP (config: dimensions from Pololu's diagram) end to end on the wheels'
-    axle, their rear caps (black, two gold terminals) at the middle, each gearbox's shaft out to its wheel's hub; each in
-    its extended bracket (white plastic) screwed through the board's four holes to its printed mount; its two encoder
-    boards and magnetic rings."""
-    out = ''
-    cw, ch = F.MOTOR_CAN_MM
-    gx = F.MOTOR_GEARBOX_X_MM
-    can0, box0 = gx - F.MOTOR_GEARBOX_LEN_MM - F.MOTOR_CAN_LEN_MM, gx - F.MOTOR_GEARBOX_LEN_MM
-    for s in (-1, 1):
-        out += _box((s * (can0 + box0) / 2, 0, 0), ((box0 - can0) / 2, cw / 2, ch / 2), CAN)               # its can
-        out += _box((s * (box0 + gx) / 2, 0, 0), ((gx - box0) / 2, cw / 2, ch / 2), STEEL)                  # its gearbox
-        out += _box((s * (can0 - 0.35), 0, 0), (0.35, cw / 2 - 0.4, ch / 2 - 0.4), BLACK)                  # its rear cap
-        for dy in (-2.5, 2.5):
-            out += _box((s * (can0 - 0.9), dy, 1.8), (0.5, 0.5, 1.2), GOLD)                                  # its terminals
-        out += _rod((s * gx, 0, 0), (s * (gx + F.MOTOR_SHAFT_MM[1] + 0.5), 0, 0), F.MOTOR_SHAFT_MM[0] / 2, SILVER)
-        bx0 = gx - F.BRACKET_LEN_MM
-        out += _box((s * (bx0 + gx) / 2, 0, 0), (F.BRACKET_LEN_MM / 2, F.BRACKET_HALF_WIDTH_MM, F.BRACKET_HALF_HEIGHT_MM), BRACKET)
-        for hx, hy in F.MOTOR_MOUNT_HOLES:
-            if hx * s > 0:
-                out += _box((hx, hy * 0.92, MOUNT_TOP + 1.2), (1.8, 1.9, 1.2), BRACKET)                        # its ear
-                out += _rod((hx, hy, MOUNT_TOP + 2.4), (hx, hy, MOUNT_TOP + 3.4), 1.85, SILVER)               # its screw's head
-        out += _encoders(s)
+    """Its two Pololu micro metal gearmotors HP end to end in their extended brackets (n20.py), their rear caps at the
+    middle, each shaft out to its wheel's hub; the brackets' ears on its white printed mount, screwed through the
+    board; its two encoder boards and magnetic rings."""
+    out = ''.join(_motor_geoms(s) + _encoders(s) for s in (-1, 1))
     out += f'<geom class="uvisual" type="mesh" mesh="u_mount" rgba="{_f(*WHITE)}"/>'         # its printed mount
     return out
 
