@@ -5,6 +5,7 @@ picture of them in a maze.
     ratasim portraits [DIR] --only NAME...  those robots' portraits only
 """
 import argparse
+import math
 import os
 
 import mujoco
@@ -39,19 +40,35 @@ STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.10 0.11 0.13 1
           '<light directional="true" pos="-1 -1 2" dir="0.8 0.6 -0.6" diffuse="0.25 0.25 0.28" castshadow="false"/>')
 
 
-def maze_picture(out):
-    """The robots side by side in the maze's first cells, from above at three quarters."""
-    m, d = K.compile(K.scene_xml(Maze.load(maze_path('oshwdem2026')), gamusino=True))
+MAZE_BOTS = (     # prefix, cell (x, y), heading (deg): each its own way, in the middle of the maze
+    ('', 6.1, 5.5, 0),          # Ratatron east along its corridor
+    ('g_', 7.5, 6.25, 80),      # Gamusino north through the gap
+    ('z_', 8.8, 6.5, 0))        # ZoroBot3 east
+
+
+def maze_picture(out, w=1600, h=800):
+    """Ratatron, Gamusino and ZoroBot3 in the middle of the maze, each going its own way, from above (no sky): a
+    dimmer headlight and a key light from the side so that the walls have a lit and a shaded face, rendered at twice
+    the size and scaled down (smooth edges)."""
+    xml = K.scene_xml(Maze.load(maze_path('oshwdem2026')), gamusino=True)
+    xml = xml.replace('<headlight ambient="0.35 0.35 0.35" diffuse="0.5 0.5 0.5"/>',
+                      '<headlight ambient="0.22 0.22 0.24" diffuse="0.15 0.15 0.15" specular="0.05 0.05 0.05"/>')
+    xml = xml.replace('</worldbody>', '<light directional="true" dir="-0.5 0.6 -1" diffuse="0.75 0.73 0.7" castshadow="true"/>'
+                      '<light directional="true" dir="0.7 -0.3 -0.6" diffuse="0.2 0.22 0.26" castshadow="false"/>'
+                      '</worldbody>', 1)
+    m, d = K.compile(xml)
+    m.vis.global_.offwidth, m.vis.global_.offheight = 2 * w, 2 * h
+    m.vis.map.shadowclip = 0.8
     cell = K.C.CELL_MM * K.MM
-    for (x, y), prefix in zip(((0.5, 1.5), (1.5, 1.5), (2.5, 1.5)), ('', 'z_', 'g_')):
-        K.Bot(m, d, prefix).place(x * cell, y * cell, 1.5708)
+    for prefix, x, y, heading in MAZE_BOTS:
+        K.Bot(m, d, prefix).place(x * cell, y * cell, math.radians(heading))
     for _ in range(600):
         mujoco.mj_step(m, d)
-    ren, cam = mujoco.Renderer(m, 720, 1280), mujoco.MjvCamera()
-    cam.lookat[:] = (1.5 * cell, 1.5 * cell, 0.012)
-    cam.distance, cam.azimuth, cam.elevation = 0.47, 240, -27
+    ren, cam = mujoco.Renderer(m, 2 * h, 2 * w), mujoco.MjvCamera()
+    cam.lookat[:] = (7.4 * cell, 6.0 * cell, 0.02)
+    cam.distance, cam.azimuth, cam.elevation = 0.66, 110, -48
     ren.update_scene(d, cam)
-    Image.fromarray(ren.render()).save(out, quality=90)
+    Image.fromarray(ren.render()).resize((w, h), Image.LANCZOS).save(out, quality=90)
     print('->', out)
 
 
