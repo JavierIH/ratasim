@@ -7,6 +7,8 @@ EXTERNAL = os.path.join(REPO, 'external')              # the robots' repositorie
 RATATRON = os.path.join(EXTERNAL, 'ratatron')          # its firmware, its CAD, its tools (ratatron monitor)
 FIRMWARE = os.path.join(RATATRON, 'firmware')
 ZOROBOT3 = os.path.join(EXTERNAL, 'ZoroBot3')          # its firmware
+MAZEFILES = os.path.join(EXTERNAL, 'mazefiles')       # Peter Harrison's competition mazes (text, built at run time)
+CLASSIC_MAZES = os.path.join(MAZEFILES, 'classic')    # the only ones ratasim loads (16x16, 180 mm cells)
 SIM = PACKAGE
 SIM_BUILD = os.path.join(SIM, 'build')                 # flash images, the simulator's serial port (not committed)
 RUNTIME = os.path.join(os.environ.get('XDG_RUNTIME_DIR') or '/tmp', 'ratatron')   # shared with `ratatron connect --sim`
@@ -30,6 +32,7 @@ NEEDS = {
     'perenquen': ['external/perenquen', 'external/aversive4dspic'], 'fujin': ['external/fujin'],
     'ukmarsbot': ['external/ukmarsbot', 'external/mazerunner-core'], 'miniskybot': ['external/Miniskybot'],
     'kerise': ['external/kerise-v1'],
+    'mazes': ['external/mazefiles'],
     'drag-race': _ALL, 'maze-race': _ALL, 'minisumo': _ALL, 'portraits': _ALL,
 }
 

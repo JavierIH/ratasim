@@ -1,4 +1,4 @@
-# ratasim
+# Ratasim
 
 [![CI](https://github.com/JavierIH/ratasim/actions/workflows/ci.yml/badge.svg)](https://github.com/JavierIH/ratasim/actions/workflows/ci.yml)
 
@@ -90,6 +90,22 @@ git submodule update --init
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e .[cad]            # with gmsh, to make some robots' meshes from their 3D models
+```
+
+### Mazes
+
+Every robot takes `--maze` with a file in the micromouseonline text format or a name: the five of `ratasim/mazes`
+(`oshwdem2026`, the practice and test mazes) or one of the 525 classic 16x16 competition mazes (APEC, All Japan,
+the UK and many more) of [micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles), the collection
+that [Peter Harrison](https://github.com/micromouseonline) has gathered from many sources over the years, here the
+submodule `external/mazefiles`. Only its `classic/` folder is loaded (its half-size and training mazes are not), and
+only their text is kept: the maze is built from it when the scene is made.
+
+```sh
+ratasim mazes                        # every name; ratasim mazes japan: the ones with "japan"
+ratasim mazes --show japan2000       # one drawn
+ratasim kerise --maze japan2000
+ratasim batch out $(ratasim mazes --paths 'alljapan-*')   # Ratatron over many
 ```
 
 ### Running Ratatron
@@ -250,11 +266,11 @@ ratasim portraits                   # the pictures above
 
 ## Credits and licences
 
-ratasim is free software under the GNU General Public License v3 or later (`LICENSE`, Copyright (C) 2026 JavierIH); each
+Ratasim is free software under the GNU General Public License v3 or later (`LICENSE`, Copyright (C) 2026 JavierIH); each
 robot keeps its authors' licence, as below, and what is a submodule or is downloaded at build time is not relicensed.
 
 Every robot belongs to its authors (above); their repositories are submodules and nothing of them is copied here.
-ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's, Fujin's and KERISE v1's repositories carry no licence (KERISE's author allows ratasim to use it); Perenquén's design is CC BY-SA
+ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's, Fujin's and KERISE v1's repositories carry no licence (KERISE's author allows Ratasim to use it); Perenquén's design is CC BY-SA
 4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,
 Eurobotics Engineering) GPLv2+; Gamusino's gyro library, STM32duino LSM6DSR (STMicroelectronics, BSD-3), is
 downloaded at build time. Futura's page (Green Ye, micromouseusa.com) gives no licence: its firmware template, its
@@ -262,4 +278,4 @@ controller sample, its board's Gerber files and its printed parts are downloaded
 SHA-256, and stay out of git; ST's library is not used
 (`ratasim/futura/fw` simulates the part of its API the template calls). Fujin's team's photos of its board
 (raiju.team), its art's only source, are downloaded at build time, pinned by their SHA-256, and stay out of git.
-Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES). The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's, Miniskybot's and KERISE v1's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
+Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES). The competition mazes are Peter Harrison's collection ([micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles)), gathered with its contributors from the contests' own maps; it carries no licence, so it is a submodule and none of its files is copied here. The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's, Miniskybot's and KERISE v1's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
