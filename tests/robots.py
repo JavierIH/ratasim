@@ -6,7 +6,7 @@ robot per job, in the short check; locally, any of them or all, short or full:
 The short check (the default, the CI's) asks each robot only the basics: its firmware builds, it is started as its
 makers start it (its start sequence printed: Ratatron's search, ZoroBot3's and Fujin's "started: True", Bulebule's
 "exploring", UKMARSBOT's "Off we go", NezumiBot's wall following, Perenquén's "keeping to the" wall, Gamusino's
-"blue:", Futura's "run " on its display, KERISE v2's "started: True"), it runs for a few simulated seconds (SHORT_S)
+"blue:", Futura's "run " on its display, KERISE v1's "started: True"), it runs for a few simulated seconds (SHORT_S)
 without its firmware halting, resetting or faulting and without a Python exception, the runner ends with its end pose,
 and the robot leaves the start cell: the stopwatch starts a run (ratasim/stopwatch.py, "run 1 started (left the start
 cell)"). Wall touches fail Ratatron, NezumiBot and Futura, which run clean, and are only reported for the others. A
@@ -19,9 +19,9 @@ does not do its run (Ratatron: the search to the goal and back, then race 2.4 on
 to the goal; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
 the goal and back; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
 following, away from the start; Gamusino: its 1.5 m and back; Futura: its controller sample's cells and pivots, up
-to the maze's north rows; Miniskybot: through 10 cells, not toppled; KERISE v2: its search to the goal and back
-to its start cell, in the maze at half size). Wall touches as in the short check. The stopwatch's times are reported;
-Ratatron, ZoroBot3, Fujin, UKMARSBOT and KERISE v2, which reach the goal, fail without one.
+to the maze's north rows; Miniskybot: through 10 cells, not toppled; KERISE v1: its search to the goal and back
+to its start cell). Wall touches as in the short check. The stopwatch's times are reported;
+Ratatron, ZoroBot3, Fujin, UKMARSBOT and KERISE v1, which reach the goal, fail without one.
 
 A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
 ZoroBot3's meshes need its STEP (not in the repository, README): without it only its firmware is built.
@@ -39,7 +39,7 @@ MAZE = 'oshwdem2026'
 CI = os.environ.get('GITHUB_ACTIONS') == 'true'
 # The short check's simulated seconds per robot: about 5 s more than its start sequence and its leaving the start
 # cell take in the OSHWDEM 2026 maze (the stopwatch's start: Futura 1.4 s, Perenquén 2.9, UKMARSBOT 3.7, Gamusino 4.4,
-# KERISE v2 4.4, NezumiBot 6.2, Ratatron 6.8, ZoroBot3 8.9, Fujin 11.0, Bulebule 18.0)
+# KERISE v1 4.5, NezumiBot 6.2, Ratatron 6.8, ZoroBot3 8.9, Fujin 11.0, Bulebule 18.0)
 SHORT_S = {'ratatron': 12, 'zorobot': 14, 'gamusino': 10, 'bulebule': 23, 'nezumibot': 11, 'perenquen': 8,
            'fujin': 16, 'futura': 6, 'ukmarsbot': 9, 'miniskybot': 10, 'kerise': 10}
 
@@ -349,16 +349,17 @@ def kerise(full):
     if not full:
         return short(['kerise'], SHORT_S['kerise'], clean=False, started='started: True')
     fails = []
-    out = run(['kerise', '--headless', '--maze', MAZE, '--max-s', '90'])
-    pose = common(out, fails, clean=False)
+    out = run(['kerise', '--headless', '--maze', MAZE, '--max-s', '170'])
+    common(out, fails, clean=False)
     if 'started: True' not in out:
         fails.append('not started')
     if not goal_times(out):
         fails.append('the goal not reached (no time from the stopwatch)')
-    if 'its search back to the start' not in out:
+    back = re.findall(r'its search back to the start, at \[(-?\d+), (-?\d+), (-?\d+)\]', out)
+    if not back:
         fails.append('its search not back to the start')
-    elif far_from(pose, (45, 27), 30):
-        fails.append(f'not back in its start cell ({pose})')
+    elif far_from(tuple(map(int, back[-1])), (90, 30), 30):
+        fails.append(f'not back in its start cell ({back[-1]})')
     return fails
 
 

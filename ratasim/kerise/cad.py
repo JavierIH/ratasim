@@ -1,16 +1,14 @@
-"""KERISE v2's meshes from its own files (the submodule external/kerise, read at build time): its board from its KiCad
-board (kicad/KERISEv2.kicad_pcb: its outline, its two faces drawn as textures from its tracks, zones, pads, vias and
-silkscreen, every footprint's part at its package's size) and its motors' mounts from its STL (3dcad/-4digree.stl);
-its wheels (a spur gear and a rim printed in one piece) from KERISE v1's STL (external/kerise-v1, 3dprint/wheel-2set.stl:
-the same author's, the same wheels); its tyres, its ribbon cables and its battery's wires drawn here.
-Its Gerber files (gerber/KERISEv2.zip, 2016-12-03) are of an earlier board than its KiCad file's (2016-12-26, the
-one in its photos: a round nose): the KiCad file is drawn.
+"""KERISE v1's meshes from its own files (the submodule external/kerise-v1, read at build time): its board from its
+KiCad board (kicad/Mouse-01.kicad_pcb: its outline, its two faces drawn as textures from its tracks, pads, vias and
+silkscreen, every footprint's part at its package's size), its motors' mounts and its wheels (a spur gear and a rim
+printed in one piece) from its STL files (3dprint/mounter-4set.stl, 3dprint/wheel-2set.stl); its tyres, its ribbon
+cables and its battery's wires drawn here.
 
     meshes()        [{'name', 'file', 'body', 'rgba' or 'texture'}], made in build/cad when missing or older than
                     this file, config.py or its sources
 
 Frames: KiCad's in mm, y down; the robot's (config.py) x right, y forward, z up from the floor, with KiCad's
-PCB_ORIGIN on the axle. The STL's in inches: two plates side by side (x along, y up from their foot, z through).
+PCB_ORIGIN on the axle. The STL files' in mm: their parts side by side, each lying on its side.
 """
 import json
 import math
@@ -24,18 +22,17 @@ from ..futura.pcb import _triangulate
 from ..miniskybot.cad import write_obj
 from . import config as K
 
-PCB = os.path.join(K.KERISE_DIR, 'kicad', 'KERISEv2.kicad_pcb')
-STL = os.path.join(K.KERISE_DIR, '3dcad', '-4digree.stl')
-WHEEL_STL = os.path.join(K.KERISE_V1_DIR, '3dprint', 'wheel-2set.stl')
+PCB = os.path.join(K.KERISE_DIR, 'kicad', 'Mouse-01.kicad_pcb')     # its board as at its contest (2016-11-02)
+STL = os.path.join(K.KERISE_DIR, '3dprint', 'mounter-4set.stl')
+WHEEL_STL = os.path.join(K.KERISE_DIR, '3dprint', 'wheel-2set.stl')
 OUT = os.path.join(K.BUILD, 'cad')
 PX_MM = 20                      # the textures' resolution
-TAB_Y = 158.5                   # KiCad y: its board ends at 158; past it, joined by two bridges, a USB tab for its
-#                                 charger, cut off (not on the robot in its photos)
-# Its board's colours as its photos show it: a white solder mask, black silkscreen
-MASK, COPPER, TIN, SILK, HOLE = (236, 236, 230), (222, 220, 205), (200, 198, 186), (25, 25, 25), (10, 10, 10)
-EDGE = (0.16, 0.16, 0.15, 1)          # its edges: dark in its photos
+TAB_Y = 1e9                     # KiCad y past which a board's tab would be cut off (its board has none)
+# Its board's colours as its photo shows it: a black solder mask, white silkscreen
+MASK, COPPER, TIN, SILK, HOLE = (22, 22, 24), (38, 38, 40), (200, 198, 186), (232, 232, 228), (6, 6, 6)
+EDGE = (0.14, 0.14, 0.13, 1)          # its edges: dark
 CORNER_MM = 0.4                         # its outline's corners rounded (its router's)
-PLASTIC = (0.94, 0.94, 0.92, 1)         # its printed mounts, white
+PLASTIC = (0.07, 0.07, 0.075, 1)        # its printed mounts, black
 
 
 # ---- KiCad's s-expressions ---------------------------------------------------------------------------------------
@@ -171,7 +168,9 @@ PACKAGES = {
     'LXDC55': (2.5, 2.0, 1.0, CHIP), 'SMT-0440': (4.0, 4.0, 2.5, BLACK),
     'SW_PUSH': (4.2, 3.2, 1.6, METAL), 'Slide_SW': (3.0, 7.5, 1.5, METAL),
     'JST_SH_BM04B': (6.0, 4.25, 2.9, BEIGE), 'JST_SH_BM05B': (7.0, 4.25, 2.9, BEIGE),
-    'Hirose_DF13-02P': (5.5, 3.4, 5.4, BEIGE),
+    'Hirose_DF13-02P': (5.5, 3.4, 5.4, BEIGE), 'JST_PH_B2B': (6.0, 4.5, 6.0, (0.93, 0.92, 0.88, 1)),
+    'TO-252': (6.5, 6.1, 2.3, CHIP), 'SKRPACE010': (4.2, 3.2, 1.8, METAL),
+    'Pin_Header_Straight_1x03': (7.6, 2.5, 2.5, BLACK),
 }
 IR_PARTS = ('LED-5MM_Angle', 'Photo-5MM_Angle')
 
@@ -212,21 +211,20 @@ def _cylinder(c, axis_deg, r, length, n=40):
 
 
 def ir_parts():
-    """Its IR emitters (VSLY5850, clear, in black sleeves) over its photodiodes (SFH213FA, black), each 5 mm lying on
-    the board, from its pins 8.6 mm towards its footprint's -y: {colour: triangles} (KiCad frame)."""
+    """Its IR emitters (VSLY5850, clear) and photodiodes (SFH213FA, in black sleeves) side by side, each 5 mm lying on
+    the board, from its pins towards its footprint's -y: {colour: triangles} (KiCad frame, z up from the board)."""
     out = {}
     for name, _ref, (x, y), rot, _pads in modules():
         if not any(p in name for p in IR_PARTS):
             continue
         dx, dy = _rot(0.0, -1.0, rot)
         ang = math.degrees(math.atan2(dy, dx))
-        z = 2.5 if 'Photo' in name else 7.5
-        mid = (x + dx * 4.3, y + dy * 4.3, z)
-        out.setdefault(BLACK, []).append(_cylinder(mid, ang, 2.6, 7.0 if 'Photo' not in name else 8.6))
-        if 'Photo' not in name:                     # its clear lens out of its sleeve: a cylinder and a dome
-            tip = (x + dx * 8.6, y + dy * 8.6, z)
-            out.setdefault(LENS, []).append(_cylinder(tip, ang, 2.45, 2.0))
-            out.setdefault(LENS, []).append(_dome((x + dx * 9.6, y + dy * 9.6, z), ang, 2.45))
+        if 'Photo' in name:
+            out.setdefault(BLACK, []).append(_cylinder((x + dx * 4.6, y + dy * 4.6, 2.6), ang, 2.6, 8.6))
+        else:                                       # its clear body and its dome
+            out.setdefault(LENS, []).append(_cylinder((x + dx * 4.3, y + dy * 4.3, 2.5), ang, 2.5, 7.0))
+            out.setdefault(LENS, []).append(_dome((x + dx * 7.8, y + dy * 7.8, 2.5), ang, 2.5))
+            out.setdefault(LENS, []).append(_cylinder((x + dx * 0.9, y + dy * 0.9, 2.5), ang, 2.9, 1.0))   # its rim
     return out
 
 
@@ -439,24 +437,25 @@ def _hole(verts, guess, r_max):
 
 def mounts():
     """Its two motors' mounts, standing on its board, each where its wheel's axle and its motor go through it:
-    {colour: triangles} (robot frame). Each plate of the STL: its foot (its lowest y) on the board, its wheel's hole
-    on the axle, its motor's 12 mm behind (the right one) or ahead (the left one), between 8 and 12 mm from the
-    middle: the left one the right one turned half a turn."""
-    tris = _stl(STL)
-    plate = tris[tris[:, :, 1].mean(axis=1) > 0]            # the STL's two plates are the same: one of them
+    {colour: triangles} (robot frame). A plate of the STL (four, 28 by 17.5 by 4 mm, lying): its foot (its lowest y)
+    on the board, along y, its axle's hole on the axle, its motor's 11.5 mm ahead, 4 mm thick across x with its
+    middle MOUNT_X_MM from the robot's, its motor's recess facing in; the right one the left one mirrored."""
+    tris = _stl(STL) / 25.4                                 # _stl reads inches: this one is in mm
+    c = tris.mean(axis=1)
+    plate = tris[(c[:, 0] < 28.5) & (c[:, 1] > 0)]          # one of its four
     v = plate.reshape(-1, 3)
     foot = v[:, 1].min()
-    axle, ra = _hole(v, (21.5, foot + 10.5), 2.2)
-    motor, rm = _hole(v, (9.5, foot + 11.0), 3.3)
-    assert abs(axle[1] - foot - K.MOUNT_AXLE_MM) < 0.3 and abs(motor[1] - foot - K.MOUNT_MOTOR_MM) < 0.3, (axle, motor, foot)
-    assert abs(axle[0] - motor[0] - K.MOTOR_OFFSET_MM) < 0.3, (axle, motor)
+    axle, ra = _hole(v, (3.0, foot + 9.1), 1.8)
+    motor, rm = _hole(v, (14.5, foot + 8.5), 3.4)
+    assert abs(axle[1] - foot - K.MOUNT_AXLE_MM) < 0.2 and abs(motor[1] - foot - K.MOUNT_MOTOR_MM) < 0.2, (axle, motor, foot)
+    assert abs(motor[0] - axle[0] - K.MOTOR_OFFSET_MM) < 0.2, (axle, motor)
     out = []
     for s in (-1, 1):                                       # left, right
-        p = plate.copy()
-        x = s * (8.0 + p[:, :, 2] - v[:, 2].min())
-        y = s * (p[:, :, 0] - axle[0])
-        z = K.BOARD_Z_MM + p[:, :, 1] - foot
-        out.append(np.stack([x, y, z], axis=2))
+        x = s * (K.MOUNT_X_MM + 2.0 - plate[:, :, 2])      # its z 4 (the recess's face) inwards
+        y = plate[:, :, 0] - axle[0]
+        z = K.BOARD_Z_MM + plate[:, :, 1] - foot
+        t = np.stack([x, y, z], axis=2)
+        out.append(t[:, ::-1] if s > 0 else t)              # the right one a mirror: its triangles reversed
     return {PLASTIC: np.concatenate(out)}
 
 
@@ -465,7 +464,7 @@ GEAR_TEETH = 36                 # its wheels' spur gears (KERISE v1's STL); its 
 RIM_R_MM, TYRE_Z_MM = 10.0, (1.0, 8.5)         # the STL's rim under its tyre and the tyre's place along its axis
 WHEEL_PLASTIC = (0.93, 0.93, 0.91, 1)
 TYRE = (0.07, 0.07, 0.075, 1)
-RIBBON, RIBBON_STRIPE, IDC = (0.76, 0.76, 0.72, 1), (0.75, 0.12, 0.12, 1), (0.90, 0.88, 0.82, 1)
+RIBBON, RIBBON_STRIPE, IDC = (0.72, 0.72, 0.69, 1), (0.75, 0.12, 0.12, 1), (0.07, 0.07, 0.075, 1)
 RED, BLACK_WIRE = (0.78, 0.08, 0.06, 1), (0.05, 0.05, 0.05, 1)
 
 
@@ -550,37 +549,47 @@ def _box_at(c, half):
 
 
 def cables():
-    """Its encoders' ribbon cables (six wires, 1.27 mm apart, the first one red) from each encoder's end down to its
-    header's socket (P1 ahead on the right, P2 behind on the left), the sockets, and its battery's wires, a red and
-    a black from each cell's back to its connector (P3, P4): {colour: triangles} (robot frame)."""
+    """Its encoders' ribbon cables (six wires, 1.27 mm apart, the first one red) from each encoder's front, in its
+    middle, folded down to its header's socket ahead (P1 the left motor's, P2 the right one's), the sockets, and its
+    battery's wires, a red and a black from each cell's left end to its connector behind on the left (P3, P4):
+    {colour: triangles} (robot frame)."""
     out = {}
-    zb, zm = K.BOARD_Z_MM, K.MOTOR_Z_MM
-    heads = {ref: to_robot(*at) for _n, ref, at, _r, _p in modules() if ref in ('P1', 'P2', 'P3', 'P4')}
+    zb, zm, ym = K.BOARD_Z_MM, K.MOTOR_Z_MM, K.MOTOR_OFFSET_MM
+    heads = {}
+    for _n, ref, _at, _r, pads in modules():
+        if ref in ('P1', 'P2', 'P3', 'P4'):
+            heads[ref] = to_robot(*np.mean([c for _s, c, *_ in pads], axis=0))     # its pins' middle
     us = np.linspace(-3.8, 3.8, 49)                 # its six wires' ridges on both faces
     bump = 0.3 + 0.15 * np.abs(np.cos(math.pi * (us + 3.8) / 1.27 - math.pi / 2))
     ribbon = [(u, -h) for u, h in zip(us, bump)] + [(u, h) for u, h in zip(us[::-1], bump[::-1])]
     stripe = [(u, v) for u, v in ((-3.8, -0.46), (-2.55, -0.46), (-2.55, 0.46), (-3.8, 0.46))]
-    for ref, s in (('P1', 1), ('P2', -1)):          # P1: the left wheel's motor (ahead), its encoder on the right
+    enc_mid = K.MOTOR_FACE_X_MM - K.MOTOR_LEN_MM - K.ENCODER_LEN_MM / 2
+    for ref, s in (('P1', -1), ('P2', 1)):
         hx, hy = heads[ref]
-        top = zb + 5.2
-        t = np.linspace(0, 1, 160)[:, None]         # folded three times (as in its photos), from its socket up to its
-        path = np.hstack([np.full_like(t, hx - s * 2.0),       # encoder's end face, its wide face forwards
-                          hy + s * 1.6 * np.sin(3 * math.pi * t), top + t * (zm + 1.5 - top)])
+        top = zb + 9.0
+        start = np.array([s * enc_mid, ym + K.MOTOR_R_MM * 0.6, zm + K.MOTOR_R_MM * 0.75])
+        path = _bezier(start, start + (0, 6.0, 3.0), np.array([hx, hy - 4.0, top + 9.0]), np.array([hx, hy, top]), 120)
+        t = np.linspace(0, 1, len(path))[:, None]
+        path = path + np.hstack([np.zeros_like(t), 1.2 * np.sin(4 * math.pi * t) * np.sin(math.pi * t),
+                                 np.zeros_like(t)])        # its folds, as in its photo
         for shape, colour in ((ribbon, RIBBON), (stripe, RIBBON_STRIPE)):
-            out.setdefault(colour, []).append(_sweep(path, shape, (s, 0, 0), (s, 0, 0)))
-        out.setdefault(IDC, []).append(_box_at((hx, hy, zb + 2.6), (5.1, 2.9, 2.6)))
+            out.setdefault(colour, []).append(_sweep(path, shape, (1, 0, 0), (0, 1, 0)))
+        out.setdefault(IDC, []).append(_box_at((hx, hy, zb + 4.5), (3.3, 4.6, 4.5)))
     cx, cy, cz = K.CELL_HALF_MM
     tube = [(0.35 * math.cos(a), 0.35 * math.sin(a)) for a in np.linspace(0, 2 * math.pi, 12, endpoint=False)]
-    for i, ref in enumerate(('P3', 'P4')):          # its lower cell to P3, its upper one to P4
+    for i, ref in enumerate(('P3', 'P4')):          # its rear cell to P3, its front one to P4
         hx, hy = heads[ref]
-        z = K.BATTERY_Z_MM + cz * (2 * i + 1)
-        for dx, colour in ((-0.6, RED), (0.6, BLACK_WIRE)):
-            x0 = hx * 0.5 + dx
-            start = np.array([x0, -cy + 0.3, z])
-            end = np.array([hx + dx, hy, zb + 5.4])
-            path = _bezier(start, start + (0, -6.0, 0), end + (0, 0, 9.0), end)
-            out.setdefault(colour, []).append(_sweep(path, tube, (1, 0, 0), (1, 0, 0)))
+        yc = CELL_Y[i]
+        z = K.BATTERY_Z_MM + cz
+        for dy, dx, colour in ((-1.0, -1.0, RED), (1.0, 1.0, BLACK_WIRE)):
+            start = np.array([-cx + 0.3, yc + dy, z])
+            end = np.array([hx + dx, hy, zb + 6.0])
+            path = _bezier(start, start + (-8.0, 0, 1.0), end + (0, 6.0, 10.0), end)
+            out.setdefault(colour, []).append(_sweep(path, tube, (0, 0, 1), (1, 0, 0)))
     return {k: np.concatenate(v) for k, v in out.items()}
+
+
+CELL_Y = (K.MOTOR_OFFSET_MM - 6.3, K.MOTOR_OFFSET_MM + 6.3)    # its two cells' middles, side by side on its motors
 
 
 # ---- all ---------------------------------------------------------------------------------------------------------

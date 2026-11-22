@@ -1,4 +1,4 @@
-"""KERISE v2 simulated: MuJoCo physics, its motors, encoders, MPU6500, IR sensors, battery and button around its
+"""KERISE v1 simulated: MuJoCo physics, its motors, encoders, MPU6500, IR sensors, battery and button around its
 firmware on its simulated chip (kerise/fw, through ctypes). Every half millisecond: the wheels' angles and speeds
 to its encoders, its gyro and accelerometer, the light its IR receivers get back, half a millisecond of firmware
 (its threads and tickers on its own clock), its motors' drive to torques, one physics step.
@@ -128,7 +128,7 @@ class KRobot:
         self.buttons.append((start, start + ms))
 
     def send(self, line):
-        raise ValueError('KERISE v2 is started with its button (its serial port reads letters, not lines)')
+        raise ValueError('KERISE v1 is started with its button (its serial port reads letters, not lines)')
 
     def cover(self, sensors, ms=300):
         """A hand in front of these sensors for ms (ratasim/hand.py)."""

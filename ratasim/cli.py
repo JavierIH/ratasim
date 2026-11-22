@@ -11,7 +11,7 @@
     ratasim futura [options]        Futura in a maze
     ratasim ukmarsbot [options]     UKMARSBOT in a maze
     ratasim miniskybot [options]    Miniskybot 2 in a maze
-    ratasim kerise [options]        KERISE v2 in a half-size maze
+    ratasim kerise [options]        KERISE v1 in a classic maze
     ratasim maze-race|drag-race OUT.mp4 [--robots a,b,c]   scenes with any robots (videos)
     ratasim minisumo OUT.mp4 [--robots a,b,c]   a minisumo bout, all at once on one dohyo, then its podium (a video)
     ratasim crash|loop OUT.mp4 [options]   scenes with Ratatron and ZoroBot3 (videos)

@@ -149,7 +149,7 @@ def scene_xml(maze, with_maze=True, rat_mass=0.200, hull_solref=None, gamusino=F
         xml = xml.replace('</worldbody>', MM_.robot_xml(prefix='m_') + '</worldbody>', 1)
         xml = xml.replace('</actuator>', '<motor name="m_motor_l" joint="m_wheel_l"/>'
                           '<motor name="m_motor_r" joint="m_wheel_r"/></actuator>', 1)
-    if kerise:      # its own maze is half size: here, in the classic one, only for its portrait
+    if kerise:      # KERISE v1 (here only for its portrait)
         xml = re.sub(r'(</default>\s*<asset>)', lambda m: EM.defaults_xml() + m.group(1), xml, count=1)
         xml = xml.replace('</asset>', EM.assets_xml() + '</asset>', 1)
         xml = xml.replace('</worldbody>', EM.robot_xml(prefix='e_') + '</worldbody>', 1)

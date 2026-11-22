@@ -434,49 +434,52 @@ at 16 MHz) and four AAA cells. No encoders, no gyro, one sensor.
   OSHWDEM 2026 maze it goes up the west column and round the north-west of the maze: in 300 s, 46 to 50 cells with
   four seeds of its sensor's noise, 23 to 42 wall touches (against posts and walls met askew), never stuck nor over.
 
-## KERISE v2
+## KERISE v1
 
 <img src="images/robots/kerise.jpg" width="220" align="right">
 
 By [kerikun11](https://github.com/kerikun11) ·
-[kerikun11/micromouse-kerise-v2](https://github.com/kerikun11/micromouse-kerise-v2), its wheels from
-[kerikun11/micromouse-kerise-v1](https://github.com/kerikun11/micromouse-kerise-v1) (no licence file in either; their
-author allows ratasim to use them: nothing of them is copied here, everything is made from the submodules at build
-time)
+[kerikun11/micromouse-kerise-v1](https://github.com/kerikun11/micromouse-kerise-v1) (no licence file; its author
+allows ratasim to use it: nothing of it is copied here, everything is made from the submodule at build time)
 
-A half-size micromouse (2016): an STM32F405RG at 168 MHz, two Faulhaber 1717T006SR motors with IEH2-1024 encoders
-through 4:1 gears to 24.5 mm wheels, a DRV8835 driver, four IR reflectors (VSLY5850 emitters, SFH213FA photodiodes),
-an MPU6500 gyro and accelerometer, a buzzer, a button and eight LEDs.
+A classic micromouse (2016; 10th in the qualifying and 9th in the final of the classic Freshman class at the 37th
+All Japan Micromouse Contest): an STM32F405RG at 168 MHz, two Faulhaber 1717T006SR motors with IEH2-1024 encoders
+through 4:1 gears to 24.7 mm wheels, two DRV8835 drivers, four IR reflectors (VSLY5850 emitters, SFH213FA
+photodiodes), an MPU6500 gyro and accelerometer, a buzzer, a button and four LEDs, on two cells in series.
 
-- **Firmware:** `external/kerise/firmware`, C++ on mbed OS 5.1 (its own fork, a submodule of its repository, not
-  needed): its main thread, its speed controller, wall detector, move actions and MazeSolver (its own maze, agent
-  and shortest path) compiled unchanged, its `main()` renamed. One line changed in a copy at build time: its goal
-  (`MazeSolver_conf.h`, `MAZE_GOAL_LIST`, one cell as published) set to the maze's, as its maker would set it for a
-  contest (`ratasim/kerise/fw/Makefile`). Its mbed and HAL are ours (`ratasim/kerise/fw/mbed.h`, `kchip.cpp`): its
-  RTOS's threads as coroutines with their priorities (the highest ready one runs until it waits or wakes a higher
-  one), its `Ticker`s as interrupts, time jumping to the next event; TIM2's compare registers its motors' PWM, TIM3
-  and TIM4 its encoders, ADC2 and ADC3 its IR receivers, its emitters' `PwmOut`, its battery's `AnalogIn`, SPI1
-  with the MPU6500's registers, its console buffered for the simulator.
-- **Model:** its board from its KiCad file (`kicad/KERISEv2.kicad_pcb`, `ratasim/kerise/cad.py`): its outline, its
-  two faces as textures drawn from its tracks, zones, pads, vias and silkscreen (a white solder mask, black
-  silkscreen, as its photos show it), every footprint's part at its package's size; its USB tab for its charger cut
-  off, as in its photos, its corners slightly rounded and its edges dark. Its Gerber files are of an earlier board,
-  so its KiCad file is drawn. Its motors' mounts from its STL (`3dcad/-4digree.stl`), standing on the board, the
-  right one holding the rear motor and the left one the front motor (in its photos each motor's encoder lies by the
-  other wheel, its ribbon cable down to its header: P1 ahead on the right, P2 behind on the left). Its wheels (a
-  three-spoke rim with its 36-tooth spur gear, printed in one piece) from KERISE v1's STL (`3dprint/wheel-2set.stl`:
-  the same motors, wheels and gears), on steel axles; its tyres, its encoders' folded ribbon cables and their
-  sockets, its battery's two cells (blue, glossy) and their red and black wires to its connectors drawn here; its
-  motors and pinions as simple shapes. Collisions: boxes over its board's outline, its tyres, two skids.
-- **Sensors:** where its footprints put them, lying on the board: the front pair looking ahead, the side pair 10°
-  off sideways. The light back K / d² in ADC counts, scaled so that its side sensors read about 900 between two
-  walls; its amplifier's output falls from 2048 by it, read only while its emitter is on.
-- **Physics, assumed (its README, config.h, the 1717T006SR's data sheet):** 50 g, its motors' typical constants
-  through its 4:1 gears, its battery at 8 V; its track and wheels from its `config.h`.
-- **Maze:** its firmware is for half-size mazes (`HALF_SIZE`: 90 mm cells, 6 mm walls; its classic branch no
-  longer builds), so its runner scales the maze to half size, walls 25 mm high.
+- **Firmware:** `external/kerise-v1/firmware` as it ran at that contest: the submodule pinned at ab43c54
+  (2016-11-18, the day its author wrote "本番環境で動いた", it ran in the contest's conditions). C++ on mbed OS 5.1
+  (its own fork, not needed): its main thread, its speed controller, wall detector (its side walls followed, its
+  front walls lined up to), move actions and MazeSolver (its own maze, agent and shortest path) compiled unchanged,
+  its `main()` renamed. One line changed in a copy at build time: its goal (`MazeSolver_conf.h`, `MAZE_GOAL_LIST`,
+  one cell as published) set to the maze's, as its maker would set it for a contest (`ratasim/kerise/fw/Makefile`).
+  Its mbed and HAL are ours (`ratasim/kerise/fw/mbed.h`, `kchip.cpp`): its RTOS's threads as coroutines with their
+  priorities (the highest ready one runs until it waits or wakes a higher one), its `Ticker`s as interrupts, time
+  jumping to the next event; TIM2's compare registers its motors' PWM, TIM3 and TIM4 its encoders, ADC2 and ADC3
+  its IR receivers, its emitters' `PwmOut`, its battery's `AnalogIn`, SPI1 with the MPU6500's registers, its
+  console buffered for the simulator. Its later firmware (2017-01, in the same repository) had already been moved
+  towards KERISE v2 and is not used.
+- **Model:** its board from its KiCad file as at that contest (`kicad/Mouse-01.kicad_pcb`, `ratasim/kerise/cad.py`):
+  its outline (its corners slightly rounded, its edges dark), its two faces as textures drawn from its tracks, pads,
+  vias and silkscreen (a black solder mask, white silkscreen, as its photo shows it), every footprint's part at its
+  package's size. Its motors' mounts (black) and its wheels (a three-spoke rim with its 36-tooth spur gear, printed
+  in one piece) from its STL files (`3dprint/mounter-4set.stl`, `3dprint/wheel-2set.stl`), on the board's screw
+  holes: both motors on one line 11.5 mm ahead of the axle, each from its mount inwards, their encoders meeting in
+  the middle, their pinions out of the mounts on the wheels' gears (as its photo shows: one black cylinder between
+  the mounts). Its tyres, its encoders' folded ribbon cables down to their sockets (P1, P2), its battery's two cells
+  side by side on its motors (blue, glossy) and their red and black wires to their connectors (P3, P4) drawn here;
+  its motors and pinions as simple shapes. Collisions: boxes over its board's outline, its tyres, two skids.
+- **Sensors:** where its footprints put them, lying on the board, each emitter beside its photodiode: its front pair
+  at its flanks looking ahead 15° out, its side pair by its nose looking sideways 15° ahead. The light back K / d² in
+  ADC counts times the cosine to the wall's face, over five rays weighted as a Gaussian (σ 2°), scaled so that its
+  side sensors read about 900 in a cell's middle; its amplifier's output falls from 2048 by it, read only while its
+  emitter is on. Its WallDetector tells walls from its start cell's side walls (a third of them; its front walls
+  over their sum times 0.56 / 3).
+- **Physics, assumed (its README, photo, config.h, the 1717T006SR's data sheet):** 60 g, its motors' typical
+  constants through its 4:1 gears, its battery at 8 V; its track (66 mm) and wheels from its `config.h`.
+- **Maze:** classic: 180 mm cells, 12 mm walls 50 mm high.
 - **Run:** `ratasim kerise --maze oshwdem2026 [--echo] [--headless] [--record out.mp4]`: switched on in the start
-  cell, its tail at the back wall; its button (its mode by turning a wheel: none turned, mode 0, its search), its
-  button again (its sensors on), a hand in front of its front sensors; it calibrates its gyro and its sensors for a
-  second and goes. In the OSHWDEM 2026 maze its search reaches the goal in 55.9 s and is back in its start cell at
-  88 s (touching the start cell's wall as it lines up there), then its fast runs.
+  cell, its tail at the back wall; its button (its speed by turning a wheel: none turned, 600 mm/s), its button
+  again (its sensors on), a hand in front of its front sensors; it calibrates its gyro and its sensors and goes. In
+  the OSHWDEM 2026 maze its search reaches the goal in 84.3 s and is back in its start cell at 158 s (backing
+  against the start cell's back wall to line up there, as its firmware does), then its fast runs: 41.4 s, 34.6 s.

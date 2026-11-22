@@ -1,7 +1,7 @@
-"""The MuJoCo scene with KERISE v2: the classic maze (180 mm cells, 12 mm walls 50 mm high) and
-the robot: its board from its KiCad and Gerber files, its motors' mounts from its STL, its wheels from KERISE v1's
-STL, its tyres and cables (cad.py), its motors and battery as simple shapes; for its collisions, boxes over its board's outline (walls only), its two
-tyres and two skids under its board's front and back."""
+"""The MuJoCo scene with KERISE v1: the classic maze (180 mm cells, 12 mm walls 50 mm high) and the robot: its board
+from its KiCad file, its motors' mounts and wheels from its STL files, its tyres and cables (cad.py), its motors and
+battery as simple shapes; for its collisions, boxes over its board's outline (walls only), its two tyres and two
+skids under its board's nose and tail."""
 import re
 
 from ..hand import hand_xml
@@ -12,9 +12,9 @@ from . import config as K
 BLACK, MOTOR = '0.04 0.04 0.045 1', '0.08 0.08 0.09 1'
 BATTERY = '0.08 0.25 0.85 1'          # its cells' blue shrink wrap, glossy (material e_battery)
 # Its board's outline for collisions: boxes (x half-width, y from, y to), from its Edge.Cuts
-OUTLINE = ((25.0, 10.0, 22.0), (19.0, 22.0, 30.0), (10.0, 30.0, 34.0),     # its nose (an arc of 25 mm)
-           (12.0, -10.0, 10.0),                                            # between its wheels' cut-outs
-           (25.0, -14.0, -10.0), (20.0, -24.0, -14.0))                     # its tail
+OUTLINE = ((37.0, 11.0, 20.0), (33.0, 20.0, 30.0), (25.0, 30.0, 40.0), (15.0, 40.0, 46.0), (6.0, 46.0, 48.0),
+           (24.0, -11.0, 11.0),                                            # between its wheels' cut-outs
+           (36.0, -17.0, -11.0), (30.0, -24.0, -17.0))                     # its tail, its corners rounded
 
 
 def maze_xml(maze):
@@ -105,22 +105,20 @@ def robot_xml(start_xy=(0.5, 0.5), prefix='', cell_mm=K.CELL_MM):
     r, zb = K.WHEEL_RADIUS_MM, K.BOARD_Z_MM
     meshes = cad.meshes()
     body = ''.join(_mesh(e) for e in meshes if e['body'] == 'chassis')
-    # its motors across it, each from its face in its wheel's mount inwards, its encoder by the other wheel: the left
-    # wheel's ahead, the right one's behind; its pinion (9 teeth) out of the mount, on the wheel's gear
-    zm, rm, face = K.MOTOR_Z_MM, K.MOTOR_R_MM, K.MOTOR_FACE_X_MM
+    # its motors across it on one line ahead of the axle, each from its face in its wheel's mount inwards, their
+    # encoders meeting in the middle; its pinions (9 teeth) out of the mounts, on the wheels' gears
+    zm, rm, face, ym = K.MOTOR_Z_MM, K.MOTOR_R_MM, K.MOTOR_FACE_X_MM, K.MOTOR_OFFSET_MM
     for s in (-1, 1):
-        y = -s * K.MOTOR_OFFSET_MM
-        body += _cyl_x((s * (face - K.MOTOR_LEN_MM / 2), y, zm), rm, K.MOTOR_LEN_MM / 2, MOTOR)
+        body += _cyl_x((s * (face - K.MOTOR_LEN_MM / 2), ym, zm), rm, K.MOTOR_LEN_MM / 2, MOTOR)
         e0 = face - K.MOTOR_LEN_MM
-        body += _cyl_x((s * (e0 - K.ENCODER_LEN_MM / 2), y, zm), rm - 0.3, K.ENCODER_LEN_MM / 2, BLACK)
-        body += _cyl_x((s * (face + 1.8), y, zm), 0.5, 1.8, '0.7 0.7 0.72 1')             # its shaft
-        body += _cyl_x((s * 15.1, y, zm), 2.4, 1.6, '0.8 0.68 0.4 1')                     # its pinion
-        body += _cyl_x((s * 16.4, 0, r), 1.3, 8.6, '0.7 0.7 0.72 1')                      # its wheel's axle
-    # its battery: two cells (LG325-0120) on its motors, one on the other
+        body += _cyl_x((s * (e0 - K.ENCODER_LEN_MM / 2), ym, zm), rm - 0.3, K.ENCODER_LEN_MM / 2, BLACK)
+        body += _cyl_x((s * (face + 1.5), ym, zm), 0.5, 1.5, '0.7 0.7 0.72 1')            # its shaft
+        body += _cyl_x((s * (K.MOUNT_X_MM + 4.7), ym, zm), 2.3, 1.6, '0.8 0.68 0.4 1')    # its pinion
+        body += _cyl_x((s * (K.MOUNT_X_MM + 5.0), 0, r), 1.3, 7.0, '0.7 0.7 0.72 1')      # its wheel's axle
+    # its battery: two cells (LG325-0120) side by side across it, on its motors
     cx, cy, cz = K.CELL_HALF_MM
-    for i in range(2):
-        body += _rounded_box((0, 0, K.BATTERY_Z_MM + cz * (2 * i + 1)), (cx - 0.15 * i, cy - 0.2 * i, cz - 0.05), 1.2,
-                             'e_battery')
+    for y in cad.CELL_Y:
+        body += _rounded_box((0, y, K.BATTERY_Z_MM + cz), (cx, cy - 0.1, cz - 0.05), 1.2, 'e_battery')
     sites = ''.join(f'<site name="ir_{n}" pos="{_f(x * MM, y * MM, K.IR_Z_MM * MM)}" size="0.0012" group="4" '
                     f'rgba="1 0 0 0.6"/>' for n, ((x, y), _d) in K.IR_SENSORS.items())
     wheels = ''
@@ -134,8 +132,8 @@ def robot_xml(start_xy=(0.5, 0.5), prefix='', cell_mm=K.CELL_MM):
         {visual}
       </body>'''
     skids = ''.join(f'<geom name="skid_{n}" class="eskid" type="sphere" size="{1.0 * MM:.6g}" '
-                    f'pos="{_f(0, y * MM, (zb - K.PCB_MM - 0.4 + 1.0) * MM)}"/>' for n, y in (('front', 30), ('rear', -21)))
-    z0, z1 = zb - K.PCB_MM, K.BATTERY_Z_MM + 6.8
+                    f'pos="{_f(0, y * MM, 1.5 * MM)}"/>' for n, y in (('front', 44), ('rear', -21)))    # 0.5 mm over the floor
+    z0, z1 = zb - K.PCB_MM, K.BATTERY_Z_MM + 2 * cz
     hull = ''.join(f'<geom name="hull{"_" + str(i) if i else ""}" class="ehull" type="box" '
                    f'pos="{_f(0, (y0 + y1) / 2 * MM, (z0 + z1) / 2 * MM)}" size="{_f(hx * MM, (y1 - y0) / 2 * MM, (z1 - z0) / 2 * MM)}"/>'
                    for i, (hx, y0, y1) in enumerate(OUTLINE))
@@ -143,7 +141,7 @@ def robot_xml(start_xy=(0.5, 0.5), prefix='', cell_mm=K.CELL_MM):
     xml = f'''
     <body name="robot" pos="{_f(start_xy[0] * cell_mm * MM, start_xy[1] * cell_mm * MM, 0)}">
       <freejoint name="robot"/>
-      <inertial pos="{_f(*(v * MM for v in K.COM_MM))}" mass="{m:.4f}" diaginertia="{_f(1.2e-5, 1.0e-5, K.YAW_INERTIA)}"/>
+      <inertial pos="{_f(*(v * MM for v in K.COM_MM))}" mass="{m:.4f}" diaginertia="{_f(1.5e-5, 1.2e-5, K.YAW_INERTIA)}"/>
       {hull}{skids}
       {body}{sites}{wheels}
     </body>'''

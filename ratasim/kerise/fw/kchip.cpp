@@ -1,4 +1,4 @@
-// KERISE v2's STM32F405 under mbed OS 5.1 (its RTX kernel), simulated: what mbed.h declares. Python
+// KERISE v1's STM32F405 under mbed OS 5.1 (its RTX kernel), simulated: what mbed.h declares. Python
 // (kerise/robot.py) drives it with the ksim_* functions at the end.
 //
 // Its RTOS: each of its threads a coroutine (ucontext) with its priority. The highest ready thread runs until it

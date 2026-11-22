@@ -1,4 +1,4 @@
-// KERISE v2's STM32F405 under mbed OS 5.1, simulated: what its firmware uses of mbed (DigitalIn/Out, BusOut,
+// KERISE v1's STM32F405 under mbed OS 5.1, simulated: what its firmware uses of mbed (DigitalIn/Out, BusOut,
 // AnalogIn, PwmOut, SPI, Ticker, Timer), of its RTOS (Thread, its signals and waits, Queue) and of ST's HAL (GPIO,
 // TIM as PWM and encoder, ADC), declared as their headers do; kchip.cpp implements them on the simulator's clock and
 // its peripherals as host memory. Not mbed's code: only its interface, as the firmware calls it.
@@ -189,6 +189,7 @@ public:
     static osEvent signal_wait(int32_t signals, uint32_t millisec = osWaitForever);
     static osStatus wait(uint32_t millisec);
     static osStatus yield();
+    uint32_t gettid() const { return (uint32_t)(uintptr_t)_task; }  // its id, 32 bits as on its chip (an older API)
 
 private:
     ksim::Task *_task;

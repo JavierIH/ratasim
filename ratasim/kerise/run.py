@@ -1,6 +1,6 @@
-"""KERISE v2 in the simulator, in the classic maze (its firmware's for it): switched on in the start cell, its mode
-picked with its button (0: its search) and started with a hand in front of its front sensors, as its firmware asks;
-then its MazeSolver: its search to the goal and back to the start, then its fast runs. Optionally records a video.
+"""KERISE v1 in the simulator, in the classic maze: switched on in the start cell, its speed picked with its button
+(wheels still: 600 mm/s) and started with a hand in front of its front sensors, as its firmware asks; then its
+MazeSolver: its search to the goal and back to the start, then its fast runs. Optionally records a video.
 
     ratasim kerise [--maze oshwdem2026] [--headless] [--record out.mp4] [--max-s N] [--echo]
 """
@@ -33,7 +33,7 @@ def main(argv=None):
     maze = Maze.load(maze_path(a.maze))
     r = KRobot(maze, seed=a.seed)
     clock = Stopwatch(r.maze)
-    rec = make_view(r, a, 'KERISE v2 (kerikun11)', led=r.led, clock=clock)
+    rec = make_view(r, a, 'KERISE v1 (kerikun11)', led=r.led, clock=clock)
     a.max_s = time_limit(a, rec, 300)
     log = open(a.log, 'w') if a.log else None
     t0 = time.monotonic()
@@ -49,18 +49,18 @@ def main(argv=None):
                 log.write(f'[{r.fw.time_ms() / 1000:8.3f}] {line}\n')
             if a.echo:
                 print(f'  | {line}')
-            if line.startswith('start_step') and not state['started']:
+            if line.startswith('Action: start_step') and not state['started']:
                 state['started'] = True
                 print(f'{now()} its search started')
             elif line.startswith('maze_backup'):
                 print(f'{now()} its search at the goal, at {[round(v) for v in r.pose()]}')
             elif line.startswith('agent.calcRunSequence') and not state['back']:
                 state['back'] = True
-                print(f'{now()} its search back to the start')
-            elif line.startswith('Fast Run'):
+                print(f'{now()} its search back to the start, at {[round(v) for v in r.pose()]}')
+            elif line.startswith('runSequence.size()'):
                 state['fast'] += 1
                 print(f'{now()} its fast run {state["fast"]}')
-            elif line.startswith(('Battery Low', 'Released Emergency')) or 'Calibration' in line:
+            elif line.startswith(('Battery Low', 'Release Emergency')) or 'Calibration' in line:
                 print(f'{now()} {line.strip()}')
 
     def run(ms, fast=False):

@@ -1,71 +1,71 @@
-"""KERISE v2 (kerikun11, github.com/kerikun11/micromouse-kerise-v2) in the simulator: where its repository is, its
+"""KERISE v1 (kerikun11, github.com/kerikun11/micromouse-kerise-v1) in the simulator: where its repository is, its
 geometry and the physics assumed for it. Robot frame (mm): x right, y forward, z up, origin on the axle between the
 wheels, on the floor.
 
 Its repository has no licence; its author allows ratasim to use it: nothing of it is copied here. The submodule
-external/kerise is read at build time: its firmware built from it (fw/), its board from its KiCad file and its
-motors' mounts from its STL (cad.py).
+external/kerise-v1 is read at build time: its firmware built from it (fw/), its board from its KiCad file, its
+motors' mounts and its wheels from its STL files (cad.py).
 
-The submodule is pinned at its firmware for the classic maze: commit 7e3d561 (2017-01-13, "速度一定の自律走行
-(クラシック)", its search at a constant speed in the classic maze), on its v2 board (its code moved to it on
-2017-01-08), before its author turned it to half size (cdc1e0b, HALF_SIZE; its classic branch since then does not
-build). Its board and mounts are the same there as at its last commit."""
+The submodule is pinned at its firmware as it ran at the 37th All Japan Micromouse Contest (2016-11-19 and 20, its
+classic Freshman class: 10th in the qualifying, 9th in the final): commit ab43c54 (2016-11-18, the day after
+811b22e, "本番環境で動いた", it ran in the contest's own conditions). A classic micromouse: 180 mm cells."""
 import math
 import os
 
 from .. import paths
 
-KERISE_DIR = os.environ.get('KERISE_DIR', os.path.join(paths.EXTERNAL, 'kerise'))
-# KERISE v1's repository (the same author's, the same motors, wheels and gears): its wheels' STL (cad.py)
-KERISE_V1_DIR = os.environ.get('KERISE_V1_DIR', os.path.join(paths.EXTERNAL, 'kerise-v1'))
+KERISE_DIR = os.environ.get('KERISE_DIR', os.path.join(paths.EXTERNAL, 'kerise-v1'))
 HERE = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.join(HERE, 'build')             # its meshes, its firmware's library (not committed)
 
-# ---- Its maze: classic (its config.h: WALL_THICKNESS 12, its MazeSolver's 180 mm segments; walls 50 mm high) ------
+# ---- Its maze: classic (180 mm cells, 12 mm walls 50 mm high; its MoveAction's 180 and 90 mm moves) ---------------
 CELL_MM = 180.0
 WALL_MM = 12.0
 WALL_H_MM = 50.0
 
-# ---- Its board (kicad/KERISEv2.kicad_pcb): 1.0 mm thick; the robot's origin at (143, 134) in KiCad's frame (mm,
-# y down), the middle of its wheels' cut-outs. Its front is KiCad's -y.
-PCB_ORIGIN = (143.0, 134.0)
+# ---- Its board (kicad/Mouse-01.kicad_pcb): 1.0 mm thick, 74 by 72 mm: a half disc 37 mm across its nose, its wheels
+# in two cut-outs (x 24 to 37 from its middle, 22 mm long), its tail's corners rounded. The robot's origin at (143,
+# 99) in KiCad's frame (mm, y down), the middle of its wheels' cut-outs; its front is KiCad's -y.
+PCB_ORIGIN = (143.0, 99.0)
 PCB_MM = 1.0
-# Its motors' mounts (3dcad/-4digree.stl, two plates, inches): standing on the board, their foot along y, the wheel's
-# axle through one hole 10.35 mm over the board and the motor's through another 12.1 mm over it, 12 mm ahead or
-# behind (cad.py measures them): the board's top is the axle's height less 10.35, 1.8 mm over the floor.
-MOUNT_AXLE_MM = 10.35
-MOUNT_MOTOR_MM = 12.1
-MOTOR_OFFSET_MM = 12.0          # its motors' axes from the wheels': the left wheel's motor ahead, the right one's
-#                                 behind (in its photos: each motor's encoder by the other wheel, its ribbon cable down
-#                                 to its header, P1 ahead on the right, P2 behind on the left)
+# Its motors' mounts (3dprint/mounter-4set.stl, four plates 28 by 17.5, 4 mm thick, mm): each standing on the board
+# along y over its two screws (KiCad's holes at x +-22, y 0 and 22), its wheel's axle through a hole 9.1 mm over the
+# board at y 0, its motor's face in a recess on its inner face, the motor's boss through a hole 8.5 mm over the board
+# at y 11.5 (cad.py measures them): the board's top is the axle's height less 9.1, 3.2 mm over the floor.
+MOUNT_X_MM = 22.0               # the plates' middles (their screws), 4 mm thick
+MOUNT_AXLE_MM = 9.1
+MOUNT_MOTOR_MM = 8.5
+MOTOR_OFFSET_MM = 11.5          # both motors ahead of the axle, on one line (its photo: one black cylinder between
+#                                 the mounts, their encoders meeting in the middle, their ribbon cables to P1 and P2)
 
-# Its motors (Faulhaber 1717T006SR with its IEH2 encoder: 17 mm across, 17 mm long, the encoder 5.5 mm more): each
-# with its face in its mount's recess, 9 mm from the middle, its encoder's end by the other wheel; their axes
-# MOUNT_MOTOR_MM over the board. Its battery (two LG325-0120 cells, one on the other) on them.
+# Its motors (Faulhaber 1717T006SR with its IEH2 encoder: 17 mm across, 17 mm long, the encoder 4.5 mm more): each
+# from its face in its mount's recess (2 mm deep) inwards, its encoder by the other's
 MOTOR_R_MM = 8.5
-MOTOR_FACE_X_MM = 9.0
+MOTOR_FACE_X_MM = MOUNT_X_MM
 MOTOR_LEN_MM = 17.0
-ENCODER_LEN_MM = 5.5
-CELL_HALF_MM = (12.5, 17.0, 1.65)       # each cell's half sizes
-# ---- From its firmware (external/kerise/firmware/config.h) ------------------------------------------------------
-WHEEL_DIAMETER_MM = 24.65
+ENCODER_LEN_MM = 4.5
+CELL_HALF_MM = (17.0, 6.0, 1.6)         # each of its two cells' half sizes (LG325-0120), side by side on its motors
+
+# ---- From its firmware (external/kerise-v1/firmware/config.h) ---------------------------------------------------
+WHEEL_DIAMETER_MM = 24.665
 GEAR_RATIO = 4.0                # WHEEL_GEER_RATIO 0.25: four turns of the motor a turn of the wheel
 ENCODER_COUNTS = 1024 * 4       # IEH2-1024 on each motor, counted x4
-ROTATION_RADIUS_MM = 21.6       # MACHINE_ROTATION_RADIUS: half its track
-TAIL_MM = 24.0                  # MACHINE_TAIL_LENGTH (24 * 1, "Classic: 1"): its axle from its tail
+ROTATION_RADIUS_MM = 33.0       # MACHINE_ROTATION_RADIUS: half its track
+TAIL_MM = 24.0                  # its START_STEP (90 - 24 - 6): its axle from its tail (its board: 24 mm)
 WHEEL_RADIUS_MM = WHEEL_DIAMETER_MM / 2
 BOARD_Z_MM = WHEEL_RADIUS_MM - MOUNT_AXLE_MM    # the board's top over the floor
 TIRE_WIDTH_MM = 5.0
-TRACK_X_MM = ROTATION_RADIUS_MM                 # its tyres' middles (its cut-outs: x 12 to 25 from the middle)
+TRACK_X_MM = ROTATION_RADIUS_MM                 # its tyres' middles (its cut-outs: x 24 to 37 from the middle)
 MOTOR_Z_MM = BOARD_Z_MM + MOUNT_MOTOR_MM        # its motors' axes over the floor
 BATTERY_Z_MM = MOTOR_Z_MM + MOTOR_R_MM          # its battery's bottom
 
-# IR sensors: an emitter (VSLY5850) over a photodiode (SFH213FA), both in the same footprint, lying on the board:
-# where their lenses are and their axes (deg from +x counter-clockwise, 90 forward), from their footprints (KiCad
-# LED-5MM_Angle: the body towards the footprint's -y, its lens 6 mm out). Firmware order (Reflector: its ADC
-# channels 10-13): SL, FL, FR, SR.
-IR_FOOTPRINTS = {'SL': ((130.0, 113.0), 80.0), 'FL': ((133.5, 110.0), 5.0),
-                 'FR': ((152.5, 110.0), 355.0), 'SR': ((156.0, 113.0), 280.0)}
+# IR sensors: four pairs of an emitter (VSLY5850, clear) and a photodiode (SFH213FA, black) side by side, lying on the
+# board (KiCad's LED-5MM_Angle and Photo-5MM_Angle: their bodies towards the footprint's -y, their lenses 6 mm out).
+# Its front pair at its flanks looking ahead 15 deg out, its side pair by its nose looking sideways 15 deg ahead. The
+# beam from the emitter's lens along its axis (deg from +x counter-clockwise, 90 forward). Firmware order (Reflector:
+# ADC channels 10-13, its emitters PB14 for SL and FR, PB15 for SR and FL): SL, FL, FR, SR.
+IR_FOOTPRINTS = {'SL': ((139.19, 58.36), 75.0), 'FL': ((112.52, 85.67), 15.0),      # D2, D8
+                 'FR': ((173.48, 86.3), 345.0), 'SR': ((146.81, 58.36), 285.0)}    # D3, D9
 IR_LENS_MM = 6.0
 
 
@@ -77,15 +77,16 @@ def _sensor(at, rot):
 
 
 IR_SENSORS = {n: _sensor(*v) for n, v in IR_FOOTPRINTS.items()}
-IR_Z_MM = BOARD_Z_MM + 4.0          # the emitter's axis: lying on the photodiode, over the board
+IR_Z_MM = BOARD_Z_MM + 2.5          # their axes: 5 mm parts lying on the board
 
-# ---- Assumed (its README and photos: two LG325-0120-1S cells in series, its firmware's battery check at 7.6 V of
-# 8.2 V; the rest not measured) -------------------------------------------------------------------------------------
+# ---- Assumed (its README and photo: two LG325-0120 cells in series, its firmware's battery check at 7.6 V; its
+# weight from its parts; the rest not measured) ----------------------------------------------------------------------
 BATTERY_V = 8.0
-MASS_KG = 0.050                     # two 1717 motors (about 18 g each), its board, battery, wheels, mounts
-COM_MM = (0.0, 0.0, 14.0)            # its motors at 12.75 mm, its battery over them
-YAW_INERTIA = 1.6e-5                # kg m^2: its motors across it, near the axle
-TIRE_FRICTION = 1.5                 # its tyres' grip (urethane; less, and they slip as its moves start at full speed)
+MASS_KG = 0.060                     # two 1717 motors with encoders (about 15 g each), its board (9 g), cells (7 g),
+#                                     wheels, mounts and parts
+COM_MM = (0.0, 8.0, 10.0)           # its motors and most of its board ahead of the axle
+YAW_INERTIA = 2.2e-5                # kg m^2: its motors (8e-6), board (8e-6), wheels (4.4e-6), cells
+TIRE_FRICTION = 1.5                 # its tyres' grip (urethane)
 TIRE_SINK_MM = 0.08                 # how far its tyres sink into the floor (MuJoCo's soft contact): their collision
 #                                     cylinders that much bigger, so that they roll on its firmware's wheel diameter
 # Faulhaber 1717T006SR (its datasheet's typical values): 3.4 ohm, 5.94 mNm/A; at the wheel through its 4:1 gears.
@@ -94,16 +95,13 @@ MOTOR_KT = 0.00594 * GEAR_RATIO     # N m/A, V s/rad at the wheel
 WHEEL_FRICTION_NM = 0.0006
 WHEEL_ARMATURE = 0.6e-7 * GEAR_RATIO ** 2    # its rotor (0.6 g cm^2) through its 4:1 gears, at the wheel (kg m^2)
 # Its IR sensors: the light back at a receiver in ADC counts, K / d^IR_EXP (d the beam's length to the wall, mm),
-# so that it reads about 900 centred between two walls of the classic maze (its side sensors' beams 66 mm long); the
-# amplifier saturates at 2048 (its zero). A hand 30 mm in front of its front sensors saturates them (it waits for
-# both over 1200). Its WallDetector tells walls from its start cell's side walls: a side wall over a third of them,
-# a front wall over a sixth (WALL_SIDE_DIV 3, WALL_FRONT_DIV 6, its author's for the classic maze). It looks at a
-# cell's walls 15 to 20 mm before its edge, its front wall then 165 mm away: a sixth needs its light to fall slower
-# than 1/d^2 there (its narrow beams; assumed 1.7: a front wall a cell away about 190, two cells away about 55, no
-# side wall about 95), times the cosine between the beam and the wall's face (a matte face: a wall seen aslant, as
-# its side beams see the next cells' walls, sends less back).
-IR_EXP = 1.7
-IR_K = 900.0 * 66.0 ** IR_EXP
+# times the cosine between the beam and the wall's face (a matte face), so that its side sensors read about 900
+# centred in a cell (their beams 77 mm long); the amplifier saturates at 2048 (its zero). Its WallDetector tells
+# walls from its start cell's side walls: a side wall over a third of them, a front wall over (SL + SR) * 0.56 / 3;
+# it looks at a cell's walls from its middle. A hand 30 mm in front of its front left sensor saturates it (it waits
+# for over 300).
+IR_EXP = 2.0
+IR_K = 900.0 * 77.0 ** IR_EXP
 IR_SPREAD_DEG = 2.0                 # its beams' spread (sigma; its VSLY5850s: +-3 deg at half intensity)
 IR_NOISE = 0.01                     # of the reading
 # Its MPU6500: the real bias of its z gyro (its firmware measures it standing still) and the noise
@@ -122,11 +120,10 @@ def counts_per_rad():
 
 def start(cell, heading_deg):
     """As its firmware starts a search (main.cpp): switched on in the start cell, its tail against the back wall;
-    a beep and its LEDs show its battery. Its button: its mode, by turning a wheel (left still: mode 0, its search);
-    its button again: its sensors on, it waits for a hand in front of its front sensors (both over 1200). Then it
-    calibrates its gyro and its sensors (the side walls of its start cell), backs against its back wall, calibrates
-    them again and goes (about 2.2 s after the hand)."""
+    a beep and its LEDs show its battery. Its button: its speed, by turning a wheel (left still: 600 mm/s); its
+    button again: its sensors on, it waits for a hand in front of its front left sensor (over 300). Then its
+    MazeSolver: it calibrates its gyro and its sensors (the side walls of its start cell) and goes."""
     return [('put_down', cell, heading_deg), ('say', 'switched on'), ('wait', 1500),
-            ('say', 'its button: the mode (wheels still: 0, its search)'), ('press', 0, 100), ('wait', 600),
+            ('say', 'its button: its speed (wheels still: 600 mm/s)'), ('press', 0, 100), ('wait', 600),
             ('say', 'its button: its sensors on'), ('press', 0, 100), ('wait', 600),
-            ('say', 'a hand in front of its front sensors'), ('hand', ['FL', 'FR'], 300), ('wait', 2400)]
+            ('say', 'a hand in front of its front sensors'), ('hand', ['FL', 'FR'], 300), ('wait', 2000)]

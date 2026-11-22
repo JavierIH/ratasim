@@ -1,13 +1,13 @@
-# KERISE v2's firmware (the submodule external/kerise, or KERISE_DIR: firmware/) as a shared library for the
+# KERISE v1's firmware (the submodule external/kerise-v1, or KERISE_DIR: firmware/) as a shared library for the
 # simulator: its files, unchanged but for one line, on our mbed and HAL (mbed.h, kchip.cpp). Its main() is built
 # renamed (kerise_main): kchip.cpp runs it as its main thread.
-# The one line: its goal (MazeSolver/MazeSolver_conf.h, MAZE_GOAL_LIST, the cell east of its start as published) is
-# the maze's, GOAL ("x,y x,y ..."), as its maker would set it for a contest. Its files are copied to $(BUILD)/src with
-# it changed (its headers include each other by their own directory).
+# The one line: its goal (MazeSolver/MazeSolver_conf.h, MAZE_GOAL_LIST, one cell as published) is the maze's, GOAL
+# ("x,y x,y ..."), as its maker would set it for a contest. Its files are copied to $(BUILD)/src with it changed (its
+# headers include each other by their own directory).
 # -funsigned-char: as on its Cortex-M4 (its Makefile's flags). -Bsymbolic: its globals are its own (the robots'
 # libraries share names). -U_FORTIFY_SOURCE: Ubuntu's g++ defines _FORTIFY_SOURCE at -O2, and glibc's headers then
 # turn its printf calls into __printf_chk, past kchip.cpp's printf (what it prints would go to the terminal).
-KERISE_DIR ?= $(abspath ../../../external/kerise)
+KERISE_DIR ?= $(abspath ../../../external/kerise-v1)
 FW        := $(KERISE_DIR)/firmware
 BUILD     := ../build
 SRC       := $(BUILD)/src

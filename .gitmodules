@@ -31,9 +31,6 @@
 [submodule "external/Miniskybot"]
 	path = external/Miniskybot
 	url = https://github.com/Obijuan/Miniskybot
-[submodule "external/kerise"]
-	path = external/kerise
-	url = https://github.com/kerikun11/micromouse-kerise-v2
 [submodule "external/kerise-v1"]
 	path = external/kerise-v1
 	url = https://github.com/kerikun11/micromouse-kerise-v1.git
