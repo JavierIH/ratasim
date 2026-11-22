@@ -168,29 +168,35 @@ class Maze:
 
 
 def maze_names():
-    """{name: file} of every maze known by name: ratasim/mazes's, then the competition mazes of external/mazefiles
-    (classic, training, halfsize; none if that submodule is not downloaded)."""
+    """{name: file} of every maze known by name: ratasim/mazes's, then the classic competition mazes of
+    external/mazefiles (none if that submodule is not downloaded)."""
     names = {}
-    for folder in [os.path.join(paths.MAZEFILES, s) for s in reversed(paths.MAZE_SETS)] + [MAZES]:
+    for folder in (paths.CLASSIC_MAZES, MAZES):
         if os.path.isdir(folder):
             names.update({f[:-4]: os.path.join(folder, f) for f in os.listdir(folder) if f.endswith('.txt')})
     return names
 
 
+def _inside(path, folder):
+    path, folder = os.path.realpath(path), os.path.realpath(folder)
+    return os.path.commonpath([path, folder]) == folder
+
+
 def maze_path(name):
-    """A maze file, or the name of one: of ratasim/mazes (`oshwdem2026`) or of external/mazefiles (`japan2000`,
-    `classic/japan2000`), that submodule downloaded the first time one of its mazes is asked for (`ratasim mazes`
-    lists them all). Every maze is built from its text when the scene is made: no model of it is stored."""
+    """A maze file, or the name of one: of ratasim/mazes (`oshwdem2026`) or a classic one of external/mazefiles
+    (`japan2000`, `classic/japan2000`), that submodule downloaded the first time one of its mazes is asked for
+    (`ratasim mazes` lists them all). Of the submodule only `classic/` is loaded: its half-size and training mazes are
+    refused, by name or by file. Every maze is built from its text when the scene is made: no model of it is stored."""
     if os.path.exists(name):
+        if _inside(name, paths.MAZEFILES) and not _inside(name, paths.CLASSIC_MAZES):
+            raise SystemExit(f'{name}: only the classic mazes of external/mazefiles are loaded (classic/)')
         return name
     key = name[:-4] if name.endswith('.txt') else name
+    if key.startswith('classic/'):
+        key = key[len('classic/'):]
     for attempt in (0, 1):
         names = maze_names()
-        if '/' in key:
-            found = os.path.join(paths.MAZEFILES, key + '.txt')
-            if key.split('/')[0] in paths.MAZE_SETS and os.path.exists(found):
-                return found
-        elif key in names:
+        if key in names:
             return names[key]
         if attempt or not paths._empty('external/mazefiles'):
             break
@@ -198,6 +204,6 @@ def maze_path(name):
         if message:
             raise SystemExit(f'no maze {name!r} among the bundled ones; for the competition mazes, {message}')
     import difflib
-    close = difflib.get_close_matches(key.split('/')[-1], list(names), n=5)
+    close = difflib.get_close_matches(key, list(names), n=5)
     raise SystemExit(f'no maze {name!r}' + (f' (close: {", ".join(close)})' if close else '')
-                     + '; `ratasim mazes` lists them')
+                     + '; `ratasim mazes` lists them (of external/mazefiles, only the classic ones)')

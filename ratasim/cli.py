@@ -16,7 +16,7 @@
     ratasim minisumo OUT.mp4 [--robots a,b,c]   a minisumo bout, all at once on one dohyo, then its podium (a video)
     ratasim crash|loop OUT.mp4 [options]   scenes with Ratatron and ZoroBot3 (videos)
     ratasim portraits [DIR]         a square picture of each robot
-    ratasim mazes [PATTERN] [--show NAME]   the mazes --maze takes by name (525 classic competition mazes)
+    ratasim mazes [PATTERN] [--show NAME]   the mazes --maze takes by name (525 classic competition ones)
     ratasim help                    this
 """
 import runpy

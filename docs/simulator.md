@@ -7,7 +7,7 @@ Code: `ratasim/` (the ZoroBot3 part: `ratasim/zorobot/`, [robots.md](robots.md#z
 ```
 ratasim                              # viewer + console on stdin; a generated maze (seed 1); started: the search
 ratasim --maze oshwdem2026           # a maze of ratasim/mazes, or any micromouseonline maze file
-ratasim --maze japan2000             # a competition maze of external/mazefiles by name (ratasim mazes)
+ratasim --maze japan2000             # a classic competition maze of external/mazefiles (ratasim mazes)
 ratasim --maze oshwdem2026 --race 4  # started on race 2.4 of its race menu, on the map the search saved
 ratasim --headless --speed 0 --erase-flash          # the search, headless: it ends 8 s after the run
 ratasim --headless --speed 0 --cmd "MODE 1" --cmd START --until-idle   # a script instead of its start
@@ -28,11 +28,12 @@ ratatron connect --sim               # then ratatron monitor / ratatron send, as
   wall" when the hull does. The flash (saved map) persists in `ratasim/build/flash.bin`.
 - `--slip DEG` (also in `batch`): in the first 100 mm of every move from rest one encoder counts DEG of encoder
   heading (+ left) more than its wheel rolls; `--slip 6` gives the robot's run-up slip at `ACCEL` 3000 (11-17).
-- `--maze NAME` looks in `ratasim/mazes`, then in the submodule `external/mazefiles`
-  ([micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles): `classic/`, `training/`,
-  `halfsize/`; `classic/NAME` picks the folder), which is downloaded (y/N) the first time one of its names is asked
-  for. `ratasim mazes [PATTERN]` lists the names, `--show NAME` draws one, `--paths` gives their files (for
-  `batch`). Only the text is kept: the walls and posts are built from it when the scene is made.
+- `--maze NAME` looks in `ratasim/mazes`, then in the classic mazes of the submodule `external/mazefiles`
+  (Peter Harrison's [micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles), its `classic/`
+  folder: 525 16x16; `classic/NAME` also works), downloaded (y/N) the first time one of its names is asked for. Its
+  half-size and training mazes are refused, by name or by file. `ratasim mazes [PATTERN]` lists the names, `--show
+  NAME` draws one, `--paths` gives their files (for `batch`). Only the text is kept: the walls and posts are built
+  from it when the scene is made.
 - Studies: `ratasim batch` (many mazes; `--maps` reuses saved searches for race-only changes, `--practice`),
   `curves` (every curve against the cells), `failures`, `mapdiff`, `ir-info` / `real-ir` (the IR in curves),
   `demo` (a video of the simulator and the monitor together).

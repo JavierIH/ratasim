@@ -1,7 +1,7 @@
-"""The mazes a robot can be run in by name (--maze NAME): ratasim/mazes's and the competition mazes of
-github.com/micromouseonline/mazefiles (the submodule external/mazefiles: 525 classic 16x16 from APEC, All Japan, UK,
-..., 16 training, 42 half size). Each is a text file; the scene is built from it when a robot runs, nothing else is
-stored.
+"""The mazes a robot can be run in by name (--maze NAME): ratasim/mazes's and the classic competition mazes of Peter
+Harrison's github.com/micromouseonline/mazefiles (the submodule external/mazefiles, its classic/ folder: 525 16x16
+from APEC, All Japan, UK, ...; its half-size and training ones are not loaded). Each is a text file; the scene is
+built from it when a robot runs, nothing else is stored.
 
     ratasim mazes                    # every name, by set
     ratasim mazes japan              # the names with "japan" in them (a glob if it has * ? [)
@@ -19,7 +19,7 @@ from .maze import MAZES, Maze, maze_path
 
 def sets():
     """[(set name, its folder, [maze names])]: the bundled ones first, then the submodule's folders."""
-    folders = [('ratasim/mazes', MAZES)] + [(s, os.path.join(paths.MAZEFILES, s)) for s in paths.MAZE_SETS]
+    folders = [('ratasim/mazes', MAZES), ('classic (micromouseonline/mazefiles, Peter Harrison)', paths.CLASSIC_MAZES)]
     return [(s, f, sorted(n[:-4] for n in os.listdir(f) if n.endswith('.txt'))) for s, f in folders if os.path.isdir(f)]
 
 

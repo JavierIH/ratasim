@@ -110,11 +110,12 @@ The other robots open MuJoCo's window at real time; `--headless`, `--record out.
 
 ### Mazes
 
-Every robot takes `--maze` with a file in the [micromouseonline](https://github.com/micromouseonline/mazefiles) text
-format or a name: the five of `ratasim/mazes` (`oshwdem2026`, the practice and test mazes) or one of the competition
-mazes of [micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles) (Peter Harrison's collection,
-the submodule `external/mazefiles`): 525 classic 16x16 from APEC, All Japan, the UK and many more, 16 training and
-42 half size. Only their text is kept; the maze is built from it when the scene is made.
+Every robot takes `--maze` with a file in the micromouseonline text format or a name: the five of `ratasim/mazes`
+(`oshwdem2026`, the practice and test mazes) or one of the 525 classic 16x16 competition mazes (APEC, All Japan,
+the UK and many more) of [micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles), the collection
+that [Peter Harrison](https://github.com/micromouseonline) has gathered from many sources over the years, here the
+submodule `external/mazefiles`. Only its `classic/` folder is loaded (its half-size and training mazes are not), and
+only their text is kept: the maze is built from it when the scene is made.
 
 ```sh
 ratasim mazes                        # every name; ratasim mazes japan: the ones with "japan"
@@ -122,8 +123,6 @@ ratasim mazes --show japan2000       # one drawn
 ratasim kerise --maze japan2000
 ratasim batch out $(ratasim mazes --paths 'alljapan-*')   # Ratatron over many
 ```
-
-The half-size ones are drawn with the classic 180 mm cells, as the rest: the robots here are classic and map 16x16.
 
 ### Running ZoroBot3
 
@@ -279,4 +278,4 @@ controller sample, its board's Gerber files and its printed parts are downloaded
 SHA-256, and stay out of git; ST's library is not used
 (`ratasim/futura/fw` simulates the part of its API the template calls). Fujin's team's photos of its board
 (raiju.team), its art's only source, are downloaded at build time, pinned by their SHA-256, and stay out of git.
-Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES). The competition mazes (`external/mazefiles`, Peter Harrison and its contributors) carry no licence; they are a submodule, not copied here. The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's, Miniskybot's and KERISE v1's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
+Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES). The competition mazes are Peter Harrison's collection ([micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles)), gathered with its contributors from the contests' own maps; it carries no licence, so it is a submodule and none of its files is copied here. The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's, Miniskybot's and KERISE v1's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
