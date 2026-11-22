@@ -44,6 +44,7 @@ RUNS = {        # its command and arguments (tests/robots.py's), {flash}: a blan
     'fujin': ['fujin', '--headless', '--max-s', '400'],
     'futura': ['futura', '--headless', '--max-s', '60'],
     'ukmarsbot': ['ukmarsbot', '--headless', '--max-s', '400'],
+    'kerise': ['kerise', '--headless', '--max-s', '300'],
 }
 
 

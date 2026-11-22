@@ -248,8 +248,8 @@ control of its own. Drag race, crash and loop use each robot's speed profile, wi
 
 ```sh
 ratasim maze-race maze-race.mp4     # Ratatron, ZoroBot3, Bulebule, Fujin, UKMARSBOT: their searches, x4
-ratasim drag-race race.mp4          # 3 m, all ten: start lights, lanes, a checkered finish
-ratasim minisumo sumo.mp4           # all ten on one dohyo, the last one left wins
+ratasim drag-race race.mp4          # 3 m, all eleven: start lights, lanes, a checkered finish
+ratasim minisumo sumo.mp4           # all eleven on one dohyo, the last one left wins
 ratasim minisumo --still podium.jpg --podium    # a picture of the podium after the bout
 ratasim crash crash.mp4 --ramp      # Ratatron and ZoroBot3 head-on on the maze's longest straight, over a ramp
 ratasim loop loop.mp4               # Ratatron and ZoroBot3 through a loop-the-loop beside the maze

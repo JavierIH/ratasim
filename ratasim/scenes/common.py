@@ -22,7 +22,7 @@ from ..fujin import config as FC, model as FM   # noqa: E402
 from ..futura import config as UC, model as UM   # noqa: E402
 from ..ukmarsbot import config as KC, model as KM   # noqa: E402
 from ..miniskybot import config as MC, model as MM_   # noqa: E402
-from ..kerise import model as EM   # noqa: E402
+from ..kerise import config as EC, model as EM   # noqa: E402
 
 MM = 0.001
 RAT_V, RAT_A = 0.9, 2.0                 # Ratatron's race preset: FAST_FULL_SPEED, RACE_ACCEL_MM_S2
@@ -51,6 +51,8 @@ ROBOTS = {
                       r=KC.AXLE_Z * MM, mass=KC.MASS_KG),
     'miniskybot': dict(prefix='m_', flag='miniskybot', name='Miniskybot', colour=(170, 210, 255),
                        r=MC.WHEEL_RADIUS_MM * MM, mass=MC.MASS_KG),
+    'kerise': dict(prefix='e_', flag='kerise', name='KERISE v1', colour=(255, 175, 130), r=EC.WHEEL_RADIUS_MM * MM,
+                   mass=EC.MASS_KG),
 }
 
 
@@ -149,7 +151,7 @@ def scene_xml(maze, with_maze=True, rat_mass=0.200, hull_solref=None, gamusino=F
         xml = xml.replace('</worldbody>', MM_.robot_xml(prefix='m_') + '</worldbody>', 1)
         xml = xml.replace('</actuator>', '<motor name="m_motor_l" joint="m_wheel_l"/>'
                           '<motor name="m_motor_r" joint="m_wheel_r"/></actuator>', 1)
-    if kerise:      # KERISE v1 (here only for its portrait)
+    if kerise:      # KERISE v1
         xml = re.sub(r'(</default>\s*<asset>)', lambda m: EM.defaults_xml() + m.group(1), xml, count=1)
         xml = xml.replace('</asset>', EM.assets_xml() + '</asset>', 1)
         xml = xml.replace('</worldbody>', EM.robot_xml(prefix='e_') + '</worldbody>', 1)
