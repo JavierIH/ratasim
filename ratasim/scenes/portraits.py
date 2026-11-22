@@ -27,7 +27,7 @@ ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation[, the he
     'futura': ('u_', 0.18, 215, -32),
     'ukmarsbot': ('k_', 0.22, 215, -32),
     'miniskybot': ('m_', 0.27, 215, -26, 0.03),
-    'kerise': ('e_', 0.21, 215, -30),
+    'kerise': ('e_', 0.155, 215, -30),
 }
 SHADOW_CLIP = {'kerise': 0.15}   # its shadows' map over less than the scene (m): the small ones' shadows without steps
 SKY = 'rgb1="0.17 0.18 0.21" rgb2="0.04 0.04 0.05"'          # a dark studio
