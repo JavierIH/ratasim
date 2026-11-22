@@ -1,4 +1,4 @@
-# ratasim
+# Ratasim
 
 [![CI](https://github.com/JavierIH/ratasim/actions/workflows/ci.yml/badge.svg)](https://github.com/JavierIH/ratasim/actions/workflows/ci.yml)
 
@@ -92,22 +92,6 @@ python3 -m venv .venv
 pip install -e .[cad]            # with gmsh, to make some robots' meshes from their 3D models
 ```
 
-### Running Ratatron
-
-<img src="docs/images/maze-ratatron.jpg" alt="Ratatron searching the OSHWDEM 2026 maze" align="right" width="280">
-
-```sh
-ratasim --maze oshwdem2026
-ratasim --maze oshwdem2026 --race 4
-```
-
-A viewer opens and the terminal becomes its console. The firmware is compiled on the first run; the robot searches to
-the goal and back, then races on the saved map with `--race`. Page Up / Page Down are its SELECT and START buttons,
-End puts it back at the start.
-
-The other robots open MuJoCo's window at real time; `--headless`, `--record out.mp4` or no screen run without it
-(`--speed 0`: as fast as possible). More: [docs/simulator.md](docs/simulator.md).
-
 ### Mazes
 
 Every robot takes `--maze` with a file in the micromouseonline text format or a name: the five of `ratasim/mazes`
@@ -123,6 +107,22 @@ ratasim mazes --show japan2000       # one drawn
 ratasim kerise --maze japan2000
 ratasim batch out $(ratasim mazes --paths 'alljapan-*')   # Ratatron over many
 ```
+
+### Running Ratatron
+
+<img src="docs/images/maze-ratatron.jpg" alt="Ratatron searching the OSHWDEM 2026 maze" align="right" width="280">
+
+```sh
+ratasim --maze oshwdem2026
+ratasim --maze oshwdem2026 --race 4
+```
+
+A viewer opens and the terminal becomes its console. The firmware is compiled on the first run; the robot searches to
+the goal and back, then races on the saved map with `--race`. Page Up / Page Down are its SELECT and START buttons,
+End puts it back at the start.
+
+The other robots open MuJoCo's window at real time; `--headless`, `--record out.mp4` or no screen run without it
+(`--speed 0`: as fast as possible). More: [docs/simulator.md](docs/simulator.md).
 
 ### Running ZoroBot3
 
@@ -266,11 +266,11 @@ ratasim portraits                   # the pictures above
 
 ## Credits and licences
 
-ratasim is free software under the GNU General Public License v3 or later (`LICENSE`, Copyright (C) 2026 JavierIH); each
+Ratasim is free software under the GNU General Public License v3 or later (`LICENSE`, Copyright (C) 2026 JavierIH); each
 robot keeps its authors' licence, as below, and what is a submodule or is downloaded at build time is not relicensed.
 
 Every robot belongs to its authors (above); their repositories are submodules and nothing of them is copied here.
-ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's, Fujin's and KERISE v1's repositories carry no licence (KERISE's author allows ratasim to use it); Perenquén's design is CC BY-SA
+ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's, Fujin's and KERISE v1's repositories carry no licence (KERISE's author allows Ratasim to use it); Perenquén's design is CC BY-SA
 4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,
 Eurobotics Engineering) GPLv2+; Gamusino's gyro library, STM32duino LSM6DSR (STMicroelectronics, BSD-3), is
 downloaded at build time. Futura's page (Green Ye, micromouseusa.com) gives no licence: its firmware template, its
