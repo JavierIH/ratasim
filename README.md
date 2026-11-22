@@ -89,7 +89,7 @@ cd ratasim
 git submodule update --init
 python3 -m venv .venv
 . .venv/bin/activate
-pip install -e .
+pip install -e .[cad]            # with gmsh, to make some robots' meshes from their 3D models
 ```
 
 ### Running Ratatron
@@ -113,7 +113,6 @@ The other robots open MuJoCo's window at real time; `--headless`, `--record out.
 <img src="docs/images/maze-zorobot3.jpg" alt="ZoroBot3 exploring the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
-pip install -e .[cad]           # gmsh, to make its meshes once
 ratasim zorobot --maze oshwdem2026 --record zorobot.mp4
 ```
 
@@ -167,7 +166,6 @@ A wall follower on a simulated dsPIC, started as its maker does (`start right 30
 <img src="docs/images/maze-fujin.jpg" alt="Fujin searching the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
-pip install -e .[cad]           # gmsh, to make its meshes from its STEP once
 ratasim fujin --maze oshwdem2026 --record fujin.mp4
 ```
 
