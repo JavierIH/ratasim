@@ -51,6 +51,7 @@ class Robot:
         self.act = {s: m.actuator(f'motor_{s}').id for s in 'lr'}
         self.sites = {n: m.site(f'ir_{n}').id for n in C.IR_SENSORS}
         self.led_geoms = [m.geom(f'led{i}').id for i in range(1, 7)]
+        self.led_mat = (m.material('led_off').id, m.material('led_on').id)
         self.ray_group = np.zeros(6, np.uint8)
         self.ray_group[WALL_GROUP] = 1
         self.ray_geom = np.zeros(1, np.int32)
@@ -241,8 +242,7 @@ class Robot:
         mujoco.mj_step(self.model, self.data, nstep=2)
         leds = self.fw.leds()
         for i, g in enumerate(self.led_geoms):
-            on = leds >> (5 - i) & 1
-            self.model.geom_rgba[g] = (1, 0.1, 0.05, 1) if on else (0.25, 0.05, 0.05, 1)
+            self.model.geom_matid[g] = self.led_mat[leds >> (5 - i) & 1]
         return self.fw.state
 
     def pose(self):

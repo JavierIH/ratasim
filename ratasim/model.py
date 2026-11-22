@@ -1,6 +1,7 @@
 """The MuJoCo scene: a micromouse maze (black floor, white walls, red tops) and the robot built from the CAD."""
 import json
 import os
+import struct
 
 from . import config as C
 
@@ -13,6 +14,25 @@ ROBOT_GROUP = 2
 with open(os.path.join(C.ASSETS, 'parts.json')) as _fp:
     PARTS = json.load(_fp)
 LED_X_MM = [-18.5, -13.5, -8.5, 8.5, 13.5, 18.5]    # LEDs 1-3 left, 4-6 right (the CAD's)
+LED_RGBA = (1.0, 0.0, 0.0, 1.0)     # the CAD's six LEDs: one part of this colour, split in six (led_meshes)
+
+
+def led_meshes():
+    """The CAD's LED part split by LED (each triangle to the nearest LED_X_MM): six inline <mesh>, mm -> m."""
+    part = next(p for p in PARTS if p['body'] == 'robot' and tuple(p['rgba']) == LED_RGBA)
+    d = open(os.path.join(C.ASSETS, part['mesh'] + '.stl'), 'rb').read()
+    n = struct.unpack('<I', d[80:84])[0]
+    tris = [struct.unpack('<9f', d[84 + 50 * i + 12:84 + 50 * i + 48]) for i in range(n)]
+    groups = [[] for _ in LED_X_MM]
+    for t in tris:
+        x = (t[0] + t[3] + t[6]) / 3
+        groups[min(range(len(LED_X_MM)), key=lambda i: abs(LED_X_MM[i] - x))].append(t)
+    out = []
+    for i, g in enumerate(groups):
+        verts = ' '.join(f'{v * MM:.6g}' for t in g for v in t)
+        faces = ' '.join(str(k) for k in range(3 * len(g)))
+        out.append(f'<mesh name="led_{i + 1}" vertex="{verts}" face="{faces}"/>')
+    return ''.join(out)
 
 
 def _f(*v):
@@ -61,9 +81,9 @@ def robot_xml():
     z0 = -C.GROUND_Z_MM * MM        # the CAD frame's height above the floor
     r = C.TIRE_RADIUS_MM * MM     # contact: a 2 mm band of the tire at CONTACT_X_MM (the 13 mm cylinder touched on its edges)
     meshes = ''.join(f'<geom class="visual" mesh="{p["mesh"]}" rgba="{_f(*p["rgba"])}"/>'
-                     for p in PARTS if p['body'] == 'robot')
-    leds = ''.join(f'<geom name="led{i + 1}" class="visual" type="box" pos="{_f(x * MM, -26.5 * MM, 18.5 * MM)}" '
-                   f'size="{_f(1.5 * MM, 1.0 * MM, 1.0 * MM)}" rgba="0.25 0.05 0.05 1"/>' for i, x in enumerate(LED_X_MM))
+                     for p in PARTS if p['body'] == 'robot' and tuple(p['rgba']) != LED_RGBA)
+    leds = ''.join(f'<geom name="led{i + 1}" class="visual" mesh="led_{i + 1}" material="led_off"/>'
+                   for i in range(len(LED_X_MM)))      # robot.py switches led_off / led_on as the firmware's LEDs
     sites = ''.join(f'<site name="ir_{name}" pos="{_f(*(v * MM for v in pos))}" size="0.0015" group="4" rgba="1 0 0 0.6"/>'
                     for name, (_, _, pos, _) in C.IR_SENSORS.items())
     wheels = ''
@@ -94,7 +114,7 @@ def robot_xml():
 
 def scene_xml(maze):
     mesh_assets = ''.join(f'<mesh name="{p["mesh"]}" file="{p["mesh"]}.stl" scale="0.001 0.001 0.001" inertia="shell"/>'
-                          for p in PARTS)
+                          for p in PARTS if tuple(p['rgba']) != LED_RGBA) + led_meshes()
     centre = maze.size * C.CELL_MM * MM / 2
     return f'''<mujoco model="ratatron_maze">
   <compiler meshdir="{C.ASSETS}" angle="degree" inertiafromgeom="auto"/>
@@ -117,6 +137,8 @@ def scene_xml(maze):
   <asset>
     <texture name="sky" type="skybox" builtin="gradient" rgb1="0.25 0.27 0.3" rgb2="0.05 0.05 0.06" width="256" height="256"/>
     <material name="floor" rgba="0.02 0.02 0.02 1" specular="0.1" shininess="0.1"/>
+    <material name="led_off" rgba="0.3 0.04 0.04 1" specular="0.6" shininess="0.8"/>
+    <material name="led_on" rgba="1 0.12 0.06 1" emission="1" specular="0.6" shininess="0.8"/>
     {mesh_assets}
   </asset>
   <worldbody>
