@@ -108,6 +108,23 @@ End puts it back at the start.
 The other robots open MuJoCo's window at real time; `--headless`, `--record out.mp4` or no screen run without it
 (`--speed 0`: as fast as possible). More: [docs/simulator.md](docs/simulator.md).
 
+### Mazes
+
+Every robot takes `--maze` with a file in the [micromouseonline](https://github.com/micromouseonline/mazefiles) text
+format or a name: the five of `ratasim/mazes` (`oshwdem2026`, the practice and test mazes) or one of the competition
+mazes of [micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles) (Peter Harrison's collection,
+the submodule `external/mazefiles`): 525 classic 16x16 from APEC, All Japan, the UK and many more, 16 training and
+42 half size. Only their text is kept; the maze is built from it when the scene is made.
+
+```sh
+ratasim mazes                        # every name; ratasim mazes japan: the ones with "japan"
+ratasim mazes --show japan2000       # one drawn
+ratasim kerise --maze japan2000
+ratasim batch out $(ratasim mazes --paths 'alljapan-*')   # Ratatron over many
+```
+
+The half-size ones are drawn with the classic 180 mm cells, as the rest: the robots here are classic and map 16x16.
+
 ### Running ZoroBot3
 
 <img src="docs/images/maze-zorobot3.jpg" alt="ZoroBot3 exploring the OSHWDEM 2026 maze" align="right" width="280">
@@ -262,4 +279,4 @@ controller sample, its board's Gerber files and its printed parts are downloaded
 SHA-256, and stay out of git; ST's library is not used
 (`ratasim/futura/fw` simulates the part of its API the template calls). Fujin's team's photos of its board
 (raiju.team), its art's only source, are downloaded at build time, pinned by their SHA-256, and stay out of git.
-Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES). The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's, Miniskybot's and KERISE v1's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
+Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES). The competition mazes (`external/mazefiles`, Peter Harrison and its contributors) carry no licence; they are a submodule, not copied here. The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's, Miniskybot's and KERISE v1's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.

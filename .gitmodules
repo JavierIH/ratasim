@@ -34,3 +34,6 @@
 [submodule "external/kerise-v1"]
 	path = external/kerise-v1
 	url = https://github.com/kerikun11/micromouse-kerise-v1.git
+[submodule "external/mazefiles"]
+	path = external/mazefiles
+	url = https://github.com/micromouseonline/mazefiles

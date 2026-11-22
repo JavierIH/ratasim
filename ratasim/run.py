@@ -28,23 +28,12 @@ import time
 from . import paths
 from .firmware import STATE_NAMES, build
 from .config import start as ratatron_start
-from .maze import Maze
+from .maze import Maze, maze_path   # the robots' runners import maze_path from here
 from .robot import Robot
 from .stopwatch import Stopwatch
 from .start import actions
 
 KEY_PAGE_UP, KEY_PAGE_DOWN, KEY_END = 266, 267, 269
-MAZES = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mazes')
-
-
-def maze_path(name):
-    """A maze file, or the name of one in sim/mazes (`oshwdem2026`)."""
-    if os.path.exists(name):
-        return name
-    bundled = os.path.join(MAZES, name if name.endswith('.txt') else name + '.txt')
-    if os.path.exists(bundled):
-        return bundled
-    raise SystemExit(f'no maze {name!r} (the bundled ones: {", ".join(sorted(f[:-4] for f in os.listdir(MAZES)))})')
 
 
 class Session:
@@ -336,7 +325,7 @@ class Recorder:
 
 def make_parser():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('--maze', help='maze file (micromouseonline text format); default: generated')
+    p.add_argument('--maze', help='maze file or name (ratasim mazes); default: generated')
     p.add_argument('--seed', type=int, default=1, help='generated maze and sensor noise seed')
     p.add_argument('--loops', type=float, default=0.08, help='generated maze: share of walls removed (loops)')
     p.add_argument('--practice', action='store_true', help='the practice build (goal 3,2)')
