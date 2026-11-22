@@ -121,9 +121,6 @@ A viewer opens and the terminal becomes its console. The firmware is compiled on
 the goal and back, then races on the saved map with `--race`. Page Up / Page Down are its SELECT and START buttons,
 End puts it back at the start.
 
-The other robots open MuJoCo's window at real time; `--headless`, `--record out.mp4` or no screen run without it
-(`--speed 0`: as fast as possible). More: [docs/simulator.md](docs/simulator.md).
-
 ### Running ZoroBot3
 
 <img src="docs/images/maze-zorobot3.jpg" alt="ZoroBot3 exploring the OSHWDEM 2026 maze" align="right" width="280">
