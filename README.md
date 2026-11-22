@@ -94,154 +94,130 @@ pip install -e .
 
 ### Running Ratatron
 
+<img src="docs/images/maze-ratatron.jpg" alt="Ratatron searching the OSHWDEM 2026 maze" align="right" width="280">
+
 ```sh
 ratasim --maze oshwdem2026
-```
-
-A viewer opens with the maze and the robot, and the terminal becomes its console. The firmware is compiled on the first
-run and the robot is started as at a competition: it searches from the start to the goal and back, mapping the maze.
-Then it races on the saved map:
-
-```sh
 ratasim --maze oshwdem2026 --race 4
 ```
 
-In the viewer, Page Up and Page Down are its SELECT and START buttons, and End puts it back at the start.
+A viewer opens and the terminal becomes its console. The firmware is compiled on the first run; the robot searches to
+the goal and back, then races on the saved map with `--race`. Page Up / Page Down are its SELECT and START buttons,
+End puts it back at the start.
 
-The other robots (`ratasim zorobot|gamusino|bulebule|nezumibot|perenquen|fujin|futura|ukmarsbot|miniskybot|kerise`) open MuJoCo's
-window at real time. `--headless`, `--record out.mp4` or no screen run them without it. For example, over SSH, as fast
-as possible, with a video:
-
-```sh
-ratasim --headless --speed 0 --maze oshwdem2026 --record search.mp4
-```
-
-![Ratatron searching the OSHWDEM 2026 maze](docs/images/maze-ratatron.jpg)
-
-More: [docs/simulator.md](docs/simulator.md).
+The other robots open MuJoCo's window at real time; `--headless`, `--record out.mp4` or no screen run without it
+(`--speed 0`: as fast as possible). More: [docs/simulator.md](docs/simulator.md).
 
 ### Running ZoroBot3
 
-Its 3D model is its Onshape assembly, not in its repository: export the "Full Assembly" as a STEP file to
-`ratasim/zorobot/cad/Full_Assembly.step` first. Then:
+<img src="docs/images/maze-zorobot3.jpg" alt="ZoroBot3 exploring the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
 pip install -e .[cad]           # gmsh, to make its meshes once
 ratasim zorobot --maze oshwdem2026 --record zorobot.mp4
 ```
 
-It picks its run in its menu and starts with a hand in front of its right front sensor (`--run`: explore, then the
-speed run).
-
-![ZoroBot3 exploring the OSHWDEM 2026 maze](docs/images/maze-zorobot3.jpg)
+Export its Onshape "Full Assembly" as STEP to `ratasim/zorobot/cad/Full_Assembly.step` first. Started with a hand at
+its right front sensor; `--run` explores, then speed runs.
 
 ### Running Gamusino
+
+<img src="docs/images/maze-gamusino.jpg" alt="Gamusino on the maze's longest straight" align="right" width="280">
 
 ```sh
 ratasim gamusino --maze oshwdem2026 --record gamusino.mp4
 ```
 
-Its sketch on its ESP32: 1.5 m ahead and back, over and over. It reads no walls yet, so it is put down on the maze's
-longest straight and started as its maker does.
-
-![Gamusino on the maze's longest straight](docs/images/maze-gamusino.jpg)
+Its ESP32 sketch: 1.5 m ahead and back, over and over, on the maze's longest straight. It reads no walls yet.
 
 ### Running Bulebule
+
+<img src="docs/images/maze-bulebule.jpg" alt="Bulebule exploring the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
 ratasim bulebule --maze oshwdem2026 --record bulebule.mp4
 ```
 
-Its firmware (libopencm3 and mmlib) on a simulated STM32F103, started with its button and a hand. It explores to the
-centre and back to its start, saving the path in its flash; `--run` races from there (it does not reach the goal yet:
-[robots.md](docs/robots.md#bulebule)).
-
-![Bulebule exploring the OSHWDEM 2026 maze](docs/images/maze-bulebule.jpg)
+Its firmware on a simulated STM32F103 explores to the centre and back, saving the path in flash; `--run` races from
+there (it does not reach the goal yet: [robots.md](docs/robots.md#bulebule)).
 
 ### Running NezumiBot
+
+<img src="docs/images/maze-nezumibot.jpg" alt="NezumiBot following the left wall" align="right" width="280">
 
 ```sh
 ratasim nezumibot --maze oshwdem2026 --hand left --record nezumibot.mp4
 ```
 
-Its wall follower as it ran at OSHWDEM 2023, started as its makers start it, with hands at its sensors. `--party`
-makes it swap walls every 30 s.
-
-![NezumiBot following the left wall](docs/images/maze-nezumibot.jpg)
+Its OSHWDEM 2023 wall follower, started with hands at its sensors. `--party` swaps walls every 30 s.
 
 ### Running Perenquén
+
+<img src="docs/images/maze-perenquen.jpg" alt="Perenquén keeping to the right wall" align="right" width="280">
 
 ```sh
 ratasim perenquen --maze oshwdem2026 --side right --gain 30 --record perenquen.mp4
 ```
 
-Its firmware's last commit on a simulated dsPIC, a wall follower. Started as its maker does: `start right 30` typed in
-its terminal, then a hand in front of its front sensors, taken away. `--speed 1000` sets 2 m/s.
-
-![Perenquén keeping to the right wall](docs/images/maze-perenquen.jpg)
+A wall follower on a simulated dsPIC, started as its maker does (`start right 30` in its terminal, then a hand).
+`--speed 1000` sets 2 m/s.
 
 ### Running Fujin
+
+<img src="docs/images/maze-fujin.jpg" alt="Fujin searching the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
 pip install -e .[cad]           # gmsh, to make its meshes from its STEP once
 ratasim fujin --maze oshwdem2026 --record fujin.mp4
 ```
 
-Its firmware (its RCX 2026 tag, C++23) on our board support package: search, to the goal and back. Started with its
-buttons; `--mode slow` (0.3 m/s) is the speed that finishes, medium and fast do not yet. It needs g++ 13 or clang++ 15
-or later.
-
-![Fujin searching the OSHWDEM 2026 maze](docs/images/maze-fujin.jpg)
+Its RCX 2026 firmware (C++23: g++ 13 or clang++ 15) searches to the goal and back. `--mode slow` (0.3 m/s) finishes;
+medium and fast do not yet.
 
 ### Running Futura
+
+<img src="docs/images/maze-futura.jpg" alt="Futura in the north rows of the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
 ratasim futura --maze oshwdem2026 --echo --record futura.mp4
 ```
 
-The kit mouse of UCLA IEEE's Project Futura, running its students' controller sample (downloaded on the first run) and
-a main routine of ratasim's ([robots.md](docs/robots.md#futura)). It searches nothing: it drives cell to cell and pivots
-at walls, through the north rows of the maze. `--echo` prints its serial port.
-
-![Futura in the north rows of the OSHWDEM 2026 maze](docs/images/maze-futura.jpg)
+UCLA IEEE's kit mouse with its students' controller sample ([robots.md](docs/robots.md#futura)): it drives cell to
+cell and pivots at walls, searching nothing. `--echo` prints its serial port.
 
 ### Running UKMARSBOT
+
+<img src="docs/images/maze-ukmarsbot.jpg" alt="UKMARSBOT searching the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
 ratasim ukmarsbot --maze oshwdem2026 --record ukmarsbot.mp4
 ```
 
-mazerunner-core, Peter Harrison's firmware, on a simulated ATmega328P: its search, flood fill to the goal and back.
-Started as at a contest. `--function 3` runs its left wall follower to the goal instead.
-
-![UKMARSBOT searching the OSHWDEM 2026 maze](docs/images/maze-ukmarsbot.jpg)
+mazerunner-core on a simulated ATmega328P: flood fill to the goal and back. `--function 3` runs its left wall
+follower instead.
 
 ### Running Miniskybot
+
+<img src="docs/images/maze-miniskybot.jpg" alt="Miniskybot in the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
 ratasim miniskybot --maze oshwdem2026 --echo --record miniskybot.mp4
 ```
 
-Obijuan's printable robot, two servos and an ultrasonic ranger on a simulated ATmega328. It goes straight until its
-ranger sees a wall, then turns by time (it has no encoders) to an open way. It searches nothing. `--echo` prints what
-it says.
+Obijuan's printable robot (servos, ultrasonic ranger, ATmega328): straight to a wall, then turns by time to an open
+way. `--echo` prints what it says.
 
-![Miniskybot in the OSHWDEM 2026 maze](docs/images/maze-miniskybot.jpg)
+### Running KERISE v1
 
-### KERISE v1 in a maze
+<img src="docs/images/maze-kerise.jpg" alt="KERISE v1 searching the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
 ratasim kerise --maze oshwdem2026 --record kerise.mp4
 ```
 
-kerikun11's classic micromouse (2016), with its own firmware as it ran at the 37th All Japan Micromouse Contest
-(9th in its classic Freshman final): C++ on mbed OS 5.1 and its STM32F405, its threads, tickers and peripherals
-simulated (`ratasim/kerise/fw`). Started as its firmware asks: its button (a wheel still: 600 mm/s), its button
-again, a hand in front of its front sensors; it calibrates its gyro and its sensors and goes. Its MazeSolver
-searches the OSHWDEM 2026 maze to the goal (84.3 s) and back to the start (158 s), then its fast runs (41.4 s,
-34.6 s, each faster). `--echo` prints what it prints.
-
-![KERISE v1 searching the OSHWDEM 2026 maze](docs/images/maze-kerise.jpg)
+kerikun11's 2016 classic micromouse with its All Japan contest firmware on a simulated STM32F405 (mbed OS 5.1).
+It searches to the goal (84.3 s) and back (158 s), then makes its fast runs (41.4 s, 34.6 s). `--echo` prints its
+console.
 
 ## Tests and CI
 
