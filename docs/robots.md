@@ -439,8 +439,10 @@ at 16 MHz) and four AAA cells. No encoders, no gyro, one sensor.
 <img src="images/robots/kerise.jpg" width="220" align="right">
 
 By [kerikun11](https://github.com/kerikun11) ·
-[kerikun11/micromouse-kerise-v2](https://github.com/kerikun11/micromouse-kerise-v2) (no licence file: nothing of it is
-copied here, everything is made from the submodule at build time)
+[kerikun11/micromouse-kerise-v2](https://github.com/kerikun11/micromouse-kerise-v2), its wheels from
+[kerikun11/micromouse-kerise-v1](https://github.com/kerikun11/micromouse-kerise-v1) (no licence file in either; their
+author allows ratasim to use them: nothing of them is copied here, everything is made from the submodules at build
+time)
 
 A half-size micromouse (2016): an STM32F405RG at 168 MHz, two Faulhaber 1717T006SR motors with IEH2-1024 encoders
 through 4:1 gears to 24.5 mm wheels, a DRV8835 driver, four IR reflectors (VSLY5850 emitters, SFH213FA photodiodes),
@@ -458,9 +460,14 @@ an MPU6500 gyro and accelerometer, a buzzer, a button and eight LEDs.
 - **Model:** its board from its KiCad file (`kicad/KERISEv2.kicad_pcb`, `ratasim/kerise/cad.py`): its outline, its
   two faces as textures drawn from its tracks, zones, pads, vias and silkscreen (a white solder mask, black
   silkscreen, as its photos show it), every footprint's part at its package's size; its USB tab for its charger cut
-  off, as in its photos. Its Gerber files are of an earlier board, so its KiCad file is drawn. Its
-  motors' mounts from its STL (`3dcad/-4digree.stl`), standing on the board; its motors, gears, wheels and battery
-  as simple shapes. Collisions: boxes over its board's outline, its tyres, two skids.
+  off, as in its photos, its corners slightly rounded and its edges dark. Its Gerber files are of an earlier board,
+  so its KiCad file is drawn. Its motors' mounts from its STL (`3dcad/-4digree.stl`), standing on the board, the
+  right one holding the rear motor and the left one the front motor (in its photos each motor's encoder lies by the
+  other wheel, its ribbon cable down to its header: P1 ahead on the right, P2 behind on the left). Its wheels (a
+  three-spoke rim with its 36-tooth spur gear, printed in one piece) from KERISE v1's STL (`3dprint/wheel-2set.stl`:
+  the same motors, wheels and gears), on steel axles; its tyres, its encoders' folded ribbon cables and their
+  sockets, its battery's two cells (blue, glossy) and their red and black wires to its connectors drawn here; its
+  motors and pinions as simple shapes. Collisions: boxes over its board's outline, its tyres, two skids.
 - **Sensors:** where its footprints put them, lying on the board: the front pair looking ahead, the side pair 10°
   off sideways. The light back K / d² in ADC counts, scaled so that its side sensors read about 900 between two
   walls; its amplifier's output falls from 2048 by it, read only while its emitter is on.

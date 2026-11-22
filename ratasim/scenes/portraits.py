@@ -1,7 +1,8 @@
 """A square picture of each robot, alone in a dark studio (the README's grid of supported robots), and the README's
 picture of them in a maze.
 
-    ratasim portraits [DIR]         (default docs/images: robots/NAME.jpg, maze.jpg)
+    ratasim portraits [DIR]                 (default docs/images: robots/NAME.jpg, maze.jpg)
+    ratasim portraits [DIR] --only NAME...  those robots' portraits only
 """
 import argparse
 import os
@@ -28,6 +29,7 @@ ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation[, the he
     'miniskybot': ('m_', 0.27, 215, -26, 0.03),
     'kerise': ('e_', 0.15, 215, -30),
 }
+SHADOW_CLIP = {'kerise': 0.1}   # its shadows' map over less than the scene (m): the small ones' shadows without steps
 SKY = 'rgb1="0.17 0.18 0.21" rgb2="0.04 0.04 0.05"'          # a dark studio
 STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.10 0.11 0.13 1" condim="3" friction="0.05 0.001 0.0001"/>'
           # the camera looks from +x +y (azimuth 215): the key light from its upper left (the shadow falls behind the
@@ -56,9 +58,11 @@ def maze_picture(out):
 def main(argv=None):
     p = argparse.ArgumentParser(prog='ratasim portraits', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('dir', nargs='?', default=os.path.join(paths.REPO, 'docs', 'images'))
+    p.add_argument('--only', nargs='+', choices=sorted(ROBOTS), metavar='NAME', help="only these robots' portraits")
     a = p.parse_args(argv)
     os.makedirs(os.path.join(a.dir, 'robots'), exist_ok=True)
-    maze_picture(os.path.join(a.dir, 'maze.jpg'))
+    if not a.only:
+        maze_picture(os.path.join(a.dir, 'maze.jpg'))
     xml = K.scene_xml(Maze.load(maze_path('oshwdem2026')), with_maze=False, gamusino=True, bulebule=True, nezumibot=True,
                        perenquen=True, fujin=True, futura=True, ukmarsbot=True, miniskybot=True,
                        kerise=True)
@@ -67,7 +71,11 @@ def main(argv=None):
     m, d = K.compile(xml.replace('</worldbody>', STUDIO + '</worldbody>', 1))
     bots = {prefix: K.Bot(m, d, prefix) for prefix, *_ in ROBOTS.values()}
     ren, cam = mujoco.Renderer(m, SIZE, SIZE), mujoco.MjvCamera()
+    clip = m.vis.map.shadowclip
     for name, (prefix, dist, az, el, *z) in ROBOTS.items():
+        if a.only and name not in a.only:
+            continue
+        m.vis.map.shadowclip = SHADOW_CLIP.get(name, clip)
         for other, bot in bots.items():
             bot.place(0.0 if other == prefix else 5.0, 0.0, 1.5708)     # the others out of the picture
         for _ in range(600):                                             # settle on the floor

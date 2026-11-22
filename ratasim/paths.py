@@ -19,7 +19,7 @@ _RATATRON = ['external/ratatron']
 _ALL = ['external/ratatron', 'external/ZoroBot3', 'external/gamusino', 'external/NezumiBot', 'external/bulebule',
         'external/bulebule/src/mmlib', 'external/bulebule/src/printf', 'external/perenquen',
         'external/aversive4dspic', 'external/fujin', 'external/mazerunner-core', 'external/ukmarsbot',
-        'external/Miniskybot', 'external/kerise']
+        'external/Miniskybot', 'external/kerise', 'external/kerise-v1']
 NEEDS = {
     'ratatron': _RATATRON, 'batch': _RATATRON, 'curves': _RATATRON, 'failures': _RATATRON, 'mapdiff': _RATATRON,
     'demo': _RATATRON, 'ir-info': _RATATRON, 'real-ir': _RATATRON,
@@ -29,7 +29,7 @@ NEEDS = {
     'bulebule': ['external/bulebule', 'external/bulebule/src/mmlib', 'external/bulebule/src/printf'],
     'perenquen': ['external/perenquen', 'external/aversive4dspic'], 'fujin': ['external/fujin'],
     'ukmarsbot': ['external/ukmarsbot', 'external/mazerunner-core'], 'miniskybot': ['external/Miniskybot'],
-    'kerise': ['external/kerise'],
+    'kerise': ['external/kerise', 'external/kerise-v1'],
     'drag-race': _ALL, 'maze-race': _ALL, 'minisumo': _ALL, 'portraits': _ALL,
 }
 

@@ -14,6 +14,8 @@ import os
 from .. import paths
 
 KERISE_DIR = os.environ.get('KERISE_DIR', os.path.join(paths.EXTERNAL, 'kerise'))
+# KERISE v1's repository (the same author's, the same motors, wheels and gears): its wheels' STL (cad.py)
+KERISE_V1_DIR = os.environ.get('KERISE_V1_DIR', os.path.join(paths.EXTERNAL, 'kerise-v1'))
 HERE = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.join(HERE, 'build')             # its meshes, its firmware's library (not committed)
 
@@ -31,8 +33,18 @@ PCB_MM = 1.0
 # behind (cad.py measures them): the board's top is the axle's height less 10.35, 1.8 mm over the floor.
 MOUNT_AXLE_MM = 10.35
 MOUNT_MOTOR_MM = 12.1
-MOTOR_OFFSET_MM = 12.0          # its motors' axes from the wheels' (the right one ahead, the left one behind)
+MOTOR_OFFSET_MM = 12.0          # its motors' axes from the wheels': the left wheel's motor ahead, the right one's
+#                                 behind (in its photos: each motor's encoder by the other wheel, its ribbon cable down
+#                                 to its header, P1 ahead on the right, P2 behind on the left)
 
+# Its motors (Faulhaber 1717T006SR with its IEH2 encoder: 17 mm across, 17 mm long, the encoder 5.5 mm more): each
+# with its face in its mount's recess, 9 mm from the middle, its encoder's end by the other wheel; their axes
+# MOUNT_MOTOR_MM over the board. Its battery (two LG325-0120 cells, one on the other) on them.
+MOTOR_R_MM = 8.5
+MOTOR_FACE_X_MM = 9.0
+MOTOR_LEN_MM = 17.0
+ENCODER_LEN_MM = 5.5
+CELL_HALF_MM = (12.5, 17.0, 1.65)       # each cell's half sizes
 # ---- From its firmware (external/kerise/firmware/config.h) ------------------------------------------------------
 WHEEL_DIAMETER_MM = 24.5
 GEAR_RATIO = 4.0                # WHEEL_GEER_RATIO 0.25: four turns of the motor a turn of the wheel
@@ -43,6 +55,8 @@ WHEEL_RADIUS_MM = WHEEL_DIAMETER_MM / 2
 BOARD_Z_MM = WHEEL_RADIUS_MM - MOUNT_AXLE_MM    # the board's top over the floor
 TIRE_WIDTH_MM = 5.0
 TRACK_X_MM = ROTATION_RADIUS_MM                 # its tyres' middles (its cut-outs: x 12 to 25 from the middle)
+MOTOR_Z_MM = BOARD_Z_MM + MOUNT_MOTOR_MM        # its motors' axes over the floor
+BATTERY_Z_MM = MOTOR_Z_MM + MOTOR_R_MM          # its battery's bottom
 
 # IR sensors: an emitter (VSLY5850) over a photodiode (SFH213FA), both in the same footprint, lying on the board:
 # where their lenses are and their axes (deg from +x counter-clockwise, 90 forward), from their footprints (KiCad

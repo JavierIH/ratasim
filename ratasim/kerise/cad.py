@@ -1,6 +1,8 @@
 """KERISE v2's meshes from its own files (the submodule external/kerise, read at build time): its board from its KiCad
 board (kicad/KERISEv2.kicad_pcb: its outline, its two faces drawn as textures from its tracks, zones, pads, vias and
-silkscreen, every footprint's part at its package's size) and its motors' mounts from its STL (3dcad/-4digree.stl).
+silkscreen, every footprint's part at its package's size) and its motors' mounts from its STL (3dcad/-4digree.stl);
+its wheels (a spur gear and a rim printed in one piece) from KERISE v1's STL (external/kerise-v1, 3dprint/wheel-2set.stl:
+the same author's, the same wheels); its tyres, its ribbon cables and its battery's wires drawn here.
 Its Gerber files (gerber/KERISEv2.zip, 2016-12-03) are of an earlier board than its KiCad file's (2016-12-26, the
 one in its photos: a round nose): the KiCad file is drawn.
 
@@ -24,13 +26,15 @@ from . import config as K
 
 PCB = os.path.join(K.KERISE_DIR, 'kicad', 'KERISEv2.kicad_pcb')
 STL = os.path.join(K.KERISE_DIR, '3dcad', '-4digree.stl')
+WHEEL_STL = os.path.join(K.KERISE_V1_DIR, '3dprint', 'wheel-2set.stl')
 OUT = os.path.join(K.BUILD, 'cad')
 PX_MM = 20                      # the textures' resolution
 TAB_Y = 158.5                   # KiCad y: its board ends at 158; past it, joined by two bridges, a USB tab for its
 #                                 charger, cut off (not on the robot in its photos)
 # Its board's colours as its photos show it: a white solder mask, black silkscreen
 MASK, COPPER, TIN, SILK, HOLE = (236, 236, 230), (222, 220, 205), (200, 198, 186), (25, 25, 25), (10, 10, 10)
-EDGE = (0.85, 0.83, 0.70, 1)
+EDGE = (0.16, 0.16, 0.15, 1)          # its edges: dark in its photos
+CORNER_MM = 0.4                         # its outline's corners rounded (its router's)
 PLASTIC = (0.94, 0.94, 0.92, 1)         # its printed mounts, white
 
 
@@ -156,6 +160,7 @@ def modules():
 # and the motors' pads are drawn apart, the rest are on the tab or are its logo.
 BLACK, BEIGE, CHIP = (0.06, 0.06, 0.07, 1), (0.92, 0.88, 0.78, 1), (0.10, 0.10, 0.11, 1)
 CERAMIC, METAL, LED = (0.78, 0.66, 0.48, 1), (0.75, 0.75, 0.76, 1), (0.95, 0.95, 0.92, 1)
+LENS = (0.88, 0.9, 0.92, 0.4)          # its emitters' clear epoxy
 PACKAGES = {
     'C_0402': (1.0, 0.5, 0.5, CERAMIC), 'C_0603': (1.6, 0.8, 0.8, CERAMIC), 'C_0805': (2.0, 1.25, 1.0, CERAMIC),
     'R_0402': (1.0, 0.5, 0.35, BLACK), 'R_0603': (1.6, 0.8, 0.45, BLACK), 'R_0805': (2.0, 1.25, 0.5, BLACK),
@@ -191,7 +196,7 @@ def _box(c, half, rot):
     return v[np.array(faces)]
 
 
-def _cylinder(c, axis_deg, r, length, n=20):
+def _cylinder(c, axis_deg, r, length, n=40):
     """A cylinder's triangles lying on the board along a footprint's direction (KiCad frame, z up)."""
     a = math.radians(axis_deg)
     ax = np.array([math.cos(a), math.sin(a), 0.0])
@@ -218,10 +223,28 @@ def ir_parts():
         z = 2.5 if 'Photo' in name else 7.5
         mid = (x + dx * 4.3, y + dy * 4.3, z)
         out.setdefault(BLACK, []).append(_cylinder(mid, ang, 2.6, 7.0 if 'Photo' not in name else 8.6))
-        if 'Photo' not in name:
-            tip = (x + dx * 8.4, y + dy * 8.4, z)
-            out.setdefault((0.85, 0.9, 0.95, 1), []).append(_cylinder(tip, ang, 2.5, 1.6))
+        if 'Photo' not in name:                     # its clear lens out of its sleeve: a cylinder and a dome
+            tip = (x + dx * 8.6, y + dy * 8.6, z)
+            out.setdefault(LENS, []).append(_cylinder(tip, ang, 2.45, 2.0))
+            out.setdefault(LENS, []).append(_dome((x + dx * 9.6, y + dy * 9.6, z), ang, 2.45))
     return out
+
+
+def _dome(c, axis_deg, r, n=40, m=10):
+    """A half sphere's triangles (KiCad frame, z up), its flat face at c, bulging along a footprint's direction."""
+    a = math.radians(axis_deg)
+    ax = np.array([math.cos(a), math.sin(a), 0.0])
+    u, w = np.array([-ax[1], ax[0], 0.0]), np.array([0.0, 0.0, 1.0])
+    c = np.array(c, float)
+
+    def p(i, j):
+        phi, th = math.pi / 2 * j / m, 2 * math.pi * i / n
+        return c + r * (math.cos(phi) * (math.cos(th) * u + math.sin(th) * w) + math.sin(phi) * ax)
+    tris = []
+    for i in range(n):
+        for j in range(m):
+            tris += [(p(i, j), p(i + 1, j), p(i + 1, j + 1)), (p(i, j), p(i + 1, j + 1), p(i, j + 1))]
+    return np.array(tris)
 
 
 def parts():
@@ -353,7 +376,7 @@ def textures(out):
 
 def board_meshes(out):
     """kerise_top.obj, kerise_bottom.obj (UVs on the textures) and kerise_side.obj, robot frame (mm)."""
-    poly = [to_robot(*p) for p in outline()]
+    poly = rounded([to_robot(*p) for p in outline()], CORNER_MM)
     tris = _triangulate(poly)
     x0, y0, x1, y1 = frame()
     top, bottom = K.BOARD_Z_MM, K.BOARD_Z_MM - K.PCB_MM
@@ -378,6 +401,25 @@ def board_meshes(out):
             f.write(f'f {t0} {b0} {b1}\nf {t0} {b1} {t1}\n')
 
 
+def rounded(poly, r, min_turn=20.0, n=6):
+    """A polygon with its corners (turning over min_turn degrees) rounded: from r before each to r after it."""
+    out = []
+    k = len(poly)
+    for i in range(k):
+        a, b, c = np.array(poly[i - 1]), np.array(poly[i]), np.array(poly[(i + 1) % k])
+        u, v = b - a, c - b
+        la, lb = np.linalg.norm(u), np.linalg.norm(v)
+        turn = math.degrees(math.acos(np.clip(u @ v / max(la * lb, 1e-12), -1, 1)))
+        if turn < min_turn or la < 2 * r or lb < 2 * r:
+            out.append(tuple(b))
+            continue
+        p, q = b - u / la * r, b + v / lb * r
+        for j in range(n + 1):                      # a quadratic curve with the corner as its control point
+            t = j / n
+            out.append(tuple((1 - t) ** 2 * p + 2 * (1 - t) * t * b + t ** 2 * q))
+    return out
+
+
 # ---- its motors' mounts ----------------------------------------------------------------------------------------
 def _stl(path):
     with open(path, 'rb') as f:
@@ -398,8 +440,8 @@ def _hole(verts, guess, r_max):
 def mounts():
     """Its two motors' mounts, standing on its board, each where its wheel's axle and its motor go through it:
     {colour: triangles} (robot frame). Each plate of the STL: its foot (its lowest y) on the board, its wheel's hole
-    on the axle, its motor's 12 mm ahead (the right one) or behind (the left one), between 8 and 12 mm from the
-    middle. Both are the STL's plate placed mirrored: their triangles' order reversed."""
+    on the axle, its motor's 12 mm behind (the right one) or ahead (the left one), between 8 and 12 mm from the
+    middle: the left one the right one turned half a turn."""
     tris = _stl(STL)
     plate = tris[tris[:, :, 1].mean(axis=1) > 0]            # the STL's two plates are the same: one of them
     v = plate.reshape(-1, 3)
@@ -412,15 +454,138 @@ def mounts():
     for s in (-1, 1):                                       # left, right
         p = plate.copy()
         x = s * (8.0 + p[:, :, 2] - v[:, 2].min())
-        y = -s * (p[:, :, 0] - axle[0])
+        y = s * (p[:, :, 0] - axle[0])
         z = K.BOARD_Z_MM + p[:, :, 1] - foot
-        out.append(np.stack([x, y, z], axis=2)[:, ::-1])
+        out.append(np.stack([x, y, z], axis=2))
     return {PLASTIC: np.concatenate(out)}
+
+
+# ---- its wheels, tyres and cables ---------------------------------------------------------------------------------
+GEAR_TEETH = 36                 # its wheels' spur gears (KERISE v1's STL); its motors' pinions 9 (4:1)
+RIM_R_MM, TYRE_Z_MM = 10.0, (1.0, 8.5)         # the STL's rim under its tyre and the tyre's place along its axis
+WHEEL_PLASTIC = (0.93, 0.93, 0.91, 1)
+TYRE = (0.07, 0.07, 0.075, 1)
+RIBBON, RIBBON_STRIPE, IDC = (0.76, 0.76, 0.72, 1), (0.75, 0.12, 0.12, 1), (0.90, 0.88, 0.82, 1)
+RED, BLACK_WIRE = (0.78, 0.08, 0.06, 1), (0.05, 0.05, 0.05, 1)
+
+
+def _stl_mm(path):
+    return _stl(path) / 25.4            # _stl reads inches
+
+
+def wheel(side):
+    """One of the STL's four wheels in its wheel's frame (mm): its axle along x, x 0 its tyre's middle, its gear
+    inwards (-x for the right one); the left one the right one turned half a turn about z."""
+    t = _stl_mm(WHEEL_STL)
+    c = t.mean(axis=1)
+    one = t[(np.abs(c[:, 0]) < 11.0) & (np.abs(c[:, 1]) < 11.0)]
+    z = one[:, :, 2] - sum(TYRE_Z_MM) / 2
+    w = np.stack([z, one[:, :, 0], one[:, :, 1]], axis=2)
+    return w if side == 'r' else w * (-1, -1, 1)
+
+
+def _orient(tris, centres):
+    """Triangles turned to face away from their centres (each its own point)."""
+    n = np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0])
+    flip = np.einsum('ij,ij->i', n, tris.mean(axis=1) - centres) < 0
+    tris[flip] = tris[flip][:, ::-1]
+    return tris
+
+
+def tyre(r_in, r_out, width, edge=1.0, n=120):
+    """A tyre (wheel frame, its axle along x): its section a rectangle with its outer corners rounded, revolved."""
+    h = width / 2
+    prof = [(-h, r_in), (h, r_in)]
+    for x0, sgn in ((h - edge, 1), (-h + edge, -1)):
+        prof += [(x0 + sgn * edge * math.sin(a), r_out - edge + edge * math.cos(a))
+                 for a in (np.linspace(math.pi / 2, 0, 7) if sgn > 0 else np.linspace(0, math.pi / 2, 7))]
+    prof = np.array(prof)
+    mid = prof.mean(axis=0)
+    th = np.linspace(0, 2 * math.pi, n + 1)
+    tris, cen = [], []
+    for i in range(n):
+        for j in range(len(prof)):
+            (xa, ra), (xb, rb) = prof[j], prof[(j + 1) % len(prof)]
+            q = [np.array([x, r * math.cos(t), r * math.sin(t)]) for x, r, t in
+                 ((xa, ra, th[i]), (xb, rb, th[i]), (xb, rb, th[i + 1]), (xa, ra, th[i + 1]))]
+            c = np.array([mid[0], mid[1] * math.cos((th[i] + th[i + 1]) / 2), mid[1] * math.sin((th[i] + th[i + 1]) / 2)])
+            tris += [(q[0], q[1], q[2]), (q[0], q[2], q[3])]
+            cen += [c, c]
+    return _orient(np.array(tris), np.array(cen))
+
+
+def _bezier(p0, p1, p2, p3, n=40):
+    t = np.linspace(0, 1, n)[:, None]
+    return (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t ** 2 * p2 + t ** 3 * p3
+
+
+def _sweep(path, section, across0, across1):
+    """A section ([(u, v)] around its centre, u across, v the other way) swept along a path (robot frame); its
+    across direction turning from across0 at its start to across1 at its end."""
+    path = np.asarray(path, float)
+    tang = np.gradient(path, axis=0)
+    tang /= np.linalg.norm(tang, axis=1, keepdims=True)
+    rings = []
+    for k, (p, t) in enumerate(zip(path, tang)):
+        f = k / (len(path) - 1)
+        a = (1 - f) * np.asarray(across0, float) + f * np.asarray(across1, float)
+        a -= (a @ t) * t
+        a /= np.linalg.norm(a)
+        b = np.cross(t, a)
+        rings.append([p + u * a + v * b for u, v in section])
+    tris, cen = [], []
+    m = len(section)
+    for k in range(len(path) - 1):
+        for j in range(m):
+            q = (rings[k][j], rings[k][(j + 1) % m], rings[k + 1][(j + 1) % m], rings[k + 1][j])
+            c = (path[k] + path[k + 1]) / 2
+            tris += [(q[0], q[1], q[2]), (q[0], q[2], q[3])]
+            cen += [c, c]
+    return _orient(np.array(tris), np.array(cen))
+
+
+def _box_at(c, half):
+    """An axis-aligned box's triangles (robot frame)."""
+    return _box(tuple(c), half, 0.0)
+
+
+def cables():
+    """Its encoders' ribbon cables (six wires, 1.27 mm apart, the first one red) from each encoder's end down to its
+    header's socket (P1 ahead on the right, P2 behind on the left), the sockets, and its battery's wires, a red and
+    a black from each cell's back to its connector (P3, P4): {colour: triangles} (robot frame)."""
+    out = {}
+    zb, zm = K.BOARD_Z_MM, K.MOTOR_Z_MM
+    heads = {ref: to_robot(*at) for _n, ref, at, _r, _p in modules() if ref in ('P1', 'P2', 'P3', 'P4')}
+    us = np.linspace(-3.8, 3.8, 49)                 # its six wires' ridges on both faces
+    bump = 0.3 + 0.15 * np.abs(np.cos(math.pi * (us + 3.8) / 1.27 - math.pi / 2))
+    ribbon = [(u, -h) for u, h in zip(us, bump)] + [(u, h) for u, h in zip(us[::-1], bump[::-1])]
+    stripe = [(u, v) for u, v in ((-3.8, -0.46), (-2.55, -0.46), (-2.55, 0.46), (-3.8, 0.46))]
+    for ref, s in (('P1', 1), ('P2', -1)):          # P1: the left wheel's motor (ahead), its encoder on the right
+        hx, hy = heads[ref]
+        top = zb + 5.2
+        t = np.linspace(0, 1, 160)[:, None]         # folded three times (as in its photos), from its socket up to its
+        path = np.hstack([np.full_like(t, hx - s * 2.0),       # encoder's end face, its wide face forwards
+                          hy + s * 1.6 * np.sin(3 * math.pi * t), top + t * (zm + 1.5 - top)])
+        for shape, colour in ((ribbon, RIBBON), (stripe, RIBBON_STRIPE)):
+            out.setdefault(colour, []).append(_sweep(path, shape, (s, 0, 0), (s, 0, 0)))
+        out.setdefault(IDC, []).append(_box_at((hx, hy, zb + 2.6), (5.1, 2.9, 2.6)))
+    cx, cy, cz = K.CELL_HALF_MM
+    tube = [(0.35 * math.cos(a), 0.35 * math.sin(a)) for a in np.linspace(0, 2 * math.pi, 12, endpoint=False)]
+    for i, ref in enumerate(('P3', 'P4')):          # its lower cell to P3, its upper one to P4
+        hx, hy = heads[ref]
+        z = K.BATTERY_Z_MM + cz * (2 * i + 1)
+        for dx, colour in ((-0.6, RED), (0.6, BLACK_WIRE)):
+            x0 = hx * 0.5 + dx
+            start = np.array([x0, -cy + 0.3, z])
+            end = np.array([hx + dx, hy, zb + 5.4])
+            path = _bezier(start, start + (0, -6.0, 0), end + (0, 0, 9.0), end)
+            out.setdefault(colour, []).append(_sweep(path, tube, (1, 0, 0), (1, 0, 0)))
+    return {k: np.concatenate(v) for k, v in out.items()}
 
 
 # ---- all ---------------------------------------------------------------------------------------------------------
 def _sources():
-    return [os.path.abspath(__file__), os.path.join(K.HERE, 'config.py'), PCB, STL]
+    return [os.path.abspath(__file__), os.path.join(K.HERE, 'config.py'), PCB, STL, WHEEL_STL]
 
 
 def build():
@@ -443,6 +608,16 @@ def build():
         path = os.path.join(OUT, f'kerise_mount_{i}.obj')
         write_obj(path, t, 40)
         entries.append({'name': f'mount_{i}', 'file': path, 'body': 'chassis', 'rgba': colour})
+    for i, (colour, t) in enumerate(sorted(cables().items())):
+        path = os.path.join(OUT, f'kerise_cable_{i}.obj')
+        write_obj(path, t, 40)
+        entries.append({'name': f'cable_{i}', 'file': path, 'body': 'chassis', 'rgba': colour})
+    tyre_mesh = tyre(RIM_R_MM, K.WHEEL_RADIUS_MM, TYRE_Z_MM[1] - TYRE_Z_MM[0])
+    for side in ('l', 'r'):
+        for part, t, colour in (('wheel', wheel(side), WHEEL_PLASTIC), ('tyre', tyre_mesh, TYRE)):
+            path = os.path.join(OUT, f'kerise_{part}_{side}.obj')
+            write_obj(path, t, 40)
+            entries.append({'name': f'{part}_{side}', 'file': path, 'body': f'wheel_{side}', 'rgba': colour})
     with open(os.path.join(OUT, 'manifest.json'), 'w') as f:
         json.dump(entries, f, indent=1)
     return entries

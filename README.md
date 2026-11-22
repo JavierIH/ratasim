@@ -280,7 +280,7 @@ ratasim is free software under the GNU General Public License v3 or later (`LICE
 robot keeps its authors' licence, as below, and what is a submodule or is downloaded at build time is not relicensed.
 
 Every robot belongs to its authors (above); their repositories are submodules and nothing of them is copied here.
-ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's, Fujin's and KERISE v2's repositories carry no licence; Perenquén's design is CC BY-SA
+ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's, Fujin's and KERISE v2's (and v1's, its wheels) repositories carry no licence (their author allows ratasim to use them); Perenquén's design is CC BY-SA
 4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,
 Eurobotics Engineering) GPLv2+; Gamusino's gyro library, STM32duino LSM6DSR (STMicroelectronics, BSD-3), is
 downloaded at build time. Futura's page (Green Ye, micromouseusa.com) gives no licence: its firmware template, its
