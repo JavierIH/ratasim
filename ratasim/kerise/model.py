@@ -1,4 +1,4 @@
-"""The MuJoCo scene with KERISE v2: the maze at half size (its firmware's: 90 mm cells, 6 mm walls 25 mm high) and
+"""The MuJoCo scene with KERISE v2: the classic maze (180 mm cells, 12 mm walls 50 mm high) and
 the robot: its board from its KiCad and Gerber files, its motors' mounts from its STL, its wheels from KERISE v1's
 STL, its tyres and cables (cad.py), its motors and battery as simple shapes; for its collisions, boxes over its board's outline (walls only), its two
 tyres and two skids under its board's front and back."""
@@ -18,7 +18,7 @@ OUTLINE = ((25.0, 10.0, 22.0), (19.0, 22.0, 30.0), (10.0, 30.0, 34.0),     # its
 
 
 def maze_xml(maze):
-    """The maze at half size: posts and walls as boxes (6 mm), a red top on each."""
+    """The classic maze: posts and walls as boxes (12 mm), a red top on each."""
     cell, t, h, cap = K.CELL_MM * MM, K.WALL_MM * MM, K.WALL_H_MM * MM, 1.0 * MM
     geoms = []
 
@@ -130,7 +130,7 @@ def robot_xml(start_xy=(0.5, 0.5), prefix='', cell_mm=K.CELL_MM):
         wheels += f'''
       <body name="wheel_{side}" pos="{_f(x * MM, 0, r * MM)}">
         <joint name="wheel_{side}" type="hinge" axis="-1 0 0" armature="{K.WHEEL_ARMATURE:.3g}" frictionloss="{K.WHEEL_FRICTION_NM:.3g}"/>
-        <geom name="tire_{side}" class="etire" type="cylinder" size="{_f(r * MM, K.TIRE_WIDTH_MM / 2 * MM)}" euler="0 90 0" mass="0.002"/>
+        <geom name="tire_{side}" class="etire" type="cylinder" size="{_f((r + K.TIRE_SINK_MM) * MM, K.TIRE_WIDTH_MM / 2 * MM)}" euler="0 90 0" mass="0.002"/>
         {visual}
       </body>'''
     skids = ''.join(f'<geom name="skid_{n}" class="eskid" type="sphere" size="{1.0 * MM:.6g}" '

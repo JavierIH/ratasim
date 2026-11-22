@@ -2,12 +2,14 @@
 geometry and the physics assumed for it. Robot frame (mm): x right, y forward, z up, origin on the axle between the
 wheels, on the floor.
 
-Its repository has no licence: nothing of it is copied here. The submodule external/kerise is read at build time:
-its firmware built from it (fw/), its board from its KiCad and Gerber files and its motors' mounts from its STL
-(cad.py).
+Its repository has no licence; its author allows ratasim to use it: nothing of it is copied here. The submodule
+external/kerise is read at build time: its firmware built from it (fw/), its board from its KiCad file and its
+motors' mounts from its STL (cad.py).
 
-Its firmware is for a half-size maze (config.h: HALF_SIZE, 90 mm cells, 6 mm walls; its classic branch no longer
-builds), so it runs in one: the same maze at half its size (model.py)."""
+The submodule is pinned at its firmware for the classic maze: commit 7e3d561 (2017-01-13, "速度一定の自律走行
+(クラシック)", its search at a constant speed in the classic maze), on its v2 board (its code moved to it on
+2017-01-08), before its author turned it to half size (cdc1e0b, HALF_SIZE; its classic branch since then does not
+build). Its board and mounts are the same there as at its last commit."""
 import math
 import os
 
@@ -19,10 +21,10 @@ KERISE_V1_DIR = os.environ.get('KERISE_V1_DIR', os.path.join(paths.EXTERNAL, 'ke
 HERE = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.join(HERE, 'build')             # its meshes, its firmware's library (not committed)
 
-# ---- Its maze: half size (its config.h: SEGMENT_WIDTH 90, WALL_THICKNESS 6; the rules: walls 25 mm high) ----------
-CELL_MM = 90.0
-WALL_MM = 6.0
-WALL_H_MM = 25.0
+# ---- Its maze: classic (its config.h: WALL_THICKNESS 12, its MazeSolver's 180 mm segments; walls 50 mm high) ------
+CELL_MM = 180.0
+WALL_MM = 12.0
+WALL_H_MM = 50.0
 
 # ---- Its board (kicad/KERISEv2.kicad_pcb): 1.0 mm thick; the robot's origin at (143, 134) in KiCad's frame (mm,
 # y down), the middle of its wheels' cut-outs. Its front is KiCad's -y.
@@ -46,11 +48,11 @@ MOTOR_LEN_MM = 17.0
 ENCODER_LEN_MM = 5.5
 CELL_HALF_MM = (12.5, 17.0, 1.65)       # each cell's half sizes
 # ---- From its firmware (external/kerise/firmware/config.h) ------------------------------------------------------
-WHEEL_DIAMETER_MM = 24.5
+WHEEL_DIAMETER_MM = 24.65
 GEAR_RATIO = 4.0                # WHEEL_GEER_RATIO 0.25: four turns of the motor a turn of the wheel
 ENCODER_COUNTS = 1024 * 4       # IEH2-1024 on each motor, counted x4
-ROTATION_RADIUS_MM = 21.5       # MACHINE_ROTATION_RADIUS: half its track
-TAIL_MM = 24.0                  # MACHINE_TAIL_LENGTH: its axle from its tail
+ROTATION_RADIUS_MM = 21.6       # MACHINE_ROTATION_RADIUS: half its track
+TAIL_MM = 24.0                  # MACHINE_TAIL_LENGTH (24 * 1, "Classic: 1"): its axle from its tail
 WHEEL_RADIUS_MM = WHEEL_DIAMETER_MM / 2
 BOARD_Z_MM = WHEEL_RADIUS_MM - MOUNT_AXLE_MM    # the board's top over the floor
 TIRE_WIDTH_MM = 5.0
@@ -83,17 +85,26 @@ BATTERY_V = 8.0
 MASS_KG = 0.050                     # two 1717 motors (about 18 g each), its board, battery, wheels, mounts
 COM_MM = (0.0, 0.0, 14.0)            # its motors at 12.75 mm, its battery over them
 YAW_INERTIA = 1.6e-5                # kg m^2: its motors across it, near the axle
-TIRE_FRICTION = 1.0
+TIRE_FRICTION = 1.5                 # its tyres' grip (urethane; less, and they slip as its moves start at full speed)
+TIRE_SINK_MM = 0.08                 # how far its tyres sink into the floor (MuJoCo's soft contact): their collision
+#                                     cylinders that much bigger, so that they roll on its firmware's wheel diameter
 # Faulhaber 1717T006SR (its datasheet's typical values): 3.4 ohm, 5.94 mNm/A; at the wheel through its 4:1 gears.
 MOTOR_R_OHM = 3.4
 MOTOR_KT = 0.00594 * GEAR_RATIO     # N m/A, V s/rad at the wheel
 WHEEL_FRICTION_NM = 0.0006
 WHEEL_ARMATURE = 0.6e-7 * GEAR_RATIO ** 2    # its rotor (0.6 g cm^2) through its 4:1 gears, at the wheel (kg m^2)
-# Its IR sensors: the light back at a receiver in ADC counts, K / d^2 (d the beam's length to the wall, mm), so
-# that it reads about 900 centred between two walls (its side sensors, 23 mm from them); the amplifier saturates
-# at 2048 (its zero). A hand 30 mm in front of its front sensors reads about 550 (it waits for 400).
-IR_K = 900.0 * 23.5 ** 2
-IR_SPREAD_DEG = 3.0
+# Its IR sensors: the light back at a receiver in ADC counts, K / d^IR_EXP (d the beam's length to the wall, mm),
+# so that it reads about 900 centred between two walls of the classic maze (its side sensors' beams 66 mm long); the
+# amplifier saturates at 2048 (its zero). A hand 30 mm in front of its front sensors saturates them (it waits for
+# both over 1200). Its WallDetector tells walls from its start cell's side walls: a side wall over a third of them,
+# a front wall over a sixth (WALL_SIDE_DIV 3, WALL_FRONT_DIV 6, its author's for the classic maze). It looks at a
+# cell's walls 15 to 20 mm before its edge, its front wall then 165 mm away: a sixth needs its light to fall slower
+# than 1/d^2 there (its narrow beams; assumed 1.7: a front wall a cell away about 190, two cells away about 55, no
+# side wall about 95), times the cosine between the beam and the wall's face (a matte face: a wall seen aslant, as
+# its side beams see the next cells' walls, sends less back).
+IR_EXP = 1.7
+IR_K = 900.0 * 66.0 ** IR_EXP
+IR_SPREAD_DEG = 2.0                 # its beams' spread (sigma; its VSLY5850s: +-3 deg at half intensity)
 IR_NOISE = 0.01                     # of the reading
 # Its MPU6500: the real bias of its z gyro (its firmware measures it standing still) and the noise
 GYRO_BIAS_DPS = 0.3
@@ -112,9 +123,10 @@ def counts_per_rad():
 def start(cell, heading_deg):
     """As its firmware starts a search (main.cpp): switched on in the start cell, its tail against the back wall;
     a beep and its LEDs show its battery. Its button: its mode, by turning a wheel (left still: mode 0, its search);
-    its button again: its sensors on, it waits for a hand in front of its front sensors (both over 400). Then it
-    calibrates its gyro and its sensors (the side walls of its start cell) for a second and goes."""
+    its button again: its sensors on, it waits for a hand in front of its front sensors (both over 1200). Then it
+    calibrates its gyro and its sensors (the side walls of its start cell), backs against its back wall, calibrates
+    them again and goes (about 2.2 s after the hand)."""
     return [('put_down', cell, heading_deg), ('say', 'switched on'), ('wait', 1500),
             ('say', 'its button: the mode (wheels still: 0, its search)'), ('press', 0, 100), ('wait', 600),
             ('say', 'its button: its sensors on'), ('press', 0, 100), ('wait', 600),
-            ('say', 'a hand in front of its front sensors'), ('hand', ['FL', 'FR'], 300), ('wait', 1600)]
+            ('say', 'a hand in front of its front sensors'), ('hand', ['FL', 'FR'], 300), ('wait', 2400)]

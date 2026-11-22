@@ -1,4 +1,4 @@
-"""KERISE v2 in the simulator, in the maze at half size (its firmware's): switched on in the start cell, its mode
+"""KERISE v2 in the simulator, in the classic maze (its firmware's for it): switched on in the start cell, its mode
 picked with its button (0: its search) and started with a hand in front of its front sensors, as its firmware asks;
 then its MazeSolver: its search to the goal and back to the start, then its fast runs. Optionally records a video.
 
@@ -15,16 +15,9 @@ from ..maze import Maze   # noqa: E402
 from ..recorder import add_view_args, make_view, time_limit   # noqa: E402
 from ..run import maze_path   # noqa: E402
 from ..start import play   # noqa: E402
-from ..stopwatch import Stopwatch   # noqa: E402
+from ..stopwatch import Stopwatch   # noqa: E402 (its cells the classic maze's, 180 mm)
 from . import config as K   # noqa: E402
 from .robot import KRobot   # noqa: E402
-
-
-class HalfStopwatch(Stopwatch):
-    """The stopwatch on its maze's cells (90 mm)."""
-
-    def cell(self, pose):
-        return int(pose[0] // K.CELL_MM), int(pose[1] // K.CELL_MM)
 
 
 def main(argv=None):
@@ -39,7 +32,7 @@ def main(argv=None):
     a = p.parse_args(argv)
     maze = Maze.load(maze_path(a.maze))
     r = KRobot(maze, seed=a.seed)
-    clock = HalfStopwatch(r.maze)
+    clock = Stopwatch(r.maze)
     rec = make_view(r, a, 'KERISE v2 (kerikun11)', led=r.led, clock=clock)
     a.max_s = time_limit(a, rec, 300)
     log = open(a.log, 'w') if a.log else None
@@ -59,9 +52,9 @@ def main(argv=None):
             if line.startswith('start_step') and not state['started']:
                 state['started'] = True
                 print(f'{now()} its search started')
-            elif line.startswith('maze_backup 1'):
+            elif line.startswith('maze_backup'):
                 print(f'{now()} its search at the goal, at {[round(v) for v in r.pose()]}')
-            elif line.startswith('maze_backup 2') and not state['back']:
+            elif line.startswith('agent.calcRunSequence') and not state['back']:
                 state['back'] = True
                 print(f'{now()} its search back to the start')
             elif line.startswith('Fast Run'):

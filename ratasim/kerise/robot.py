@@ -22,6 +22,11 @@ import numpy as np
 from ..hand import Hand
 from ..model import MM, WALL_GROUP
 from . import config as K
+
+# Its emitters' beams: five rays, their light weighted as a Gaussian of their angle off the axis (sigma
+# IR_SPREAD_DEG), so that a post caught by a beam's edge sends little back
+IR_RAYS = [(k * K.IR_SPREAD_DEG, math.exp(-k * k / 2)) for k in (-2, -1, 0, 1, 2)]
+IR_RAYS = [(a, w / sum(w for _, w in IR_RAYS)) for a, w in IR_RAYS]
 from . import model
 
 FW_DIR = os.path.join(K.HERE, 'fw')
@@ -160,6 +165,18 @@ class KRobot:
         d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
         return d / MM if d >= 0 else 1000.0
 
+    def _incidence(self, origin, direction, d_mm):
+        """The cosine between a beam and the face of the wall or post it hit (boxes: the face its hit point is on)."""
+        g = self.ray_geom[0]
+        if g < 0 or d_mm >= 1000.0:
+            return 1.0
+        hit = origin + direction * d_mm * MM
+        rel = self.data.geom_xmat[g].reshape(3, 3).T @ (hit - self.data.geom_xpos[g])
+        size = self.model.geom_size[g]
+        axis = int(np.argmax(np.abs(rel[:2]) / size[:2]))
+        normal = self.data.geom_xmat[g].reshape(3, 3)[:, axis]
+        return abs(float(normal @ direction))
+
     def ir_mm(self):
         """Each beam's length to the wall (mm, its middle ray)."""
         return {n: self._ray(*self.sensor_ray(n)) for n in K.IR_SENSORS}
@@ -173,10 +190,12 @@ class KRobot:
             p = self.data.site_xpos[sid]
             rot = R[sid].reshape(3, 3)
             light = 0.0
-            for spread in (-K.IR_SPREAD_DEG, 0.0, K.IR_SPREAD_DEG):
+            for spread, weight in IR_RAYS:
                 a = math.radians(deg + spread)
-                d = max(self._ray(p, rot @ np.array([math.cos(a), math.sin(a), 0.0])), 5.0)
-                light += K.IR_K / d ** 2 / 3
+                v = rot @ np.array([math.cos(a), math.sin(a), 0.0])
+                d = self._ray(p, v)
+                cos = self._incidence(p, v, d)              # a wall seen aslant sends less back (a matte face)
+                light += weight * K.IR_K * cos / max(d, 5.0) ** K.IR_EXP
             out[name] = max(0.0, light * (1 + self.rng.gauss(0.0, K.IR_NOISE)))
         return out
 
