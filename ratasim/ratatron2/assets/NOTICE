@@ -1,0 +1,10 @@
+The meshes in this directory are derived from the 3D design of Ratatron II by JavierIH
+(https://github.com/JavierIH/ratatron2, submodule external/ratatron2: mechanics/ratatron2.fcstd, with its board from
+hardware/), licensed under the Creative Commons Attribution-ShareAlike 4.0 International licence
+(https://creativecommons.org/licenses/by-sa/4.0/).
+
+Changes: the design was converted to triangle meshes (STL, one per colour and body, the wheels and the LEDs apart) by
+ratasim/ratatron2/cad.py.
+
+These meshes stay under CC BY-SA 4.0. CC BY-SA 4.0 material may be adapted and distributed under the GPLv3, which is
+why the rest of ratasim, GPLv3, can include it.

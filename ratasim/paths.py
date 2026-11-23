@@ -32,6 +32,7 @@ NEEDS = {
     'perenquen': ['external/perenquen', 'external/aversive4dspic'], 'fujin': ['external/fujin'],
     'ukmarsbot': ['external/ukmarsbot', 'external/mazerunner-core'], 'miniskybot': ['external/Miniskybot'],
     'kerise': ['external/kerise-v1'],
+    'ratatron2': _RATATRON,         # the maze (ratasim/model.py); its meshes are committed (ratatron2/assets)
     'mazes': ['external/mazefiles'],
     'drag-race': _ALL, 'maze-race': _ALL, 'minisumo': _ALL, 'portraits': _ALL,
 }

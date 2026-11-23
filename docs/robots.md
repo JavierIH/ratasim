@@ -27,6 +27,28 @@ By [JavierIH](https://github.com/JavierIH) · [JavierIH/ratatron](https://github
 - **Run:** `ratasim --maze oshwdem2026` (its console stays open: `MODE 2 6`, `START`, ...). Details, calibration and
   the studies: [simulator.md](simulator.md).
 
+## Ratatron II
+
+<img src="images/robots/ratatron2.jpg" width="220" align="right">
+
+By [JavierIH](https://github.com/JavierIH) · [JavierIH/ratatron2](https://github.com/JavierIH/ratatron2) (its
+firmware GPLv3, its board and mechanics CC BY-SA 4.0)
+
+Ratatron's successor, being built: an STM32F446RE, two DRV8874 drivers, AS5147P magnetic encoders, an LSM6DSRX
+gyro, four IR pairs, a suction fan, on 2S. Four wheels, each side's two geared to its motor's pinion.
+
+- **Model:** its FreeCAD file (`mechanics/ratatron2.fcstd`) as saved, exported with `ratasim/ratatron2/cad.py`
+  (FreeCAD's `freecadcmd`) to `ratasim/ratatron2/assets` (committed: CC BY-SA 4.0, as its CAD): its KiCad board with
+  its parts, its drivetrain (17 mm motors with 10-tooth pinions between their wheels' 42-tooth gears, 23.5 mm tyres
+  on MR62 bearings, its wheel supports), its encoder boards and magnets, its battery, its fan and IR holders, in
+  their faces' colours. Its seven LEDs apart, each its own mesh: D2-D7 along its tail (yellow, its firmware's
+  LED1-LED6; from the left D3, D2, D4, D5, D6, D7) switched on and off, D1 (its pilot, blue) lit. Collisions: boxes
+  over its board's outline, its four tyres.
+- **Physics, assumed (nothing weighed yet):** 110 g, its centre of mass 2 mm ahead of its middle.
+- **Firmware:** not simulated yet (its firmware is a test program for its board: LEDs, button, motors and fan).
+- **Run:** `ratasim ratatron2 [--maze oshwdem2026] [--leds 0b111111] [--image out.jpg]`: its model in the start
+  cell, its motors off, in MuJoCo's viewer (or a picture of it).
+
 ## ZoroBot3
 
 <img src="images/robots/zorobot3.jpg" width="220" align="right">

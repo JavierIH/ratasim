@@ -29,8 +29,10 @@ ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation[, the he
     'ukmarsbot': ('k_', 0.22, 215, -32),
     'miniskybot': ('m_', 0.27, 215, -26, 0.03),
     'kerise': ('e_', 0.155, 215, -30),
+    'ratatron2': ('r2_', 0.20, 215, -30),
 }
 SHADOW_CLIP = {'kerise': 0.15}   # its shadows' map over less than the scene (m): the small ones' shadows without steps
+BEHIND = {'ratatron2': 0.012}    # its middle that far ahead of its origin (m): put that much behind, in the middle
 SKY = 'rgb1="0.17 0.18 0.21" rgb2="0.04 0.04 0.05"'          # a dark studio
 STUDIO = ('<geom name="floor" type="plane" size="4 4 0.1" rgba="0.10 0.11 0.13 1" condim="3" friction="0.05 0.001 0.0001"/>'
           # the camera looks from +x +y (azimuth 215): the key light from its upper left (the shadow falls behind the
@@ -82,7 +84,7 @@ def main(argv=None):
         maze_picture(os.path.join(a.dir, 'maze.jpg'))
     xml = K.scene_xml(Maze.load(maze_path('oshwdem2026')), with_maze=False, gamusino=True, bulebule=True, nezumibot=True,
                        perenquen=True, fujin=True, futura=True, ukmarsbot=True, miniskybot=True,
-                       kerise=True)
+                       kerise=True, ratatron2=True)
     xml = xml.replace('<texture name="sky" type="skybox" builtin="gradient" rgb1="0.25 0.27 0.3" rgb2="0.05 0.05 0.06"',
                       f'<texture name="sky" type="skybox" builtin="gradient" {SKY}')
     m, d = K.compile(xml.replace('</worldbody>', STUDIO + '</worldbody>', 1))
@@ -94,7 +96,7 @@ def main(argv=None):
             continue
         m.vis.map.shadowclip = SHADOW_CLIP.get(name, clip)
         for other, bot in bots.items():
-            bot.place(0.0 if other == prefix else 5.0, 0.0, 1.5708)     # the others out of the picture
+            bot.place(0.0 if other == prefix else 5.0, -BEHIND.get(name, 0.0), 1.5708)    # the others away
         for _ in range(600):                                             # settle on the floor
             mujoco.mj_step(m, d)
         cam.lookat[:] = (0.0, 0.004, z[0] if z else 0.012)

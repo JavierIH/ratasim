@@ -37,3 +37,6 @@
 [submodule "external/mazefiles"]
 	path = external/mazefiles
 	url = https://github.com/micromouseonline/mazefiles
+[submodule "external/ratatron2"]
+	path = external/ratatron2
+	url = https://github.com/JavierIH/ratatron2

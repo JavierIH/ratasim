@@ -23,6 +23,7 @@ from ..futura import config as UC, model as UM   # noqa: E402
 from ..ukmarsbot import config as KC, model as KM   # noqa: E402
 from ..miniskybot import config as MC, model as MM_   # noqa: E402
 from ..kerise import config as EC, model as EM   # noqa: E402
+from ..ratatron2 import model as R2M   # noqa: E402
 
 MM = 0.001
 RAT_V, RAT_A = 0.9, 2.0                 # Ratatron's race preset: FAST_FULL_SPEED, RACE_ACCEL_MM_S2
@@ -78,9 +79,10 @@ def park(m, d, names):
 
 def scene_xml(maze, with_maze=True, rat_mass=0.200, hull_solref=None, gamusino=False, bulebule=False, nezumibot=False,
               perenquen=False, fujin=False, futura=False,
-              ukmarsbot=False, miniskybot=False, kerise=False):
+              ukmarsbot=False, miniskybot=False, kerise=False, ratatron2=False):
     """Ratatron's scene (its maze, unless with_maze is False) with ZoroBot3 added (and Gamusino, prefixed g_): the
-    robots' hulls hit each other (and stiffer, bouncier with hull_solref, e.g. "0.002 0.3")."""
+    robots' hulls hit each other (and stiffer, bouncier with hull_solref, e.g. "0.002 0.3"). Ratatron II (r2_, its
+    model only: not in ROBOTS until it has a firmware or a speed profile for the races)."""
     C.MASS_KG = rat_mass
     xml = RM.scene_xml(maze)
     if not with_maze:
@@ -157,6 +159,16 @@ def scene_xml(maze, with_maze=True, rat_mass=0.200, hull_solref=None, gamusino=F
         xml = xml.replace('</worldbody>', EM.robot_xml(prefix='e_') + '</worldbody>', 1)
         xml = xml.replace('</actuator>', '<motor name="e_motor_l" joint="e_wheel_l"/>'
                           '<motor name="e_motor_r" joint="e_wheel_r"/></actuator>', 1)
+    if ratatron2:   # Ratatron II
+        xml = re.sub(r'(</default>\s*<asset>)', lambda m: R2M.defaults_xml() + m.group(1), xml, count=1)
+        xml = xml.replace('</asset>', R2M.assets_xml() + '</asset>', 1)
+        xml = xml.replace('</worldbody>', R2M.robot_xml(prefix='r2_') + '</worldbody>', 1)
+        xml = xml.replace('</actuator>', '<motor name="r2_motor_l" joint="r2_wheel_l"/>'
+                          '<motor name="r2_motor_r" joint="r2_wheel_r"/></actuator>', 1)
+        if '<equality>' in xml:
+            xml = xml.replace('</equality>', R2M.equality_xml('r2_') + '</equality>', 1)
+        else:
+            xml = xml.replace('</actuator>', f'</actuator><equality>{R2M.equality_xml("r2_")}</equality>', 1)
     return xml
 
 

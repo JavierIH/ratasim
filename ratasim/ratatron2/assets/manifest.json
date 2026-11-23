@@ -1,0 +1,602 @@
+[
+ {
+  "file": "led_1_00.stl",
+  "body": "led_1",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "file": "led_2_01.stl",
+  "body": "led_2",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "file": "led_3_02.stl",
+  "body": "led_3",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "file": "led_4_03.stl",
+  "body": "led_4",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "file": "led_5_04.stl",
+  "body": "led_5",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "file": "led_6_05.stl",
+  "body": "led_6",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "file": "led_pilot_06.stl",
+  "body": "led_pilot",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_07.stl",
+  "body": "robot",
+  "rgba": [
+   0.0,
+   0.0,
+   0.0,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_08.stl",
+  "body": "robot",
+  "rgba": [
+   0.0,
+   0.333,
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_09.stl",
+  "body": "robot",
+  "rgba": [
+   0.039,
+   0.039,
+   0.039,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_10.stl",
+  "body": "robot",
+  "rgba": [
+   0.051,
+   0.051,
+   0.051,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_11.stl",
+  "body": "robot",
+  "rgba": [
+   0.082,
+   0.086,
+   0.094,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_12.stl",
+  "body": "robot",
+  "rgba": [
+   0.094,
+   0.094,
+   0.094,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_13.stl",
+  "body": "robot",
+  "rgba": [
+   0.102,
+   0.078,
+   0.122,
+   0.7
+  ]
+ },
+ {
+  "file": "robot_14.stl",
+  "body": "robot",
+  "rgba": [
+   0.149,
+   0.145,
+   0.145,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_15.stl",
+  "body": "robot",
+  "rgba": [
+   0.161,
+   0.161,
+   0.161,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_16.stl",
+  "body": "robot",
+  "rgba": [
+   0.208,
+   0.208,
+   0.208,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_17.stl",
+  "body": "robot",
+  "rgba": [
+   0.239,
+   0.239,
+   0.239,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_18.stl",
+  "body": "robot",
+  "rgba": [
+   0.275,
+   0.275,
+   0.275,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_19.stl",
+  "body": "robot",
+  "rgba": [
+   0.302,
+   0.302,
+   0.302,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_20.stl",
+  "body": "robot",
+  "rgba": [
+   0.333,
+   0.0,
+   0.498,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_21.stl",
+  "body": "robot",
+  "rgba": [
+   0.373,
+   0.373,
+   0.373,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_22.stl",
+  "body": "robot",
+  "rgba": [
+   0.38,
+   0.271,
+   0.216,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_23.stl",
+  "body": "robot",
+  "rgba": [
+   0.447,
+   0.475,
+   0.502,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_24.stl",
+  "body": "robot",
+  "rgba": [
+   0.502,
+   0.0,
+   0.502,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_25.stl",
+  "body": "robot",
+  "rgba": [
+   0.506,
+   0.506,
+   0.506,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_26.stl",
+  "body": "robot",
+  "rgba": [
+   0.549,
+   0.549,
+   0.0,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_27.stl",
+  "body": "robot",
+  "rgba": [
+   0.604,
+   0.604,
+   0.604,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_28.stl",
+  "body": "robot",
+  "rgba": [
+   0.69,
+   0.663,
+   0.596,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_29.stl",
+  "body": "robot",
+  "rgba": [
+   0.702,
+   0.612,
+   0.0,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_30.stl",
+  "body": "robot",
+  "rgba": [
+   0.749,
+   0.761,
+   0.78,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_31.stl",
+  "body": "robot",
+  "rgba": [
+   0.8,
+   0.8,
+   0.8,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_32.stl",
+  "body": "robot",
+  "rgba": [
+   0.824,
+   0.82,
+   0.78,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_33.stl",
+  "body": "robot",
+  "rgba": [
+   0.839,
+   0.839,
+   0.839,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_34.stl",
+  "body": "robot",
+  "rgba": [
+   0.859,
+   0.678,
+   0.2,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_35.stl",
+  "body": "robot",
+  "rgba": [
+   0.859,
+   0.737,
+   0.494,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_36.stl",
+  "body": "robot",
+  "rgba": [
+   0.859,
+   0.902,
+   0.961,
+   0.45
+  ]
+ },
+ {
+  "file": "robot_37.stl",
+  "body": "robot",
+  "rgba": [
+   0.894,
+   0.89,
+   0.812,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_38.stl",
+  "body": "robot",
+  "rgba": [
+   0.898,
+   0.898,
+   0.898,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_39.stl",
+  "body": "robot",
+  "rgba": [
+   0.902,
+   0.902,
+   0.902,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_40.stl",
+  "body": "robot",
+  "rgba": [
+   0.922,
+   0.922,
+   0.922,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_41.stl",
+  "body": "robot",
+  "rgba": [
+   0.98,
+   0.98,
+   0.98,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_42.stl",
+  "body": "robot",
+  "rgba": [
+   1.0,
+   1.0,
+   0.0,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_43.stl",
+  "body": "robot",
+  "rgba": [
+   1.0,
+   1.0,
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_fl_44.stl",
+  "body": "wheel_fl",
+  "rgba": [
+   0.063,
+   0.063,
+   0.063,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_fl_45.stl",
+  "body": "wheel_fl",
+  "rgba": [
+   0.8,
+   0.8,
+   0.8,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_fl_46.stl",
+  "body": "wheel_fl",
+  "rgba": [
+   0.855,
+   0.855,
+   0.855,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_fl_47.stl",
+  "body": "wheel_fl",
+  "rgba": [
+   1.0,
+   1.0,
+   0.0,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_fr_48.stl",
+  "body": "wheel_fr",
+  "rgba": [
+   0.063,
+   0.063,
+   0.063,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_fr_49.stl",
+  "body": "wheel_fr",
+  "rgba": [
+   0.8,
+   0.8,
+   0.8,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_fr_50.stl",
+  "body": "wheel_fr",
+  "rgba": [
+   0.855,
+   0.855,
+   0.855,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_fr_51.stl",
+  "body": "wheel_fr",
+  "rgba": [
+   1.0,
+   1.0,
+   0.0,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_rl_52.stl",
+  "body": "wheel_rl",
+  "rgba": [
+   0.063,
+   0.063,
+   0.063,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_rl_53.stl",
+  "body": "wheel_rl",
+  "rgba": [
+   0.8,
+   0.8,
+   0.8,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_rl_54.stl",
+  "body": "wheel_rl",
+  "rgba": [
+   0.855,
+   0.855,
+   0.855,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_rl_55.stl",
+  "body": "wheel_rl",
+  "rgba": [
+   1.0,
+   1.0,
+   0.0,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_rr_56.stl",
+  "body": "wheel_rr",
+  "rgba": [
+   0.063,
+   0.063,
+   0.063,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_rr_57.stl",
+  "body": "wheel_rr",
+  "rgba": [
+   0.8,
+   0.8,
+   0.8,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_rr_58.stl",
+  "body": "wheel_rr",
+  "rgba": [
+   0.855,
+   0.855,
+   0.855,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_rr_59.stl",
+  "body": "wheel_rr",
+  "rgba": [
+   1.0,
+   1.0,
+   0.0,
+   1.0
+  ]
+ }
+]

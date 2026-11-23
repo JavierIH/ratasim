@@ -12,6 +12,7 @@
     ratasim ukmarsbot [options]     UKMARSBOT in a maze
     ratasim miniskybot [options]    Miniskybot 2 in a maze
     ratasim kerise [options]        KERISE v1 in a classic maze
+    ratasim ratatron2 [options]     Ratatron II in a maze: its model only (its firmware not yet)
     ratasim maze-race|drag-race OUT.mp4 [--robots a,b,c]   scenes with any robots (videos)
     ratasim minisumo OUT.mp4 [--robots a,b,c]   a minisumo bout, all at once on one dohyo, then its podium (a video)
     ratasim crash|loop OUT.mp4 [options]   scenes with Ratatron and ZoroBot3 (videos)
@@ -42,6 +43,7 @@ COMMANDS = {
     'ukmarsbot': 'ratasim.ukmarsbot.run',
     'miniskybot': 'ratasim.miniskybot.run',
     'kerise': 'ratasim.kerise.run',
+    'ratatron2': 'ratasim.ratatron2.run',
     'zorobot': 'ratasim.zorobot.run',
     'crash': 'ratasim.scenes.crash',
     'loop': 'ratasim.scenes.loop',
