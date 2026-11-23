@@ -59,17 +59,17 @@ cells of 180 mm).
 <tr>
 <td align="center" width="33%"><a href="docs/robots.md#miniskybot"><img src="docs/images/robots/miniskybot.jpg" width="250"><br><b>Miniskybot</b></a></td>
 <td align="center" width="33%"><a href="docs/robots.md#kerise-v1"><img src="docs/images/robots/kerise.jpg" width="250"><br><b>KERISE v1</b></a></td>
-<td width="33%"></td>
+<td align="center" width="33%"><a href="docs/robots.md#ratatron-ii"><img src="docs/images/robots/ratatron2.jpg" width="250"><br><b>Ratatron II</b></a></td>
 </tr>
 <tr>
 <td align="center">by <a href="https://github.com/Obijuan">Obijuan</a> · <a href="https://github.com/Obijuan/Miniskybot">repo</a></td>
 <td align="center">by <a href="https://github.com/kerikun11">kerikun11</a> · <a href="https://github.com/kerikun11/micromouse-kerise-v1">repo</a></td>
-<td></td>
+<td align="center">by <a href="https://github.com/JavierIH">JavierIH</a> · <a href="https://github.com/JavierIH/ratatron2">repo</a></td>
 </tr>
 <tr>
 <td align="center">ATmega328 · 1 ultrasonic · hacked servos</td>
 <td align="center">STM32F405 · 4 IR · gyro</td>
-<td></td>
+<td align="center">STM32F446 · 4 IR · gyro · fan · 4 wheels</td>
 </tr>
 </table>
 
@@ -230,6 +230,18 @@ kerikun11's 2016 classic micromouse with its All Japan contest firmware on a sim
 It searches to the goal (84.3 s) and back (158 s), then makes its fast runs (41.4 s, 34.6 s). `--echo` prints its
 console.
 
+### Running Ratatron II
+
+<img src="docs/images/maze-ratatron2.jpg" alt="Ratatron II in the start cell, its LEDs lit" align="right" width="280">
+
+```sh
+ratasim ratatron2 --maze oshwdem2026 --leds 0b111111
+```
+
+Ratatron's successor, being built: for now its 3D model only, from its FreeCAD file, in the start cell. Its
+firmware is not simulated yet. `--leds` lights its six LEDs on its tail; `--image out.jpg` takes a picture
+instead of the viewer.
+
 ## Tests and CI
 
 `tests/robots.py` puts each robot in the OSHWDEM 2026 maze and checks what it prints. CI runs the short check, one job
@@ -275,4 +287,6 @@ controller sample, its board's Gerber files and its printed parts are downloaded
 SHA-256, and stay out of git; ST's library is not used
 (`ratasim/futura/fw` simulates the part of its API the template calls). Fujin's team's photos of its board
 (raiju.team), its art's only source, are downloaded at build time, pinned by their SHA-256, and stay out of git.
-Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES). The competition mazes are Peter Harrison's collection ([micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles)), gathered with its contributors from the contests' own maps; it carries no licence, so it is a submodule and none of its files is copied here. The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's, Miniskybot's and KERISE v1's CAD stay out of git; NezumiBot's and Perenquén's are in `ratasim/nezumibot/assets` and `ratasim/perenquen/assets`, under their licences.
+Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES). Ratatron II's firmware is
+GPLv3, its board and mechanics CC BY-SA 4.0. The competition mazes are Peter Harrison's collection ([micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles)), gathered with its contributors from the contests' own maps; it carries no licence, so it is a submodule and none of its files is copied here. The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's, Miniskybot's and KERISE v1's CAD stay out of git; NezumiBot's, Perenquén's and Ratatron II's are in `ratasim/nezumibot/assets`, `ratasim/perenquen/assets` and
+`ratasim/ratatron2/assets`, under their licences.
