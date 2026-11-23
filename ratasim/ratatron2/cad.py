@@ -40,6 +40,8 @@ SKIP = ('chassis', 'Body008')
 PADS = 'ratatron2_pad'                      # its board's copper (pads, vias): their tops and bottoms only
 NEAR = (-50.0, 50.0, -50.0, 70.0)           # x and y (mm) of what belongs to the robot
 LED_BODY = ((38, 37, 37), (176, 169, 152))  # KiCad's diode model: its body and its cathode's band
+BLACK = {'DADO_ESAGONALE_AUTOBLOCCANTE': (22, 22, 24, 1.0)}   # its four axles' lock nuts, black (its maker's;
+#                                                             the CAD's nylon blue and steel grey)
 COARSE = ((2.0, 0.1, 1.2), (8.0, 0.05, 0.5), (1e9, 0.05, 0.2))   # faces under this diagonal (mm): this linear (mm)
 #                                                                   and angular (rad) deflection
 
@@ -130,6 +132,9 @@ for path, wheel in leaves(doc):
     done[key] = o.Label
     src = o.getLinkedObject(True) if o.TypeId == 'App::Link' else o
     c = colours.get(o.Name) or colours.get(src.Name) or [(204, 204, 204, 1.0)]
+    for label, rgba in BLACK.items():
+        if o.Label.startswith(label):
+            c = [rgba]
     if o.TypeId == 'Part::Mirroring' and len(c) == 1:     # a mirror in one colour: its source's faces' (the right
         sc = colours.get(o.Source.Name, [])             # encoder's chip, the left one's mirror)
         if len(sc) == len(s.Faces) > 1:

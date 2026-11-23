@@ -83,9 +83,9 @@
   "file": "robot_08.stl",
   "body": "robot",
   "rgba": [
-   0.0,
-   0.333,
-   1.0,
+   0.039,
+   0.039,
+   0.039,
    1.0
   ]
  },
@@ -93,9 +93,9 @@
   "file": "robot_09.stl",
   "body": "robot",
   "rgba": [
-   0.039,
-   0.039,
-   0.039,
+   0.051,
+   0.051,
+   0.051,
    1.0
   ]
  },
@@ -103,9 +103,9 @@
   "file": "robot_10.stl",
   "body": "robot",
   "rgba": [
-   0.051,
-   0.051,
-   0.051,
+   0.082,
+   0.086,
+   0.094,
    1.0
   ]
  },
@@ -113,7 +113,7 @@
   "file": "robot_11.stl",
   "body": "robot",
   "rgba": [
-   0.082,
+   0.086,
    0.086,
    0.094,
    1.0
@@ -313,16 +313,6 @@
   "file": "robot_31.stl",
   "body": "robot",
   "rgba": [
-   0.8,
-   0.8,
-   0.8,
-   1.0
-  ]
- },
- {
-  "file": "robot_32.stl",
-  "body": "robot",
-  "rgba": [
    0.824,
    0.82,
    0.78,
@@ -330,7 +320,7 @@
   ]
  },
  {
-  "file": "robot_33.stl",
+  "file": "robot_32.stl",
   "body": "robot",
   "rgba": [
    0.839,
@@ -340,7 +330,7 @@
   ]
  },
  {
-  "file": "robot_34.stl",
+  "file": "robot_33.stl",
   "body": "robot",
   "rgba": [
    0.859,
@@ -350,7 +340,7 @@
   ]
  },
  {
-  "file": "robot_35.stl",
+  "file": "robot_34.stl",
   "body": "robot",
   "rgba": [
    0.859,
@@ -360,7 +350,7 @@
   ]
  },
  {
-  "file": "robot_36.stl",
+  "file": "robot_35.stl",
   "body": "robot",
   "rgba": [
    0.859,
@@ -370,7 +360,7 @@
   ]
  },
  {
-  "file": "robot_37.stl",
+  "file": "robot_36.stl",
   "body": "robot",
   "rgba": [
    0.894,
@@ -380,12 +370,22 @@
   ]
  },
  {
-  "file": "robot_38.stl",
+  "file": "robot_37.stl",
   "body": "robot",
   "rgba": [
    0.898,
    0.898,
    0.898,
+   1.0
+  ]
+ },
+ {
+  "file": "robot_38.stl",
+  "body": "robot",
+  "rgba": [
+   0.902,
+   0.902,
+   0.902,
    1.0
   ]
  },
@@ -393,9 +393,9 @@
   "file": "robot_39.stl",
   "body": "robot",
   "rgba": [
-   0.902,
-   0.902,
-   0.902,
+   0.922,
+   0.922,
+   0.922,
    1.0
   ]
  },
@@ -403,9 +403,9 @@
   "file": "robot_40.stl",
   "body": "robot",
   "rgba": [
-   0.922,
-   0.922,
-   0.922,
+   0.98,
+   0.98,
+   0.98,
    1.0
   ]
  },
@@ -413,9 +413,9 @@
   "file": "robot_41.stl",
   "body": "robot",
   "rgba": [
-   0.98,
-   0.98,
-   0.98,
+   1.0,
+   1.0,
+   0.0,
    1.0
   ]
  },
@@ -425,17 +425,17 @@
   "rgba": [
    1.0,
    1.0,
-   0.0,
+   1.0,
    1.0
   ]
  },
  {
-  "file": "robot_43.stl",
-  "body": "robot",
+  "file": "wheel_fl_43.stl",
+  "body": "wheel_fl",
   "rgba": [
-   1.0,
-   1.0,
-   1.0,
+   0.063,
+   0.063,
+   0.063,
    1.0
   ]
  },
@@ -443,9 +443,9 @@
   "file": "wheel_fl_44.stl",
   "body": "wheel_fl",
   "rgba": [
-   0.063,
-   0.063,
-   0.063,
+   0.8,
+   0.8,
+   0.8,
    1.0
   ]
  },
@@ -453,9 +453,9 @@
   "file": "wheel_fl_45.stl",
   "body": "wheel_fl",
   "rgba": [
-   0.8,
-   0.8,
-   0.8,
+   0.855,
+   0.855,
+   0.855,
    1.0
   ]
  },
@@ -463,19 +463,19 @@
   "file": "wheel_fl_46.stl",
   "body": "wheel_fl",
   "rgba": [
-   0.855,
-   0.855,
-   0.855,
+   1.0,
+   1.0,
+   0.0,
    1.0
   ]
  },
  {
-  "file": "wheel_fl_47.stl",
-  "body": "wheel_fl",
+  "file": "wheel_fr_47.stl",
+  "body": "wheel_fr",
   "rgba": [
-   1.0,
-   1.0,
-   0.0,
+   0.063,
+   0.063,
+   0.063,
    1.0
   ]
  },
@@ -483,9 +483,9 @@
   "file": "wheel_fr_48.stl",
   "body": "wheel_fr",
   "rgba": [
-   0.063,
-   0.063,
-   0.063,
+   0.8,
+   0.8,
+   0.8,
    1.0
   ]
  },
@@ -493,9 +493,9 @@
   "file": "wheel_fr_49.stl",
   "body": "wheel_fr",
   "rgba": [
-   0.8,
-   0.8,
-   0.8,
+   0.855,
+   0.855,
+   0.855,
    1.0
   ]
  },
@@ -503,19 +503,19 @@
   "file": "wheel_fr_50.stl",
   "body": "wheel_fr",
   "rgba": [
-   0.855,
-   0.855,
-   0.855,
+   1.0,
+   1.0,
+   0.0,
    1.0
   ]
  },
  {
-  "file": "wheel_fr_51.stl",
-  "body": "wheel_fr",
+  "file": "wheel_rl_51.stl",
+  "body": "wheel_rl",
   "rgba": [
-   1.0,
-   1.0,
-   0.0,
+   0.063,
+   0.063,
+   0.063,
    1.0
   ]
  },
@@ -523,9 +523,9 @@
   "file": "wheel_rl_52.stl",
   "body": "wheel_rl",
   "rgba": [
-   0.063,
-   0.063,
-   0.063,
+   0.8,
+   0.8,
+   0.8,
    1.0
   ]
  },
@@ -533,24 +533,14 @@
   "file": "wheel_rl_53.stl",
   "body": "wheel_rl",
   "rgba": [
-   0.8,
-   0.8,
-   0.8,
+   0.855,
+   0.855,
+   0.855,
    1.0
   ]
  },
  {
   "file": "wheel_rl_54.stl",
-  "body": "wheel_rl",
-  "rgba": [
-   0.855,
-   0.855,
-   0.855,
-   1.0
-  ]
- },
- {
-  "file": "wheel_rl_55.stl",
   "body": "wheel_rl",
   "rgba": [
    1.0,
@@ -560,12 +550,22 @@
   ]
  },
  {
-  "file": "wheel_rr_56.stl",
+  "file": "wheel_rr_55.stl",
   "body": "wheel_rr",
   "rgba": [
    0.063,
    0.063,
    0.063,
+   1.0
+  ]
+ },
+ {
+  "file": "wheel_rr_56.stl",
+  "body": "wheel_rr",
+  "rgba": [
+   0.8,
+   0.8,
+   0.8,
    1.0
   ]
  },
@@ -573,24 +573,14 @@
   "file": "wheel_rr_57.stl",
   "body": "wheel_rr",
   "rgba": [
-   0.8,
-   0.8,
-   0.8,
+   0.855,
+   0.855,
+   0.855,
    1.0
   ]
  },
  {
   "file": "wheel_rr_58.stl",
-  "body": "wheel_rr",
-  "rgba": [
-   0.855,
-   0.855,
-   0.855,
-   1.0
-  ]
- },
- {
-  "file": "wheel_rr_59.stl",
   "body": "wheel_rr",
   "rgba": [
    1.0,

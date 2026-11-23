@@ -40,7 +40,7 @@ gyro, four IR pairs, a suction fan, on 2S. Four wheels, each side's two geared t
 - **Model:** its FreeCAD file (`mechanics/ratatron2.fcstd`) as saved, exported with `ratasim/ratatron2/cad.py`
   (FreeCAD's `freecadcmd`) to `ratasim/ratatron2/assets` (committed: CC BY-SA 4.0, as its CAD): its KiCad board with
   its parts, its drivetrain (17 mm motors with 10-tooth pinions between their wheels' 42-tooth gears, 23.5 mm tyres
-  on MR62 bearings, its wheel supports), its encoder boards and magnets, its battery, its fan and IR holders, in
+  on MR62 bearings, black lock nuts on their axles, its wheel supports), its encoder boards and magnets, its battery, its fan and IR holders, in
   their faces' colours. Its seven LEDs apart, each its own mesh: D2-D7 along its tail (yellow, its firmware's
   LED1-LED6; from the left D3, D2, D4, D5, D6, D7) switched on and off, D1 (its pilot, blue) lit. Collisions: boxes
   over its board's outline, its four tyres.
