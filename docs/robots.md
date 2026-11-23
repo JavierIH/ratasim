@@ -24,7 +24,7 @@ By [JavierIH](https://github.com/JavierIH) · [JavierIH/ratatron](https://github
 - **Model:** its FreeCAD assembly, exported to `ratasim/assets` (`ratasim/export_cad.py`).
 - **Start:** switched on in the start cell, SELECT picks mode 1, START launches the search after a 5 s countdown
   (`--race K`: race K of its race menu, on the map saved).
-- **Run:** `ratasim --maze oshwdem2026` (its console stays open: `MODE 2 6`, `START`, ...). Details, calibration and
+- **Run:** `ratasim ratatron --maze oshwdem2026` (its console stays open: `MODE 2 6`, `START`, ...). Details, calibration and
   the studies: [simulator.md](simulator.md).
 
 ## Ratatron II

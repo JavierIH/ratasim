@@ -129,7 +129,7 @@ def short(args, max_s, clean, started=None):
 def ratatron(full):
     fails = []
     flash = os.path.join(tempfile.mkdtemp(), 'flash.bin')
-    base = ['--headless', '--speed', '0', '--no-pty', '--flash', flash, '--maze', MAZE]
+    base = ['ratatron', '--headless', '--speed', '0', '--no-pty', '--flash', flash, '--maze', MAZE]
     if not full:
         out = run(base + ['--erase-flash', '--max-s', str(SHORT_S['ratatron'])])
         stopwatch(out)

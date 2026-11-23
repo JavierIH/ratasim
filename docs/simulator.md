@@ -5,12 +5,12 @@ black floor, white walls 50 x 12 mm with red tops, 180 mm cells, 12 mm posts wit
 Code: `ratasim/` (the ZoroBot3 part: `ratasim/zorobot/`, [robots.md](robots.md#zorobot3)).
 
 ```
-ratasim                              # viewer + console on stdin; a generated maze (seed 1); started: the search
-ratasim --maze oshwdem2026           # a maze of ratasim/mazes, or any micromouseonline maze file
-ratasim --maze japan2000             # a classic competition maze of external/mazefiles (ratasim mazes)
-ratasim --maze oshwdem2026 --race 4  # started on race 2.4 of its race menu, on the map the search saved
-ratasim --headless --speed 0 --erase-flash          # the search, headless: it ends 8 s after the run
-ratasim --headless --speed 0 --cmd "MODE 1" --cmd START --until-idle   # a script instead of its start
+ratasim ratatron                     # viewer + console on stdin; a generated maze (seed 1); started: the search
+ratasim ratatron --maze oshwdem2026  # a maze of ratasim/mazes, or any micromouseonline maze file
+ratasim ratatron --maze japan2000    # a classic competition maze of external/mazefiles (ratasim mazes)
+ratasim ratatron --maze oshwdem2026 --race 4   # started on race 2.4 of its race menu, on the map the search saved
+ratasim ratatron --headless --speed 0 --erase-flash   # the search, headless: it ends 8 s after the run
+ratasim ratatron --headless --speed 0 --cmd "MODE 1" --cmd START --until-idle   # a script instead of its start
 ratatron connect --sim               # then ratatron monitor / ratatron send, as with the robot (its tools:
                                      # pip install -e external/ratatron/software)
 ```

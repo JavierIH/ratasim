@@ -1,7 +1,6 @@
 """ratasim: micromouse robots in MuJoCo, each with its own firmware.
 
-    ratasim [ratatron] [options]    Ratatron in a maze, started as at a competition (ratasim --help)
-    ratasim batch|curves|failures|mapdiff|demo|ir-info|real-ir ...   Ratatron's studies
+    ratasim ratatron [options]      Ratatron in a maze
     ratasim zorobot [options]       ZoroBot3 in a maze
     ratasim gamusino [options]      Gamusino in a maze
     ratasim nezumibot [options]     NezumiBot in a maze
@@ -19,13 +18,15 @@
     ratasim portraits [DIR]         a square picture of each robot
     ratasim mazes [PATTERN] [--show NAME]   the mazes --maze takes by name (525 classic competition ones)
     ratasim help                    this
+
+ratasim ROBOT --help: its options.
 """
 import runpy
 import sys
 
 from ratasim import paths
 
-COMMANDS = {
+COMMANDS = {     # batch ... real-ir: Ratatron's studies, its maker's tools (docs/simulator.md), not listed above
     'batch': 'ratasim.batch',
     'curves': 'ratasim.curves',
     'failures': 'ratasim.failures',
@@ -57,15 +58,14 @@ COMMANDS = {
 
 def main(argv=None):
     args = sys.argv[1:] if argv is None else list(argv)
-    if args[:1] == ['help']:
+    if not args or args[0] in ('help', '-h', '--help'):
         print(__doc__)
         return 0
-    if args and args[0] in COMMANDS:
-        args_command = args[0]
-        module, name, args = COMMANDS[args[0]], 'ratasim ' + args[0], args[1:]
-    else:
-        args_command = 'ratatron'
-        module, name = 'ratasim.run', 'ratasim'
+    if args[0] not in COMMANDS:
+        print(f'ratasim: no command {args[0]!r} (ratasim help: the robots and scenes)', file=sys.stderr)
+        return 2
+    args_command = args[0]
+    module, name, args = COMMANDS[args[0]], 'ratasim ' + args[0], args[1:]
     message = paths.require(args_command)
     if message:
         print('ratasim: ' + message, file=sys.stderr)

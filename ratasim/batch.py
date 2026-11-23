@@ -21,7 +21,7 @@ def run_one(maze, out, races, max_s, maps=None, extra=()):
     name = os.path.splitext(os.path.basename(maze))[0]
     log = os.path.join(out, name + '.log')
     flash = os.path.join(out, name + '.bin')
-    cmd = [sys.executable, '-m', 'ratasim', '--headless', '--speed', '0', '--no-pty', '--flash', flash,
+    cmd = [sys.executable, '-m', 'ratasim', 'ratatron', '--headless', '--speed', '0', '--no-pty', '--flash', flash,
            '--maze', maze, '--timestamps', '--max-s', str(max_s), '--until-idle', *extra]
     if maps:        # the map a search saved before: only the races (for changes the search does not use)
         shutil.copy(os.path.join(maps, name + '.bin'), flash)

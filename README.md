@@ -113,8 +113,8 @@ ratasim batch out $(ratasim mazes --paths 'alljapan-*')   # Ratatron over many
 <img src="docs/images/maze-ratatron.jpg" alt="Ratatron searching the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
-ratasim --maze oshwdem2026
-ratasim --maze oshwdem2026 --race 4
+ratasim ratatron --maze oshwdem2026
+ratasim ratatron --maze oshwdem2026 --race 4
 ```
 
 A viewer opens and the terminal becomes its console. The firmware is compiled on the first run; the robot searches to

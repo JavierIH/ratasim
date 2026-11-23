@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """RATATRON in MuJoCo: the robot's firmware (firmware/src, unchanged) driving the CAD robot in a 16x16 maze.
 
-    ratasim [ratatron]                    # random maze (seed 1), viewer, console on stdin; started: the search
-    ratasim --maze oshwdem2026                     # a maze of ratasim/mazes, or any maze file (micromouseonline)
-    ratasim --maze oshwdem2026 --race 4            # race 2.4 on the map the search saved
-    ratasim --headless --speed 0 --cmd "MODE 1" --cmd START --until-idle
+    ratasim ratatron                               # random maze (seed 1), viewer, console on stdin; started: the search
+    ratasim ratatron --maze oshwdem2026            # a maze of ratasim/mazes, or any maze file (micromouseonline)
+    ratasim ratatron --maze oshwdem2026 --race 4   # race 2.4 on the map the search saved
+    ratasim ratatron --headless --speed 0 --cmd "MODE 1" --cmd START --until-idle
 
 Its start (config.start(), played by ratasim/start.py), as at a competition: switched on in the start cell, SELECT
 picks mode 1, START launches the search after a 5 s countdown; --race k: race k of its race menu instead. --cmd
