@@ -1,8 +1,8 @@
 """Minisumo, a battle royale: the robots on a minisumo dohyo, all at once, evenly spaced round its edge facing its
 centre; at the start they all charge to the centre at their top speed, then each goes for the nearest robot left;
-the last one left on the dohyo wins. A video: the countdown, the charge in slow motion (x4), the rest in real time,
-who is out and when, the winner; then a fade to black and the podium (podium.py): its first three on their
-blocks, the camera on each from the 3rd to the 1st, the whole podium and fireworks.
+the last one left on the dohyo wins. A video: the countdown, the charge in slow motion (x4, then eased back), the
+rest in real time, who is out and when, the winner; then a fade to black and the podium (podium.py): its first three
+on their blocks, the camera on each from the 3rd to the 1st, the whole podium and fireworks.
 
     ratasim minisumo out.mp4 [--robots all]       # --robots ratatron,zorobot,fujin: any, by name
     ratasim minisumo --still out.jpg [--at 0.35]   # a picture of the fight, --at s after the start
@@ -48,6 +48,7 @@ START_GAP = 0.015               # each robot's back this far inside the white bo
 TOPPLE_DEG, TOPPLE_S = 70.0, 0.5
 COUNTDOWN = 1.5                 # s before the start (shown "3, 2, 1")
 SLOW_S, SLOW = 0.8, 4.0         # the first SLOW_S s after the start at x SLOW
+EASE_S = 0.4                    # then from x SLOW to real time over EASE_S s (not at once: it looked sped up)
 STUCK_V, STUCK_S, BACK_S = 0.08, 1.0, 0.3     # stuck: under 8 cm/s (or tilted) for 1 s; then 0.3 s backwards
 STEP_MS = 1                     # the control's period (ms)
 
@@ -287,7 +288,7 @@ class Screen:
         t = b.t
         clock = f'{max(0.0, t):5.2f} s'
         if rate:
-            g.text((w - 330 * s, 14 * s), 'tiempo real' if rate == 1 else f'cámara lenta x{rate:g}', font=self.small, fill=(255, 220, 60))
+            g.text((w - 330 * s, 14 * s), 'tiempo real' if round(rate) <= 1 else f'cámara lenta x{rate:.0f}', font=self.small, fill=(255, 220, 60))
         g.text((w - 130 * s, 12 * s), clock, font=self.mid, fill=(255, 220, 60))
         rows = sorted(b.bots, key=lambda f: (f.out_t is not None, -(f.out_t or 0), b.bots.index(f)))
         g.rectangle((10 * s, 60 * s, 330 * s, 70 * s + 32 * s * len(rows)), fill=(0, 0, 0))
@@ -317,13 +318,22 @@ class Screen:
         g.text((x, y), text, font=font, fill=fill)
 
 
+def slow_rate(t):
+    """How many times slower than real time the video runs at t s of the bout: x SLOW from the start, eased (a
+    smoothstep) to x1 between SLOW_S and SLOW_S + EASE_S; the countdown in real time."""
+    if t < 0:
+        return 1.0
+    u = min(1.0, max(0.0, (t - SLOW_S) / EASE_S))
+    return SLOW - (SLOW - 1.0) * u * u * (3 - 2 * u)
+
+
 def fight(out, keys, limit, fps=30):
     bout = Bout(keys, limit)
     video = K.Video(out)
     scr = Screen(bout, video.w, video.h)
     after = None
     while after is None or bout.t < after:
-        rate = SLOW if 0 <= bout.t < SLOW_S else 1.0
+        rate = slow_rate(bout.t)
         bout.run_to(bout.t + 1.0 / fps / rate)
         video.write(scr.frame(rate))
         if after is None and bout.end is not None:
