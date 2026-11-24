@@ -110,13 +110,24 @@ def _annulus(d_in, d_out, thickness, n=96):
 
 
 def _rounded_box(size, r, n=8):
-    """A box (mm, centred) with its edges and corners rounded to r: the hull of eight spheres."""
-    from scipy.spatial import ConvexHull
-    u, v = np.meshgrid(np.linspace(0, np.pi, n + 1), np.linspace(0, 2 * np.pi, 4 * n, endpoint=False))
-    ball = r * np.c_[(np.sin(u) * np.cos(v)).ravel(), (np.sin(u) * np.sin(v)).ravel(), np.cos(u).ravel()]
+    """A box (mm, centred) with its edges and corners rounded to r, the hull of eight spheres: a sphere's grid of
+    latitudes and longitudes cut at its equator and its four quarter meridians, each eighth moved out to its corner,
+    the strips between them the box's flat faces, its top and bottom two triangles each (n even)."""
     half = np.array(size) / 2 - r
-    pts = np.unique(np.round(np.concatenate([ball + half * np.array(c) for c in np.ndindex(2, 2, 2) for c in [np.array(c) * 2 - 1]]), 9), axis=0)
-    tris = pts[ConvexHull(pts).simplices]
+    rows = [(i, 1) for i in range(n // 2 + 1)] + [(i, -1) for i in range(n // 2, n + 1)]
+    cols = [(j, sx, sy) for q, (sx, sy) in enumerate(((1, 1), (-1, 1), (-1, -1), (1, -1)))
+            for j in range(q * n, (q + 1) * n + 1)]
+    u = np.array([i for i, _ in rows]) * np.pi / n
+    v = np.array([j for j, _, _ in cols]) * np.pi / (2 * n)
+    s = np.array([[(sx, sy, sz) for _, sx, sy in cols] for _, sz in rows])
+    p = r * np.stack([np.outer(np.sin(u), np.cos(v)), np.outer(np.sin(u), np.sin(v)),
+                      np.outer(np.cos(u), np.ones_like(v))], -1) + half * s
+    nxt = np.roll(np.arange(len(cols)), -1)
+    a, b, c, d = p[:-1], p[:-1][:, nxt], p[1:][:, nxt], p[1:]
+    k = [half * (sx, sy, sz) + (0, 0, sz * r) for sz in (1, -1) for sx, sy in ((1, 1), (-1, 1), (-1, -1), (1, -1))]
+    tris = np.concatenate([np.stack([a, b, c], 2).reshape(-1, 3, 3), np.stack([a, c, d], 2).reshape(-1, 3, 3),
+                           [[k[0], k[1], k[2]], [k[0], k[2], k[3]], [k[4], k[5], k[6]], [k[4], k[6], k[7]]]])
+    tris = tris[np.linalg.norm(np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0]), axis=1) > 1e-9]  # poles', cuts' empty ones
     n_ = np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0])
     inward = np.einsum('ij,ij->i', n_, tris.mean(1)) < 0          # convex and centred: outward is away from 0
     tris[inward] = tris[inward][:, ::-1]
