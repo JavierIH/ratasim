@@ -111,24 +111,50 @@ class Viewer:
             t.join(3)
 
 
+class Both:
+    """The window and the video at once (--record without --headless). Same calls as Recorder."""
+
+    def __init__(self, robot, path, title, speed=1.0, led=None):
+        self.parts = [Recorder(robot, path, title, speed=speed, led=led), Viewer(robot, speed=speed)]
+
+    status = property(lambda s: s.parts[0].status,
+                      lambda s, v: [setattr(p, 'status', v) for p in s.parts])
+    clock = property(lambda s: s.parts[0].clock,
+                     lambda s, v: [setattr(p, 'clock', v) for p in s.parts])
+
+    def maybe_frame(self, fast=False):
+        for p in self.parts:
+            p.maybe_frame(fast)
+
+    def close(self):
+        for p in self.parts:
+            p.close()
+
+
 def add_view_args(p):
-    p.add_argument('--headless', action='store_true', help='no window (with --record there is none either)')
+    p.add_argument('--headless', action='store_true', help='no window (--record then records without showing it)')
     p.add_argument('--record', metavar='MP4')
     p.add_argument('--record-speed', type=float, default=1.0, help='the pace of window and video (x real time)')
     p.add_argument('--trace', metavar='NPZ', help='no window: its joints every 10 ms to this file (ratasim/trace.py)')
 
 
+def no_screen():
+    return sys.platform.startswith('linux') and not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY'))
+
+
 def make_view(robot, a, title, led=None, clock=None):
-    """What shows the run: a video (--record), else MuJoCo's window, else (--headless, or no screen) nothing.
+    """What shows the run: a video and MuJoCo's window (--record; no window with --headless), else (--headless, or no screen) nothing.
     clock: a Stopwatch it shows. --trace: its run to a file (ratasim/trace.py), no window and no video."""
     if a.trace:
         from .trace import Tracer
         view = Tracer(robot, a.trace)
-    elif a.record:
+    elif a.record and (a.headless or no_screen()):
         view = Recorder(robot, a.record, title, speed=a.record_speed, led=led)
+    elif a.record:
+        view = Both(robot, a.record, title, speed=a.record_speed, led=led)
     elif a.headless:
         return None
-    elif sys.platform.startswith('linux') and not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
+    elif no_screen():
         print('no screen (DISPLAY): running headless')
         return None
     else:

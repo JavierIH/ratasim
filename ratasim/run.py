@@ -244,10 +244,13 @@ class Session:
             v.cam.lookat[:] = (r.maze.size * 0.09, r.maze.size * 0.09, 0)
             v.cam.distance, v.cam.elevation, v.cam.azimuth = 3.6, -70, 90
             wall0, sim0, last_sync = time.monotonic(), r.fw.time_ms(), 0.0
+            rec = Recorder(self, self.args.record) if self.args.record else None   # window and video at once
             while v.is_running() and not self.quit:
                 with v.lock():
                     for _ in range(10):
                         self.step()
+                        if rec:
+                            rec.maybe_frame()
                 now = time.monotonic()
                 if now - last_sync > 1 / 60:
                     if self.args.follow:
@@ -262,6 +265,8 @@ class Session:
                         time.sleep(ahead)
                     elif ahead < -0.5:      # slower than asked: do not try to catch up
                         wall0, sim0 = time.monotonic(), r.fw.time_ms()
+        if rec:
+            rec.close()
 
 
 class Recorder:
@@ -352,7 +357,7 @@ def make_parser():
     p.add_argument('--no-pty', action='store_true', help='no serial port for the monitor')
     p.add_argument('--poses', action='store_true', help='print the true pose at every firmware pose report')
     p.add_argument('--follow', action='store_true', help='the viewer camera follows the robot')
-    p.add_argument('--record', metavar='MP4', help='headless: record a video (ffmpeg)')
+    p.add_argument('--record', metavar='MP4', help='record a video (ffmpeg); with the window, both at once')
     p.add_argument('--record-speed', type=float, default=2.0, help='video speed while the robot runs (default 2x)')
     p.add_argument('--trace', metavar='NPZ', help='headless: its joints every 10 ms to this file (ratasim/trace.py)')
     p.add_argument('--save-maze', help='write the maze to this file and go on')
