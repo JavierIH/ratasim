@@ -25,6 +25,7 @@ COMPONENT_RGB = (                   # name contains: colour
     (('USB', 'SW_SPST'), (200, 200, 205)),
     (('JST', 'DF13'), (235, 228, 210)),
 )
+FAN, RIM = 'Ventilador_v2', 'Rueda'    # its fan the colour of its wheels' rims
 METAL = ('ball bearing', '/Ball', 'MR63ZZ', ' shell', 'screw', 'nut', 'Varilla')
 
 
@@ -131,6 +132,8 @@ def write_stl(path, tris):
 
 def build(step, out):
     parts = tessellate(step)
+    rim = next(rgb for n, rgb, _ in parts if n.split('/')[-1] == RIM)
+    parts = [(n, rim if n.split('/')[-1] == FAN else rgb, t) for n, rgb, t in parts]
     to_robot = robot_frame(parts)
     groups = {}
     for name, rgb, t in parts:
@@ -147,9 +150,10 @@ def build(step, out):
 
 
 def ensure(step, out):
-    """The meshes' directory, built first if they are missing or older than the STEP."""
+    """The meshes' directory, built first if they are missing or older than the STEP or this file."""
     m = os.path.join(out, 'manifest.json')
-    if os.path.exists(m) and (not os.path.exists(step) or os.path.getmtime(m) >= os.path.getmtime(step)):
+    if os.path.exists(m) and (not os.path.exists(step) or
+                              os.path.getmtime(m) >= max(os.path.getmtime(step), os.path.getmtime(__file__))):
         return out
     if not os.path.exists(step):
         raise SystemExit(f'ZoroBot3: its STEP is missing. In Onshape, export its "Full Assembly" as one STEP file '
