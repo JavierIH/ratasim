@@ -41,13 +41,16 @@ By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OP
   placed them), tessellated with gmsh (`ratasim/zorobot/cad.py`, `pip install -e .[cad]`). The STEP is not in its
   repository nor in this one: put it at `ratasim/zorobot/cad/Full_Assembly.step`.
 - **Physics:** from its makers (OPRobots): 75 g, 350-400 g of suction at 70 % fan (7.5 N at full, quadratic in its
-  duty), 8520 coreless motors of 2 Ω (45 000 rpm at 7.4 V assumed). Its yaw inertia 4.0e-5 kg m², as KOGUMA's
+  duty), 8520 coreless motors at 7.4 V of 50 000 rpm free, 0.2 A free and 5 A stall (1.5 Ω). Its yaw inertia 4.0e-5 kg m², as KOGUMA's
   fitted to its logs. Its tyres single contact points with stiff friction, tire friction 1.1 (assumed); the wheel
   radius is its firmware's (12.44 mm, the CAD's tire 11.56).
 - **Run:** `ratasim zorobot --maze oshwdem2026 [--run [--speed 0..5] [--explore-type 0..2] [--floodfill 0..3]
   [--solve 0|1]] [--record out.mp4]`: it boots, picks the run with its menu buttons and starts with a hand in front of
   its right front sensor, as on the real robot. Its makers run it with `--explore-type 2 --floodfill 2 --solve 1`
   (explore complete, time-based floodfill, diagonals).
+- **Sensors:** its side sensors 3 deg forward of the CAD's axes, so that they lose a wall's end where its makers
+  measured it (116 mm before the next cell, its firmware's WALL_LOSS_TO_SENSING_POINT_DISTANCE): as the CAD has them,
+  108 mm at 2 m/s. Its turns after a wall's end then end 2-8 mm off their cell's centre.
 - **Wall touches:** in its exploration they are its tail against the wall behind it: in a dead end it turns round
   and backs onto that wall to square up (move_back()).
 - **Open:** its speed runs (`--run`) do not reach the goal yet, though it won OSHWDem 2026 on this maze in under

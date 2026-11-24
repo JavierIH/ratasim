@@ -31,6 +31,12 @@ IR_SENSORS = {          # firmware index: (x, y), direction
     'SL': (2, (13.88, 42.67), 141.0),
     'SR': (3, (-14.10, 42.93), 37.1),
 }
+# Its side sensors turned this much forward of the CAD's axes: as the CAD has them they lose a wall's end 108 mm before
+# the next cell at its speed runs' 2 m/s (111 mm standing); its makers measured 116 (WALL_LOSS_TO_SENSING_POINT_DISTANCE,
+# found on the robot in the maze for its best centring), which 3 deg gives (114.5 at 2 m/s, 119.5 standing).
+SIDE_SENSORS_FORWARD_DEG = float(os.environ.get('ZOROBOT_SIDE_FORWARD_DEG', '3.0'))
+for _n, _s in (('SL', -1), ('SR', 1)):
+    IR_SENSORS[_n] = IR_SENSORS[_n][:2] + (IR_SENSORS[_n][2] + _s * SIDE_SENSORS_FORWARD_DEG,)
 IR_Z_MM = 2.66              # the emitters' height over the axle (11.75 over the board)
 BOARD_FRONT_MM = 51.23      # the board's outline from the axle: a semicircle in front
 TIRE_CAD_RADIUS_MM = 11.56  # less than the firmware's 12.44 (below): the visual tire is scaled to it
@@ -51,12 +57,13 @@ MASS_KG = 0.075             # 2S 260 mAh LiPo, two 8520, a PCB chassis, printed 
 YAW_INERTIA = 4.0e-5
 COM_MM = (0.0, 4.0, 2.0)
 BATTERY_V = 8.0
-# 8520 coreless at 7.4 V: ~45000 rpm free (assumed), 2 ohm (its makers: the specification's)
-MOTOR_R_OHM = 2.0
-MOTOR_KE = 7.4 / (45000 * 2 * math.pi / 60)    # V s/rad = N m/A
+# 8520 coreless at 7.4 V, from its makers (the specification's): 50000 rpm free, 0.2 A free, 5 A stall (1.5 ohm;
+# its specification's "about 2 ohm" would stall at 3.7 A)
+MOTOR_R_OHM = 7.4 / 5.0
+MOTOR_KE = 7.4 / (50000 * 2 * math.pi / 60)    # V s/rad = N m/A
 MOTOR_ROTOR_INERTIA = 6e-9                     # kg m^2 (on the motor shaft)
 GEAR_EFFICIENCY = 0.85
-MOTOR_FRICTION_NM = 1.5e-4                     # at the motor shaft
+MOTOR_FRICTION_NM = MOTOR_KE * 0.2             # at the motor shaft: its free current's torque
 TIRE_FRICTION = 1.1
 # Its tyres' grip on the floor: single contact points (ellipsoids), their friction stiff (MuJoCo's solreffriction:
 # its time constant, its damping ratio). With the default soft friction its tyres crept sideways at 0.23 m/s in its
