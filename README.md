@@ -14,75 +14,75 @@ cells of 180 mm).
 <tr>
 <td align="center" width="33%"><a href="docs/robots.md#ratatron"><img src="docs/images/robots/ratatron.jpg" width="250"><br><b>Ratatron</b></a></td>
 <td align="center" width="33%"><a href="docs/robots.md#zorobot3"><img src="docs/images/robots/zorobot3.jpg" width="250"><br><b>ZoroBot3</b></a></td>
-<td align="center" width="33%"><a href="docs/robots.md#gamusino"><img src="docs/images/robots/gamusino.jpg" width="250"><br><b>Gamusino</b></a></td>
+<td align="center" width="33%"><a href="docs/robots.md#koguma-chan-mk3"><img src="docs/images/robots/koguma.jpg" width="250"><br><b>KOGUMA-CHAN Mk3</b></a></td>
 </tr>
 <tr>
 <td align="center">by <a href="https://github.com/JavierIH">JavierIH</a> · <a href="https://github.com/JavierIH/ratatron">repo</a></td>
 <td align="center">by <a href="https://oprobots.org">OPRobots</a> · <a href="https://github.com/OPRobots/ZoroBot3">repo</a></td>
-<td align="center">by <a href="https://github.com/turmandreams">turmand<wbr>reams</a> · <a href="https://github.com/turmandreams/gamusino">repo</a></td>
+<td align="center">by <a href="https://github.com/Tokoro0917">Tokoro0917</a> · <a href="https://github.com/Tokoro0917/KOGUMA.MkIIl">repo</a></td>
 </tr>
 <tr>
 <td align="center">STM32F103 · 4 Sharp IR · no gyro</td>
 <td align="center">STM32F405 · 4 IR · gyro · fan</td>
-<td align="center">ESP32 · 4 IR · gyro · fan</td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="docs/robots.md#bulebule"><img src="docs/images/robots/bulebule.jpg" width="250"><br><b>Bulebule</b></a></td>
-<td align="center" width="33%"><a href="docs/robots.md#nezumibot"><img src="docs/images/robots/nezumibot.jpg" width="250"><br><b>NezumiBot</b></a></td>
-<td align="center" width="33%"><a href="docs/robots.md#perenquén"><img src="docs/images/robots/perenquen.jpg" width="250"><br><b>Perenquén</b></a></td>
-</tr>
-<tr>
-<td align="center">by <a href="https://github.com/Bulebots">Bulebots</a> · <a href="https://github.com/Bulebots/bulebule">repo</a></td>
-<td align="center">by <a href="https://oprobots.org">OPRobots</a> · <a href="https://github.com/OPRobots/NezumiBot">repo</a></td>
-<td align="center">by <a href="https://github.com/supernudo">supernudo</a> · <a href="https://github.com/supernudo/perenquen">repo</a></td>
-</tr>
-<tr>
-<td align="center">STM32F103 · 4 IR · gyro · 4 wheels</td>
-<td align="center">STM32F401 · 4 Sharp IR · N20 motors</td>
-<td align="center">dsPIC33<wbr>EP512<wbr>MC806 · 4 IR · gyro · 4 wheels</td>
+<td align="center">STM32F446 · 4 IR · gyro · fan</td>
 </tr>
 <tr>
 <td align="center" width="33%"><a href="docs/robots.md#fujin"><img src="docs/images/robots/fujin.jpg" width="250"><br><b>Fujin</b></a></td>
+<td align="center" width="33%"><a href="docs/robots.md#kerise-v1"><img src="docs/images/robots/kerise.jpg" width="250"><br><b>KERISE v1</b></a></td>
 <td align="center" width="33%"><a href="docs/robots.md#futura"><img src="docs/images/robots/futura.jpg" width="250"><br><b>Futura</b></a></td>
-<td align="center" width="33%"><a href="docs/robots.md#ukmarsbot"><img src="docs/images/robots/ukmarsbot.jpg" width="250"><br><b>UKMARSBOT</b></a></td>
 </tr>
 <tr>
 <td align="center">by <a href="https://raiju.team">Team Raiju</a> · <a href="https://github.com/team-raiju/fujin">repo</a></td>
+<td align="center">by <a href="https://github.com/kerikun11">kerikun11</a> · <a href="https://github.com/kerikun11/micromouse-kerise-v1">repo</a></td>
 <td align="center">by <a href="https://micromouseusa.com">Green Ye</a> · <a href="https://micromouseusa.com/?page_id=1342">page</a></td>
-<td align="center">by <a href="https://ukmars.org">UKMARS</a> · <a href="https://github.com/ukmars/ukmarsbot">repo</a></td>
 </tr>
 <tr>
 <td align="center">STM32G474 · 4 IR · gyro · fan</td>
 <td align="center">STM32F405 · 4 IR · gyro</td>
-<td align="center">ATmega328P · 4 IR · N20 motors</td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="docs/robots.md#miniskybot"><img src="docs/images/robots/miniskybot.jpg" width="250"><br><b>Miniskybot</b></a></td>
-<td align="center" width="33%"><a href="docs/robots.md#kerise-v1"><img src="docs/images/robots/kerise.jpg" width="250"><br><b>KERISE v1</b></a></td>
-<td align="center" width="33%"><a href="docs/robots.md#ratatron-ii"><img src="docs/images/robots/ratatron2.jpg" width="250"><br><b>Ratatron II</b></a></td>
-</tr>
-<tr>
-<td align="center">by <a href="https://github.com/Obijuan">Obijuan</a> · <a href="https://github.com/Obijuan/Miniskybot">repo</a></td>
-<td align="center">by <a href="https://github.com/kerikun11">kerikun11</a> · <a href="https://github.com/kerikun11/micromouse-kerise-v1">repo</a></td>
-<td align="center">by <a href="https://github.com/JavierIH">JavierIH</a> · <a href="https://github.com/JavierIH/ratatron2">repo</a></td>
-</tr>
-<tr>
-<td align="center">ATmega328 · 1 ultrasonic · hacked servos</td>
 <td align="center">STM32F405 · 4 IR · gyro</td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="docs/robots.md#ukmarsbot"><img src="docs/images/robots/ukmarsbot.jpg" width="250"><br><b>UKMARSBOT</b></a></td>
+<td align="center" width="33%"><a href="docs/robots.md#gamusino"><img src="docs/images/robots/gamusino.jpg" width="250"><br><b>Gamusino</b></a></td>
+<td align="center" width="33%"><a href="docs/robots.md#bulebule"><img src="docs/images/robots/bulebule.jpg" width="250"><br><b>Bulebule</b></a></td>
+</tr>
+<tr>
+<td align="center">by <a href="https://ukmars.org">UKMARS</a> · <a href="https://github.com/ukmars/ukmarsbot">repo</a></td>
+<td align="center">by <a href="https://github.com/turmandreams">turmand<wbr>reams</a> · <a href="https://github.com/turmandreams/gamusino">repo</a></td>
+<td align="center">by <a href="https://github.com/Bulebots">Bulebots</a> · <a href="https://github.com/Bulebots/bulebule">repo</a></td>
+</tr>
+<tr>
+<td align="center">ATmega328P · 4 IR · N20 motors</td>
+<td align="center">ESP32 · 4 IR · gyro · fan</td>
+<td align="center">STM32F103 · 4 IR · gyro · 4 wheels</td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="docs/robots.md#nezumibot"><img src="docs/images/robots/nezumibot.jpg" width="250"><br><b>NezumiBot</b></a></td>
+<td align="center" width="33%"><a href="docs/robots.md#perenquén"><img src="docs/images/robots/perenquen.jpg" width="250"><br><b>Perenquén</b></a></td>
+<td align="center" width="33%"><a href="docs/robots.md#miniskybot"><img src="docs/images/robots/miniskybot.jpg" width="250"><br><b>Miniskybot</b></a></td>
+</tr>
+<tr>
+<td align="center">by <a href="https://oprobots.org">OPRobots</a> · <a href="https://github.com/OPRobots/NezumiBot">repo</a></td>
+<td align="center">by <a href="https://github.com/supernudo">supernudo</a> · <a href="https://github.com/supernudo/perenquen">repo</a></td>
+<td align="center">by <a href="https://github.com/Obijuan">Obijuan</a> · <a href="https://github.com/Obijuan/Miniskybot">repo</a></td>
+</tr>
+<tr>
+<td align="center">STM32F401 · 4 Sharp IR · N20 motors</td>
+<td align="center">dsPIC33<wbr>EP512<wbr>MC806 · 4 IR · gyro · 4 wheels</td>
+<td align="center">ATmega328 · 1 ultrasonic · hacked servos</td>
+</tr>
+<tr>
+<td align="center" width="33%"><a href="docs/robots.md#ratatron-ii"><img src="docs/images/robots/ratatron2.jpg" width="250"><br><b>Ratatron II</b></a></td>
+<td align="center" width="33%"></td>
+<td align="center" width="33%"></td>
+</tr>
+<tr>
+<td align="center">by <a href="https://github.com/JavierIH">JavierIH</a> · <a href="https://github.com/JavierIH/ratatron2">repo</a></td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr>
 <td align="center">STM32F446 · 4 IR · gyro · fan · 4 wheels</td>
-</tr>
-<tr>
-<td align="center" width="33%"><a href="docs/robots.md#koguma-chan-mk3"><img src="docs/images/robots/koguma.jpg" width="250"><br><b>KOGUMA-CHAN Mk3</b></a></td>
-<td align="center" width="33%"></td>
-<td align="center" width="33%"></td>
-</tr>
-<tr>
-<td align="center">by <a href="https://github.com/Tokoro0917">Tokoro0917</a> · <a href="https://github.com/Tokoro0917/KOGUMA.MkIIl">repo</a></td>
-<td align="center"></td>
-<td align="center"></td>
-</tr>
-<tr>
-<td align="center">STM32F446 · 4 IR · gyro · fan</td>
 <td align="center"></td>
 <td align="center"></td>
 </tr>
@@ -147,6 +147,63 @@ ratasim zorobot --maze oshwdem2026 --record zorobot.mp4
 Export its Onshape "Full Assembly" as STEP to `ratasim/zorobot/cad/Full_Assembly.step` first. Started with a hand at
 its right front sensor; `--run` explores, then speed runs.
 
+### Running KOGUMA-CHAN Mk3
+
+<img src="docs/images/maze-koguma.jpg" alt="KOGUMA-CHAN Mk3 searching the OSHWDEM 2026 maze" align="right" width="280">
+
+```sh
+ratasim koguma --maze oshwdem2026 --record koguma.mp4
+```
+
+The All Japan classic champion, Akihiro Suda's, with its contest firmware on a simulated STM32F446 (ST's HAL):
+picked by turning its right wheel and started with a hand, as its maker does. Its search reaches the goal in
+86.6 s and is back at 128.5 s; its fastest run, on a map of the whole maze, in 6.63 s.
+
+### Running Fujin
+
+<img src="docs/images/maze-fujin.jpg" alt="Fujin searching the OSHWDEM 2026 maze" align="right" width="280">
+
+```sh
+ratasim fujin --maze oshwdem2026 --record fujin.mp4
+```
+
+Its RCX 2026 firmware (C++23: g++ 13 or clang++ 15) searches to the goal and back. `--mode slow` (0.3 m/s) finishes;
+medium and fast do not yet.
+
+### Running KERISE v1
+
+<img src="docs/images/maze-kerise.jpg" alt="KERISE v1 searching the OSHWDEM 2026 maze" align="right" width="280">
+
+```sh
+ratasim kerise --maze oshwdem2026 --record kerise.mp4
+```
+
+kerikun11's 2016 classic micromouse with its All Japan contest firmware on a simulated STM32F405 (mbed OS 5.1).
+It searches to the goal (84.3 s) and back (158 s), then makes its fast runs (41.4 s, 34.6 s). `--echo` prints its
+console.
+
+### Running Futura
+
+<img src="docs/images/maze-futura.jpg" alt="Futura in the north rows of the OSHWDEM 2026 maze" align="right" width="280">
+
+```sh
+ratasim futura --maze oshwdem2026 --echo --record futura.mp4
+```
+
+UCLA IEEE's kit mouse with its students' controller sample ([robots.md](docs/robots.md#futura)): it drives cell to
+cell and pivots at walls, searching nothing. `--echo` prints its serial port.
+
+### Running UKMARSBOT
+
+<img src="docs/images/maze-ukmarsbot.jpg" alt="UKMARSBOT searching the OSHWDEM 2026 maze" align="right" width="280">
+
+```sh
+ratasim ukmarsbot --maze oshwdem2026 --record ukmarsbot.mp4
+```
+
+mazerunner-core on a simulated ATmega328P: flood fill to the goal and back. `--function 3` runs its left wall
+follower instead.
+
 ### Running Gamusino
 
 <img src="docs/images/maze-gamusino.jpg" alt="Gamusino on the maze's longest straight" align="right" width="280">
@@ -189,39 +246,6 @@ ratasim perenquen --maze oshwdem2026 --side right --gain 30 --record perenquen.m
 A wall follower on a simulated dsPIC, started as its maker does (`start right 30` in its terminal, then a hand).
 `--speed 1000` sets 2 m/s.
 
-### Running Fujin
-
-<img src="docs/images/maze-fujin.jpg" alt="Fujin searching the OSHWDEM 2026 maze" align="right" width="280">
-
-```sh
-ratasim fujin --maze oshwdem2026 --record fujin.mp4
-```
-
-Its RCX 2026 firmware (C++23: g++ 13 or clang++ 15) searches to the goal and back. `--mode slow` (0.3 m/s) finishes;
-medium and fast do not yet.
-
-### Running Futura
-
-<img src="docs/images/maze-futura.jpg" alt="Futura in the north rows of the OSHWDEM 2026 maze" align="right" width="280">
-
-```sh
-ratasim futura --maze oshwdem2026 --echo --record futura.mp4
-```
-
-UCLA IEEE's kit mouse with its students' controller sample ([robots.md](docs/robots.md#futura)): it drives cell to
-cell and pivots at walls, searching nothing. `--echo` prints its serial port.
-
-### Running UKMARSBOT
-
-<img src="docs/images/maze-ukmarsbot.jpg" alt="UKMARSBOT searching the OSHWDEM 2026 maze" align="right" width="280">
-
-```sh
-ratasim ukmarsbot --maze oshwdem2026 --record ukmarsbot.mp4
-```
-
-mazerunner-core on a simulated ATmega328P: flood fill to the goal and back. `--function 3` runs its left wall
-follower instead.
-
 ### Running Miniskybot
 
 <img src="docs/images/maze-miniskybot.jpg" alt="Miniskybot in the OSHWDEM 2026 maze" align="right" width="280">
@@ -232,18 +256,6 @@ ratasim miniskybot --maze oshwdem2026 --echo --record miniskybot.mp4
 
 Obijuan's printable robot (servos, ultrasonic ranger, ATmega328): straight to a wall, then turns by time to an open
 way. `--echo` prints what it says.
-
-### Running KERISE v1
-
-<img src="docs/images/maze-kerise.jpg" alt="KERISE v1 searching the OSHWDEM 2026 maze" align="right" width="280">
-
-```sh
-ratasim kerise --maze oshwdem2026 --record kerise.mp4
-```
-
-kerikun11's 2016 classic micromouse with its All Japan contest firmware on a simulated STM32F405 (mbed OS 5.1).
-It searches to the goal (84.3 s) and back (158 s), then makes its fast runs (41.4 s, 34.6 s). `--echo` prints its
-console.
 
 ### Running Ratatron II
 
@@ -256,18 +268,6 @@ ratasim ratatron2 --maze oshwdem2026 --leds 0b111111
 Ratatron's successor, being built: for now its 3D model only, from its FreeCAD file, in the start cell. Its
 firmware is not simulated yet. `--leds` lights its six LEDs on its tail; `--image out.jpg` takes a picture
 instead of the viewer.
-
-### Running KOGUMA-CHAN Mk3
-
-<img src="docs/images/maze-koguma.jpg" alt="KOGUMA-CHAN Mk3 searching the OSHWDEM 2026 maze" align="right" width="280">
-
-```sh
-ratasim koguma --maze oshwdem2026 --record koguma.mp4
-```
-
-The All Japan classic champion, Akihiro Suda's, with its contest firmware on a simulated STM32F446 (ST's HAL):
-picked by turning its right wheel and started with a hand, as its maker does. Its search reaches the goal in
-86.6 s and is back at 128.5 s; its fastest run, on a map of the whole maze, in 6.63 s.
 
 ## Tests and CI
 
