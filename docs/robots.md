@@ -537,14 +537,15 @@ diodes, SFH 229FA photodiodes through op-amps), a 4-cell LiPo; turns up to 2.4 m
   `while` or `for` take 50 ns of the chip's time, so that its interrupts come in the middle of them, as on the chip.
 - **Model:** its STEP (`hardware/KOGUMA.Mk3.step`, its Fusion 360 assembly), tessellated with gmsh at build time
   (`ratasim/koguma/cad.py`) and merged per body and colour. Its colours are its maker's photo's, not its STEP's: its
-  carbon fibre plate (its two faces textured with a 2/2 twill drawn at build time), its board's black solder mask,
-  its printed parts black, its four cells in black tape, its silver motors, the black end cap of its fan's motor, its
-  brass pinions, white spur gears, orange axle screws and caps, purple nylon nuts. Its STEP's wheels are plain discs:
-  its rims, Kyosho's Mini-Z Multi Wheel II (narrow, white, offset 2.0, MZH131W-N2B), are drawn at build time from
-  Kyosho's photos: a dished face of sixteen spokes in eight close pairs from a hub disc with a raised ring up to a
-  rounded lip. Its sensors' emitters and photodiodes, in none of its STEP's parts, are put in its holders' holes,
-  found in each holder's mesh (the emitter in the upper one, its dome out of the face, their legs bent down into the
-  board). Collisions: a box over its plate, its tyres, two skids under its plate.
+  carbon fibre plate (its two faces textured with a 2/2 twill drawn at build time), its board's black solder mask, its
+  printed parts black, its silver motors, the black end cap of its fan's motor, its brass pinions, white spur gears,
+  orange axle screws, silver bearing collars, purple nylon nuts; its battery's four cells as one block in black tape,
+  its edges rounded (1 mm), and the screw on its fan motor holder's nose, as its photo shows them. Its STEP's wheels
+  are plain discs: its rims, Kyosho's Mini-Z Multi Wheel II (narrow, white, offset 2.0, MZH131W-N2B), are drawn at
+  build time from Kyosho's photos: a dished face of sixteen spokes in eight close pairs from a hub disc with a raised
+  ring up to a rounded lip. Its sensors' emitters and photodiodes, in none of its STEP's parts, are put in its
+  holders' holes, found in each holder's mesh (the emitter in the upper one, its dome out of the face, their legs bent
+  down into the board). Collisions: a box over its plate, its tyres, two skids under its plate.
 - **Sensors:** where its holders' holes are and the way their faces look: its front pair at its flanks, 10° out;
   its side pair crossed by its nose, 30° ahead of square. Each reading is what its maker measured at that distance
   (its `WallDistance.c` tables, 2026-10-06, and its venue's scales), over its beam's length, interpolated as powers

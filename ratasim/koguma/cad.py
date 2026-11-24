@@ -1,11 +1,14 @@
 """KOGUMA's meshes from its STEP (hardware/KOGUMA.Mk3.step in its repository: its Fusion 360 assembly, every part
 where it is), tessellated with gmsh (as ZoroBot3's: zorobot/cad.py) and merged per moving body and colour, in the
 robot frame (mm: x right, y forward, z up, origin on the axle between its tyres). Its colours are its photo's (its
-maker's, 2025: KOGUMA-CHAN. Mk3), not its STEP's: its carbon fibre bottom plate (its two faces textured with a 2/2
-twill weave, drawn here), its board's black solder mask, its printed parts black (its sensors' holders, its motors'
-mounts, its fan motor's cover), its battery's four cells in black tape, its wheels white with black tyres, its spur
-gears white, its motors' pinions brass, its silver motors, its orange aluminium axle caps, its purple nylon nuts.
-The beams its STEP draws from its four sensors (3.2 mm rods 125 mm long) are left out.
+maker's: KOGUMA-CHAN. Mk3), not its STEP's: its carbon fibre bottom plate (its two faces textured with a 2/2 twill
+weave, drawn here), its board's black solder mask, its printed parts black (its sensors' holders, its motors' mounts,
+its fan motor's holder), its wheels white with black tyres, its spur gears white, its motors' pinions brass, its
+silver motors, its orange axle screws and silver bearing collars, its purple nylon nuts. Drawn here, as its photos
+show them and its STEP does not: its rims (Kyosho's Multi Wheel II: rim()), its IR emitters and photodiodes with
+their legs (sensors()), its battery's four cells as one block in black tape with rounded edges (battery()), the
+screw on its fan motor holder's nose (nose_screw()). The beams its STEP draws from its four sensors (3.2 mm rods
+125 mm long) are left out.
 
     python -m ratasim.koguma.cad [STEP OUT_DIR]
 
@@ -30,7 +33,9 @@ PLATE = '底板'
 RIM = 'ホイール＆タイヤ'                         # its STEP's wheel (a plain disc in its tyre), drawn again: rim()
 RIM_X_MM = (26.3, 34.3)                         # the right rim's across (its STEP's, less its spur gear's 2 mm)
 RIM_SPOKES = 16
-RIM_PAIR_MM = (0.66, 0.99, 1.3)                 # each spoke's middle off its pair's: at the hub, half way, at the lip
+BATTERY_EDGE_MM = 1.0                           # its taped battery's edges' radius
+NOSE_HOLE_XY = (-6.84, 34.22)                   # its fan motor holder's nose hole, over its stacked spacers (STEP)
+RIM_PAIR_MM = (0.74, 1.12, 1.5)                 # each spoke's middle off its pair's: at the hub, half way, at the lip
 # Its colours (its photo), by what a part's name holds; the first that matches
 PART_RGB = (
     (('センサホルダ', 'モーターマウント', 'エンコーダギアマウント', '吸引モーター抑え'), (26, 26, 28)),  # printed: black
@@ -43,14 +48,15 @@ PART_RGB = (
     (('T20', '20 teeth'), (196, 156, 66)),                       # its motors' pinions: brass
     (('NFP-D0816S', '吸引モータ'), (118, 121, 128)),             # its motors' cans: silver (lighter ones wash
                                                                  # out to white under the studio's lights)
-    (('アルミテーパー',), (214, 104, 38)),                       # its axles' caps: orange aluminium
+    (('アルミテーパー',), (176, 179, 186)),                      # its wheels' tapered bearing collars: silver
     (('ナイロンナット',), (112, 58, 150)),                       # purple nylon nuts
     (('ボタンビス', 'Screw'), (214, 104, 38)),                   # its axles' screws: orange, as its STEP and photo
     (('スペーサー',), (34, 34, 36)),                             # its board's posts: black in its photo
     (('ベアリング', 'LF-630', '磁石', '平行ピン'), (128, 130, 136)),
     (('基板2',), (20, 21, 23)),                                  # its board's black solder mask
     (('エンコーダ基板', 'TSSOP14'), (22, 22, 24)),
-    (('Lipo',), (17, 17, 18)),                                   # its cells, in black tape
+    (('Lipo',), (17, 17, 18)),                                   # its cells, one block in black tape (battery())
+    (('ナベ小ネジ',), (38, 38, 41)),                              # the screw on its fan motor holder's nose
     (('吸引ファン',), (178, 184, 190)),                          # its acrylic impeller
     (('一次スカート',), (40, 40, 42)),                           # its skirt
 )
@@ -140,14 +146,15 @@ def plate_faces(tris, out):
     return tris[~(faces['top'] | faces['bottom'])]
 
 
-def _occ_triangles(volumes):
-    """The surface triangles (mm) of these OCC volumes of the current gmsh model, outward."""
+def _occ_triangles(volumes, size=(0.1, 1.0), curvature=24):
+    """The surface triangles (mm) of these OCC volumes of the current gmsh model, outward: their elements from
+    size[0] to size[1] mm, curvature of them a circle."""
     import gmsh
     from ..zorobot.cad import outward
     gmsh.model.occ.synchronize()
-    gmsh.option.setNumber('Mesh.MeshSizeMin', 0.1)
-    gmsh.option.setNumber('Mesh.MeshSizeMax', 1.0)
-    gmsh.option.setNumber('Mesh.MeshSizeFromCurvature', 24)
+    gmsh.option.setNumber('Mesh.MeshSizeMin', size[0])
+    gmsh.option.setNumber('Mesh.MeshSizeMax', size[1])
+    gmsh.option.setNumber('Mesh.MeshSizeFromCurvature', curvature)
     gmsh.model.mesh.generate(2)
     tags, xyz, _ = gmsh.model.mesh.getNodes()
     index = np.zeros(int(tags.max()) + 1, int)
@@ -215,6 +222,53 @@ def rim():
     t = _occ_triangles(whole)
     gmsh.finalize()
     return t
+
+
+def _rounded_box(lo, hi, radius):
+    """A box from lo to hi (mm) with every edge rounded to radius: its triangles."""
+    import gmsh
+    gmsh.initialize()
+    gmsh.option.setNumber('General.Terminal', 0)
+    occ = gmsh.model.occ
+    box = occ.addBox(*lo, *(np.asarray(hi) - lo))
+    occ.synchronize()
+    edges = [abs(e[1]) for e in gmsh.model.getBoundary([(2, s) for _, s in gmsh.model.getBoundary([(3, box)])],
+                                                         combined=False, oriented=False)]
+    rounded = occ.fillet([box], sorted(set(edges)), [radius])
+    t = _occ_triangles(rounded, size=(0.5, 8.0), curvature=8)
+    gmsh.finalize()
+    return t
+
+
+def battery(cells):
+    """Its battery as its photo shows it: its four 180 mAh cells side by side, wrapped together in black tape, one
+    block with its edges rounded (1 mm)."""
+    v = np.concatenate([t.reshape(-1, 3) for _, t in cells])
+    return [('全体v2/Lipo 180mAh x 4 (taped)', _rounded_box(v.min(0), v.max(0), BATTERY_EDGE_MM))]
+
+
+def nose_screw(holder):
+    """The screw its photo shows on its fan motor holder's nose (none in its STEP): an M3 pan head with a cross
+    recess (5.5 mm across, 2 mm high), on the ring round the hole over its two stacked spacers. [(name, triangles)]
+    in the STEP frame."""
+    import gmsh
+    v = holder.reshape(-1, 3)
+    centre = np.array(NOSE_HOLE_XY)
+    top = v[np.hypot(v[:, 0] - centre[0], v[:, 1] - centre[1]) < 2.6, 2].max()      # the ring's top face
+    gmsh.initialize()
+    gmsh.option.setNumber('General.Terminal', 0)
+    occ = gmsh.model.occ
+    head = occ.addCylinder(0, 0, 0, 0, 0, 2.0, 2.75)
+    occ.synchronize()
+    faces = gmsh.model.getBoundary([(3, head)], oriented=False)
+    rim = {abs(c[1]) for c in gmsh.model.getBoundary(faces, combined=False, oriented=False)}
+    ring_top = [c for c in rim if gmsh.model.getBoundingBox(1, c)[2] > 1.99]
+    head = occ.fillet([head], ring_top, [0.8])
+    slots = [(3, occ.addBox(-1.6, -0.35, 1.0, 3.2, 0.7, 1.5)), (3, occ.addBox(-0.35, -1.6, 1.0, 0.7, 3.2, 1.5))]
+    head, _ = occ.cut(head, slots)
+    t = _occ_triangles(head)
+    gmsh.finalize()
+    return [('全体v2/ナベ小ネジ M3 (its photo)', t + (centre[0], centre[1], top))]
 
 
 def bullet(tip=5.3):
@@ -350,6 +404,9 @@ def build(step=K.CAD_STEP, out=K.CAD_MESHES):
     from ..zorobot.cad import tessellate, write_stl
     parts = [(step_name(n), t) for n, _, t in tessellate(step)]
     parts += sensors([(n, t) for n, t in parts if 'センサホルダ' in n])
+    cells = [(n, t) for n, t in parts if 'Lipo' in n]
+    parts = [(n, t) for n, t in parts if 'Lipo' not in n] + battery(cells)
+    parts += nose_screw(next(t for n, t in parts if n.endswith('吸引モーター抑え')))
     right = rim()
     parts = [p for p in parts if not (RIM in p[0] and p[0].endswith('SOLID'))]
     parts += [(f'{RIM}/Kyosho multi-spoke rim', right + K.AXLE_IN_STEP_MM),
