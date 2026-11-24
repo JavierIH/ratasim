@@ -43,11 +43,15 @@ AXLE_HEIGHT_MM = WHEEL_RADIUS_MM
 PCB_THICK_MM = 0.80
 AXLE_OVER_PCB_MM = 9.09      # the axle over the board's top face
 
-# ---- Assumed physics (nothing measured) --------------------------------------------------------------------------
-MASS_KG = 0.070             # 2S 260 mAh LiPo, two 8520, a PCB chassis, printed brackets and fan
+# ---- Physics: its mass, suction and motors' resistance from its makers (OPRobots, 2026-11); the rest assumed -----
+MASS_KG = 0.075             # 2S 260 mAh LiPo, two 8520, a PCB chassis, printed brackets and fan
+# Its yaw inertia (kg m^2), as KOGUMA's fitted to its logs (3.7e-5 at 78 g, a 22 mm radius of gyration): a uniform
+# board's 8.8e-5 made its firmware's PI (no feed-forward) overshoot every turn by 2-4 deg, and its explore's 180 deg
+# turns, whose angular error its firmware then discards (reset_control_errors), left it 4-5 deg off into the walls.
+YAW_INERTIA = 4.0e-5
 COM_MM = (0.0, 4.0, 2.0)
 BATTERY_V = 8.0
-# 8520 coreless at 7.4 V: ~45000 rpm free, ~3.7 A stall (R 4 ohm turned 5-16 deg too far in its explore turns)
+# 8520 coreless at 7.4 V: ~45000 rpm free (assumed), 2 ohm (its makers: the specification's)
 MOTOR_R_OHM = 2.0
 MOTOR_KE = 7.4 / (45000 * 2 * math.pi / 60)    # V s/rad = N m/A
 MOTOR_ROTOR_INERTIA = 6e-9                     # kg m^2 (on the motor shaft)
@@ -58,7 +62,7 @@ TIRE_FRICTION = 1.1
 # its time constant, its damping ratio). With the default soft friction its tyres crept sideways at 0.23 m/s in its
 # speed runs' turns (6 deg of slip at 60 % of their grip), every turn ending 20-40 mm wide of its cell's centre.
 TYRE_CREEP = (0.002, 1.0)
-FAN_DOWNFORCE_N = 8.0                           # at 100 % duty, quadratic in it: its explore turns (~1.2 g) slid with less
+FAN_DOWNFORCE_N = 7.5                           # at 100 % duty, quadratic in it: its makers' 350-400 g at 70 %
 
 
 # ---- Its start (ratasim/start.py) ---------------------------------------------------------------------------------

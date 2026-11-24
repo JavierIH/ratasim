@@ -40,15 +40,21 @@ By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OP
 - **Model:** its Onshape assembly (the "Full Assembly", exported as one STEP file, 297 parts where its designers
   placed them), tessellated with gmsh (`ratasim/zorobot/cad.py`, `pip install -e .[cad]`). The STEP is not in its
   repository nor in this one: put it at `ratasim/zorobot/cad/Full_Assembly.step`.
-- **Physics, assumed (nothing measured):** 70 g, 8520 coreless motors (R 2 Ω, 45 000 rpm at 7.4 V), 8 N of suction at
-  full fan, tire friction 1.1; the wheel radius is its firmware's (12.44 mm, the CAD's tire 11.56).
-- **Run:** `ratasim zorobot --maze oshwdem2026 [--run [--speed 0..5] [--solve 0|1]] [--record out.mp4]`: it boots, picks the run with its menu
-  buttons and starts with a hand in front of its right front sensor, as on the real robot.
-- **Open:** its explore turns end 3-5 deg off, so it touches walls (the assumed motors and grip). Its speed runs
-  (`--run`) do not reach the goal yet: with `--solve 0` (not how its makers run it) its firmware runs two 90 deg turns in adjacent cells
-  (a zigzag) with each one's 68.8 mm lead-in and lead-out overlapping, the second one 138 mm late into the wall at
-  every speed; with `--solve 1` (diagonals, the default) its turns still end 15-30 mm wide of their line, as its side sensors
-  find its wall ends some 10 mm after its firmware expects them (116 mm) and its turns' yaw rate overshoots 5-8 %.
+- **Physics:** from its makers (OPRobots): 75 g, 350-400 g of suction at 70 % fan (7.5 N at full, quadratic in its
+  duty), 8520 coreless motors of 2 Ω (45 000 rpm at 7.4 V assumed). Its yaw inertia 4.0e-5 kg m², as KOGUMA's
+  fitted to its logs. Its tyres single contact points with stiff friction, tire friction 1.1 (assumed); the wheel
+  radius is its firmware's (12.44 mm, the CAD's tire 11.56).
+- **Run:** `ratasim zorobot --maze oshwdem2026 [--run [--speed 0..5] [--explore-type 0..2] [--floodfill 0..3]
+  [--solve 0|1]] [--record out.mp4]`: it boots, picks the run with its menu buttons and starts with a hand in front of
+  its right front sensor, as on the real robot. Its makers run it with `--explore-type 2 --floodfill 2 --solve 1`
+  (explore complete, time-based floodfill, diagonals).
+- **Wall touches:** in its exploration they are its tail against the wall behind it: in a dead end it turns round
+  and backs onto that wall to square up (move_back()).
+- **Open:** its speed runs (`--run`) do not reach the goal yet, though it won OSHWDem 2026 on this maze in under
+  10 s: they end against a wall at 1-2.5 s. Its turns end 10-30 mm wide of their line in the simulation (its side
+  sensors find its wall ends some 10 mm after its firmware expects them, 116 mm). With `--solve 0` (not how its makers
+  run it) two 90 deg turns in adjacent cells overlap, each one's 68.8 mm lead-in and lead-out, and the second one
+  runs 138 mm late.
 
 ## KOGUMA-CHAN Mk3
 

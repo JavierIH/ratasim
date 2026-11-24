@@ -22,6 +22,9 @@ from . import config as Z   # noqa: E402
 from .robot import ZRobot   # noqa: E402
 
 
+RACE_GAP_MS = 1500
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--maze', default='oshwdem2026')
@@ -44,9 +47,11 @@ def main(argv=None):
     t0 = time.monotonic()
     started = ended = False
     crash_t = -10000
+    off_since = None     # its race stopped since (ms): over once stopped RACE_GAP_MS (an explore complete's end
+                         # stops it while it saves its maze, then starts its speed run)
 
     def run(ms, fast=False):
-        nonlocal started, ended, crash_t
+        nonlocal started, ended, crash_t, off_since
         end = r.fw.time_ms() + ms
         while r.fw.time_ms() < end:
             if r.step():
@@ -60,9 +65,13 @@ def main(argv=None):
                         log.write(f'[{r.fw.time_ms() / 1000:8.3f}] {line}\n')
             race = r.fw.race_started()
             started = started or race
-            if started and not race and not ended:
+            if race or not started:
+                off_since = None
+            elif off_since is None:
+                off_since = r.fw.time_ms()
+            if off_since is not None and r.fw.time_ms() - off_since >= RACE_GAP_MS and not ended:
                 ended = True
-                print(f'[{r.fw.time_ms() / 1000:7.2f}] race over at {[round(v) for v in r.pose()]}')
+                print(f'[{off_since / 1000:7.2f}] race over at {[round(v) for v in r.pose()]}')
             hit = r.crashed()
             if hit and r.fw.time_ms() - crash_t > 1000:
                 crash_t = r.fw.time_ms()

@@ -47,10 +47,11 @@ def robot_xml(start_xy=(0.5, 0.5)):
             f'<geom name="hull_front" class="zhull" type="cylinder" pos="{_f(0, cy * MM, (PCB_BOT + top) / 2 * MM)}" '
             f'size="{_f(Z.ROBOT_WIDTH / 2 * MM, (top - PCB_BOT) / 2 * MM)}"/>')
     i = Z.MASS_KG - 0.008
+    wheels_yaw = 2 * 0.004 * (Z.WHEELS_SEPARATION / 2 / 1000) ** 2      # the two 4 g wheels at the track's ends
     return f'''
     <body name="robot" pos="{_f(start_xy[0] * RC.CELL_MM * MM, start_xy[1] * RC.CELL_MM * MM, Z.AXLE_HEIGHT_MM * MM)}">
       <freejoint name="robot"/>
-      <inertial pos="{_f(*(v * MM for v in Z.COM_MM))}" mass="{i:.4f}" diaginertia="{_f(6.4e-5 * i / 0.077, 4.1e-5 * i / 0.077, 9.2e-5 * i / 0.077)}"/>
+      <inertial pos="{_f(*(v * MM for v in Z.COM_MM))}" mass="{i:.4f}" diaginertia="{_f(6.4e-5 * i / 0.077, 4.1e-5 * i / 0.077, Z.YAW_INERTIA - wheels_yaw)}"/>
       {hull}{skids}
       {chassis}{sites}{wheels}
     </body>'''
