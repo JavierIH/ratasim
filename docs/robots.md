@@ -48,16 +48,20 @@ By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OP
   [--solve 0|1]] [--record out.mp4]`: it boots, picks the run with its menu buttons and starts with a hand in front of
   its right front sensor, as on the real robot. Its makers run it with `--explore-type 2 --floodfill 2 --solve 1`
   (explore complete, time-based floodfill, diagonals).
-- **Sensors:** its side sensors 3 deg forward of the CAD's axes, so that they lose a wall's end where its makers
+- **Sensors:** each one its emitter's spot (SFH 4550, +-3 deg) as seven rays, a Gaussian of 2.5 deg, each ray's light
+  at its length times the cosine of its incidence over its calibration's: in its diagonals its front sensors read the
+  posts (12 mm) beside them as part of the spot, at a slant. Its side sensors 3 deg forward of the CAD's axes, so that they lose a wall's end where its makers
   measured it (116 mm before the next cell, its firmware's WALL_LOSS_TO_SENSING_POINT_DISTANCE): as the CAD has them,
   108 mm at 2 m/s. Its turns after a wall's end then end 2-8 mm off their cell's centre.
 - **Wall touches:** in its exploration they are its tail against the wall behind it: in a dead end it turns round
   and backs onto that wall to square up (move_back()).
-- **Open:** its speed runs (`--run`) do not reach the goal yet, though it won OSHWDem 2026 on this maze in under
-  10 s: they end against a wall at 1-2.5 s. Its turns end 10-30 mm wide of their line in the simulation (its side
-  sensors find its wall ends some 10 mm after its firmware expects them, 116 mm). With `--solve 0` (not how its makers
-  run it) two 90 deg turns in adjacent cells overlap, each one's 68.8 mm lead-in and lead-out, and the second one
-  runs 138 mm late.
+- **Open:** with its makers' menu its speed runs at speeds 4 and 5 reach the goal (5.5 and 5.1 s; it won OSHWDem
+  2026 on this maze in under 10 s); at 1-3 they end at post (13,1): from column 15 down to row 0 its four 45 deg
+  turns without side walls leave it 20 mm south of the line its firmware plans, it enters the NW diagonal 17 mm
+  towards that post, and its diagonal correction (its front right sensor first, at 266 mm) turns it into it. Its
+  motors' lag, its yaw inertia and a tyre scrub damping do not change it. With `--solve 0` (not how its makers run
+  it) two 90 deg turns in adjacent cells overlap, each one's 68.8 mm lead-in and lead-out, and the second one runs
+  138 mm late.
 
 ## KOGUMA-CHAN Mk3
 

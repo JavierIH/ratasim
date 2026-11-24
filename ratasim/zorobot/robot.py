@@ -21,7 +21,11 @@ from ..model import MM, WALL_GROUP
 
 FW_DIR = os.path.join(Z.HERE, 'fw')
 IR_FAR_MM = 400.0
-IR_SPREAD_DEG = 2.5
+# Its emitters (SFH 4550, +-3 deg at half power): their spot as rays (deg off its axis, weight), a Gaussian of
+# 2.5 deg. In its diagonals its front sensors read the posts (12 mm) beside them: three rays read them in steps.
+IR_SIGMA_DEG = float(os.environ.get('ZOROBOT_IR_SIGMA', '2.5'))
+IR_RAYS = tuple((k * IR_SIGMA_DEG / 1.5, math.exp(-(k / 1.5) ** 2 / 2)) for k in (-3, -2, -1, 0, 1, 2, 3))
+IR_RAYS_WEIGHT = sum(w for _, w in IR_RAYS)
 ADC_LSB = 3.3 / 4096
 VOLT_DIV_A = 3.96           # battery.c, robot version A (the simulated chip's UID)
 BUTTON_RAW = {None: 0, 'up': 1500, 'mode': 2500, 'down': 3900}
@@ -166,37 +170,46 @@ class ZRobot:
         d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
         return d / MM if d >= 0 else IR_FAR_MM
 
-    def beam_mm(self):
-        """Each sensor's beam length to the first wall (mm), three rays across the spot."""
-        out = {}
+    def _hit(self, origin, direction):
+        """The beam's length to the first wall or post (mm) and the cosine between it and that face's normal."""
+        d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
+        if d < 0:
+            return IR_FAR_MM, 1.0
+        g = self.ray_geom[0]
+        rot = self.data.geom_xmat[g].reshape(3, 3)
+        local = rot.T @ (origin + direction * d - self.data.geom_xpos[g])
+        k = int(np.argmax(np.abs(local) / self.model.geom_size[g]))       # the box's face it hits
+        return d / MM, abs(float(rot[:, k] @ direction))
+
+    def _counts(self, name, beam):
+        """Emitter-on minus emitter-off counts for a wall square to its calibration's at this beam length (mm): the
+        inverse of the firmware's own conversion, for the distance its calibration means (fronts: from the axle to a
+        wall straight ahead; sides: from the axle to the side wall)."""
+        _, (x, y), deg = Z.IR_SENSORS[name]
+        a = math.radians(deg)
+        dist = beam * math.sin(a) + y if name in ('FL', 'FR') else beam * abs(math.cos(a)) - abs(x)
+        a_, b_, c_ = self.cal[name]
+        d = max(dist - L0[name], 1.0) / 1000.0
+        return max(0.0, math.exp(min(a_ / (d + b_), 9.0)) - c_)
+
+    def ir_signals(self):
+        """Each sensor's reading: its emitter's spot as IR_RAYS rays across it, each one's light at the length it
+        reaches a wall or post, times the cosine of its incidence over the one its calibration had (fronts: a wall
+        ahead; sides: the side wall), weighted. A post takes part of the spot, a face at a slant returns less."""
+        sig = []
         R = self.data.site_xmat
         for name, (_, _, deg) in Z.IR_SENSORS.items():
             sid = self.sites[name]
             p = self.data.site_xpos[sid]
             rot = R[sid].reshape(3, 3)
-            inv = 0.0
-            for spread in (-IR_SPREAD_DEG, 0.0, IR_SPREAD_DEG):
-                a = math.radians(deg + spread)
-                v = rot @ np.array([math.cos(a), math.sin(a), 0.0])
-                inv += 1.0 / max(min(self._ray(p, v), IR_FAR_MM), 1.0)
-            out[name] = 3.0 / inv
-        return out
-
-    def ir_signals(self):
-        """Emitter-on minus emitter-off counts: the inverse of the firmware's own conversion, for the distance its
-        calibration means (fronts: from the axle to a wall straight ahead; sides: from the axle to the side wall)."""
-        sig = []
-        for name, beam in self.beam_mm().items():
-            _, (x, y), deg = Z.IR_SENSORS[name]
-            a = math.radians(deg)
-            if name in ('FL', 'FR'):
-                dist = beam * math.sin(a) + y
-            else:
-                dist = beam * abs(math.cos(a)) - abs(x)
-            a_, b_, c_ = self.cal[name]
-            d = max(dist - L0[name], 1.0) / 1000.0
-            raw = math.exp(min(a_ / (d + b_), 9.0)) - c_
-            sig.append(max(0.0, raw * (1.0 + self.rng.gauss(0.0, 0.004))))
+            a0 = math.radians(deg)
+            cal_cos = abs(math.sin(a0)) if name in ('FL', 'FR') else abs(math.cos(a0))
+            total = 0.0
+            for spread, w in IR_RAYS:
+                a = a0 + math.radians(spread)
+                beam, cos = self._hit(p, rot @ np.array([math.cos(a), math.sin(a), 0.0]))
+                total += w * self._counts(name, beam) * cos / cal_cos
+            sig.append(total / IR_RAYS_WEIGHT * (1.0 + self.rng.gauss(0.0, 0.004)))
         return sig
 
     def encoders(self):
