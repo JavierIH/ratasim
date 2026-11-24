@@ -71,6 +71,21 @@ cells of 180 mm).
 <td align="center">STM32F405 · 4 IR · gyro</td>
 <td align="center">STM32F446 · 4 IR · gyro · fan · 4 wheels</td>
 </tr>
+<tr>
+<td align="center" width="33%"><a href="docs/robots.md#koguma-chan-mk3"><img src="docs/images/robots/koguma.jpg" width="250"><br><b>KOGUMA-CHAN Mk3</b></a></td>
+<td align="center" width="33%"></td>
+<td align="center" width="33%"></td>
+</tr>
+<tr>
+<td align="center">by <a href="https://github.com/Tokoro0917">Tokoro0917</a> · <a href="https://github.com/Tokoro0917/KOGUMA.MkIIl">repo</a></td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">STM32F446 · 4 IR · gyro · fan</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
 </table>
 
 Each robot's firmware comes from its own repository, a submodule of `external/` pinned to a commit (Futura's, which
@@ -242,6 +257,18 @@ Ratatron's successor, being built: for now its 3D model only, from its FreeCAD f
 firmware is not simulated yet. `--leds` lights its six LEDs on its tail; `--image out.jpg` takes a picture
 instead of the viewer.
 
+### Running KOGUMA-CHAN Mk3
+
+<img src="docs/images/maze-koguma.jpg" alt="KOGUMA-CHAN Mk3 searching the OSHWDEM 2026 maze" align="right" width="280">
+
+```sh
+ratasim koguma --maze oshwdem2026 --record koguma.mp4
+```
+
+The All Japan classic champion, Akihiro Suda's, with its contest firmware on a simulated STM32F446 (ST's HAL):
+picked by turning its right wheel and started with a hand, as its maker does. Its search reaches the goal in
+88.7 s and is back at 131 s; `--number 8` adds its fastest run after it.
+
 ## Tests and CI
 
 `tests/robots.py` puts each robot in the OSHWDEM 2026 maze and checks what it prints. CI runs the short check, one job
@@ -279,7 +306,7 @@ Ratasim is free software under the GNU General Public License v3 or later (`LICE
 robot keeps its authors' licence, as below, and what is a submodule or is downloaded at build time is not relicensed.
 
 Every robot belongs to its authors (above); their repositories are submodules and nothing of them is copied here.
-ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's, Fujin's and KERISE v1's repositories carry no licence (KERISE's author allows Ratasim to use it); Perenquén's design is CC BY-SA
+ZoroBot3, Bulebule and NezumiBot are GPLv3; Gamusino's, Fujin's, KERISE v1's and KOGUMA's repositories carry no licence (KERISE's and KOGUMA's authors allow Ratasim to use them); Perenquén's design is CC BY-SA
 4.0 (Javier Baliñas), its firmware and its library aversive4dspic (Droids Corporation, Microb Technology, Eirbot,
 Eurobotics Engineering) GPLv2+; Gamusino's gyro library, STM32duino LSM6DSR (STMicroelectronics, BSD-3), is
 downloaded at build time. Futura's page (Green Ye, micromouseusa.com) gives no licence: its firmware template, its
@@ -288,5 +315,5 @@ SHA-256, and stay out of git; ST's library is not used
 (`ratasim/futura/fw` simulates the part of its API the template calls). Fujin's team's photos of its board
 (raiju.team), its art's only source, are downloaded at build time, pinned by their SHA-256, and stay out of git.
 Miniskybot's repository is GPL or CC BY-SA (its README; its page CC BY-SA 3.0 ES). Ratatron II's firmware is
-GPLv3, its board and mechanics CC BY-SA 4.0. The competition mazes are Peter Harrison's collection ([micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles)), gathered with its contributors from the contests' own maps; it carries no licence, so it is a submodule and none of its files is copied here. The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's, Miniskybot's and KERISE v1's CAD stay out of git; NezumiBot's, Perenquén's and Ratatron II's are in `ratasim/nezumibot/assets`, `ratasim/perenquen/assets` and
+GPLv3, its board and mechanics CC BY-SA 4.0. The competition mazes are Peter Harrison's collection ([micromouseonline/mazefiles](https://github.com/micromouseonline/mazefiles)), gathered with its contributors from the contests' own maps; it carries no licence, so it is a submodule and none of its files is copied here. The meshes made from ZoroBot3's, Gamusino's, Bulebule's, Fujin's, Miniskybot's, KERISE v1's and KOGUMA's CAD stay out of git; NezumiBot's, Perenquén's and Ratatron II's are in `ratasim/nezumibot/assets`, `ratasim/perenquen/assets` and
 `ratasim/ratatron2/assets`, under their licences.

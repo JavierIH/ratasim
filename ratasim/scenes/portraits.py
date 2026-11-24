@@ -30,6 +30,7 @@ ROBOTS = {      # file: prefix, camera distance (m), azimuth, elevation[, the he
     'miniskybot': ('m_', 0.27, 215, -26, 0.03),
     'kerise': ('e_', 0.155, 215, -30),
     'ratatron2': ('r2_', 0.20, 215, -30),
+    'koguma': ('kg_', 0.20, 215, -30),
 }
 SHADOW_CLIP = {'kerise': 0.15}   # its shadows' map over less than the scene (m): the small ones' shadows without steps
 BEHIND = {'ratatron2': 0.012}    # its middle that far ahead of its origin (m): put that much behind, in the middle
@@ -84,7 +85,7 @@ def main(argv=None):
         maze_picture(os.path.join(a.dir, 'maze.jpg'))
     xml = K.scene_xml(Maze.load(maze_path('oshwdem2026')), with_maze=False, gamusino=True, bulebule=True, nezumibot=True,
                        perenquen=True, fujin=True, futura=True, ukmarsbot=True, miniskybot=True,
-                       kerise=True, ratatron2=True)
+                       kerise=True, ratatron2=True, koguma=True)
     xml = xml.replace('<texture name="sky" type="skybox" builtin="gradient" rgb1="0.25 0.27 0.3" rgb2="0.05 0.05 0.06"',
                       f'<texture name="sky" type="skybox" builtin="gradient" {SKY}')
     m, d = K.compile(xml.replace('</worldbody>', STUDIO + '</worldbody>', 1))

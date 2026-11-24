@@ -40,3 +40,6 @@
 [submodule "external/ratatron2"]
 	path = external/ratatron2
 	url = https://github.com/JavierIH/ratatron2
+[submodule "external/KOGUMA.MkIIl"]
+	path = external/KOGUMA.MkIIl
+	url = https://github.com/Tokoro0917/KOGUMA.MkIIl

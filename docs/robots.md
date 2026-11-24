@@ -505,3 +505,58 @@ photodiodes), an MPU6500 gyro and accelerometer, a buzzer, a button and four LED
   again (its sensors on), a hand in front of its front sensors; it calibrates its gyro and its sensors and goes. In
   the OSHWDEM 2026 maze its search reaches the goal in 84.3 s and is back in its start cell at 158 s (backing
   against the start cell's back wall to line up there, as its firmware does), then its fast runs: 41.4 s, 34.6 s.
+
+## KOGUMA-CHAN Mk3
+
+<img src="images/robots/koguma.jpg" width="220" align="right">
+
+By Akihiro Suda ([Tokoro0917](https://github.com/Tokoro0917)), Tokyo University of Science Mice ·
+[Tokoro0917/KOGUMA.MkIIl](https://github.com/Tokoro0917/KOGUMA.MkIIl) (no licence file; its author allows ratasim
+to use it: nothing of it is copied here, everything is made from the submodule at build time)
+
+Winner of the classic contest at the 46th All Japan Micromouse Contest, second at APEC 2026 with its fastest run
+(6.308 s). Its specification (APEC 2026's report): 120 x 70 x 30 mm, 78 g, an STM32F446RE at 180 MHz, a carbon fibre
+frame, two NFP-D0816 coreless motors through 71:20 gears to Mini-Z narrow wheels (24 x 8 mm) and a third one on its
+suction fan, MP6550 drivers, AS5047P encoders on a gear of their own, an LSM6DSR gyro, four IR sensors (OPV332 laser
+diodes, SFH 229FA photodiodes through op-amps), a 4-cell LiPo; turns up to 2.4 m/s, 30 m/s², 6 m/s.
+
+- **Firmware:** `external/KOGUMA.MkIIl` at 5473f0a (2026-11-24): all of `Core/Src` (its CubeMX files, its search,
+  its maze, its Dijkstra, its turns' tables, its wall control and wall cuts, its fail-safe) compiled unchanged, its
+  `main()` renamed; only its ARM build's own files left out (`system_stm32f4xx.c`, `syscalls.c`, `sysmem.c`). ST's
+  HAL in its `Drivers/` is not used: `ratasim/koguma/fw/include/stm32f4xx_hal.h` gives the types, registers and
+  functions its files use and `kchip.c` the chip under them, its peripherals as host memory: its main() in a
+  coroutine on a clock of simulated time; SysTick (HAL's tick, priority 15) and TIM6's 1 kHz interrupt (its control
+  loop, priority 0, its counter read and reset as it runs); ADC1's five-channel scan with its DMA's interrupt and
+  callback, each photodiode read with its emitter's pin lit or dark (PA1: FL and R, PA0: L and FR); SPI3 with its two
+  AS5047P (a frame's answer is the previous frame's command's; its SPI runs in mode 3, the AS5047P's is mode 1, so
+  its MCU reads each word a bit late: the angle's 13 upper bits, as its firmware takes them, × 360 / 8192); SPI1 with
+  its LSM6DSR's registers (sampled at 1.66 kHz, 140 mdps an LSB, reading 1 % low: its firmware multiplies by 1.01);
+  TIM3's four channels to its MP6550s (both inputs high: brake; a channel stopped: coast), TIM2 its fan's PWM, TIM4
+  its buzzer; its printf on USART2 at 115200 baud, each byte its 87 µs. Its main loop waits in bare loops on what its
+  interrupt changes (`while (G_Motor_X < x) {}`): `include/ksim.h`, forced into its files, makes every pass of a
+  `while` or `for` take 50 ns of the chip's time, so that its interrupts come in the middle of them, as on the chip.
+- **Model:** its STEP (`hardware/KOGUMA.Mk3.step`, its Fusion 360 assembly), tessellated with gmsh at build time
+  (`ratasim/koguma/cad.py`) and merged per body and colour. Its colours are its maker's photo's, not its STEP's: its
+  carbon fibre plate (its two faces textured with a 2/2 twill drawn at build time), its board's black solder mask,
+  its printed parts black, its four cells in black tape, its silver motors, the black end cap of its fan's motor, its
+  brass pinions, white spur gears, orange axle screws and caps, purple nylon nuts. Its STEP's wheels are plain discs:
+  its rims, Kyosho's Mini-Z Multi Wheel II (narrow, white, offset 2.0, MZH131W-N2B), are drawn at build time from
+  Kyosho's photos: a dished face of sixteen spokes in eight close pairs from a hub disc with a raised ring up to a
+  rounded lip. Its sensors' emitters and photodiodes, in none of its STEP's parts, are put in its holders' holes,
+  found in each holder's mesh (the emitter in the upper one, its dome out of the face, their legs bent down into the
+  board). Collisions: a box over its plate, its tyres, two skids under its plate.
+- **Sensors:** where its holders' holes are and the way their faces look: its front pair at its flanks, 10° out;
+  its side pair crossed by its nose, 30° ahead of square. Each reading is what its maker measured at that distance
+  (its `WallDistance.c` tables, 2026-10-06, and its venue's scales), over its beam's length, interpolated as powers
+  of the distance; past its tables' far ends at least as the distance to the 2.5 (assumed).
+- **Physics:** its mass (78 g) and its motors' resistance (5.4 Ω) from its firmware; the rest fitted to what its
+  logs told its maker (`docs/next_robot.md`): the voltage a wheel needs, 1.25 V + 1.5 V per m/s + 0.35 V per m/s²
+  (its motors' constant from the last, viscous and Coulomb friction for the rest), its yaw inertia (3.7e-5 kg m²),
+  its battery's 0.64 Ω. Its fan's downforce (6 N at 11 V) assumed: what its 9 g of grip in its turns needs.
+- **Maze:** classic: 180 mm cells, 12 mm walls 50 mm high.
+- **Run:** `ratasim koguma --maze oshwdem2026 [--number N] [--echo] [--headless] [--record out.mp4]`: switched on
+  in the start cell, its tail at the back wall; held up, its right wheel turned forward to pick its mode 0 number
+  (half a turn each), put down, a hand in front of its left front sensor (its buzzer), then over its side sensors:
+  it waits for the hand to go and goes. No.1, its slalom search at 500 mm/s without its fan, reaches the goal of the
+  OSHWDEM 2026 maze in 88.7 s and is back in its start cell at 131 s, its map right (392 walls and openings seen).
+  At the end the runner prints its map against the maze.

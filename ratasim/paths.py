@@ -21,7 +21,7 @@ _RATATRON = ['external/ratatron']
 _ALL = ['external/ratatron', 'external/ZoroBot3', 'external/gamusino', 'external/NezumiBot', 'external/bulebule',
         'external/bulebule/src/mmlib', 'external/bulebule/src/printf', 'external/perenquen',
         'external/aversive4dspic', 'external/fujin', 'external/mazerunner-core', 'external/ukmarsbot',
-        'external/Miniskybot', 'external/kerise-v1']
+        'external/Miniskybot', 'external/kerise-v1', 'external/KOGUMA.MkIIl']
 NEEDS = {
     'ratatron': _RATATRON, 'batch': _RATATRON, 'curves': _RATATRON, 'failures': _RATATRON, 'mapdiff': _RATATRON,
     'demo': _RATATRON, 'ir-info': _RATATRON, 'real-ir': _RATATRON,
@@ -32,6 +32,7 @@ NEEDS = {
     'perenquen': ['external/perenquen', 'external/aversive4dspic'], 'fujin': ['external/fujin'],
     'ukmarsbot': ['external/ukmarsbot', 'external/mazerunner-core'], 'miniskybot': ['external/Miniskybot'],
     'kerise': ['external/kerise-v1'],
+    'koguma': _RATATRON + ['external/KOGUMA.MkIIl'],      # the maze (ratasim/model.py) and its firmware and STEP
     'ratatron2': _RATATRON,         # the maze (ratasim/model.py); its meshes are committed (ratatron2/assets)
     'mazes': ['external/mazefiles'],
     'drag-race': _ALL, 'maze-race': _ALL, 'minisumo': _ALL, 'portraits': _ALL,

@@ -8,6 +8,7 @@ actions on the simulated robot with its firmware running between them.
     ('send', line)              a line typed in a terminal connected to it (its serial port, Bluetooth)
     ('hand', sensors[, ms])     a hand in front of these sensors (300 ms; ratasim/hand.py)
     ('lift',)                   held in the air over where it stands (its sensors see over the walls)
+    ('wheel', side, turns[, ms]) one of its wheels turned by hand, held up ('l' or 'r'; turns forward, 400 ms)
     ('put_down', cell, deg)     put down at a cell's centre, facing deg (0 north, positive to the left)
 """
 
@@ -30,6 +31,8 @@ def actions(robot, steps, say=print):
             robot.cover(*args)
         elif kind == 'lift':
             robot.lift()
+        elif kind == 'wheel':
+            robot.turn_wheel(*args)
         elif kind == 'put_down':
             robot.put_down(*args)
         else:
