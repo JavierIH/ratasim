@@ -45,9 +45,9 @@ By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OP
 - **Run:** `ratasim zorobot --maze oshwdem2026 [--run [--speed 0..5] [--solve 0|1]] [--record out.mp4]`: it boots, picks the run with its menu
   buttons and starts with a hand in front of its right front sensor, as on the real robot.
 - **Open:** its explore turns end 3-5 deg off, so it touches walls (the assumed motors and grip). Its speed runs
-  (`--run`) do not reach the goal yet: with `--solve 0` its firmware runs two 90 deg turns in adjacent cells
+  (`--run`) do not reach the goal yet: with `--solve 0` (not how its makers run it) its firmware runs two 90 deg turns in adjacent cells
   (a zigzag) with each one's 68.8 mm lead-in and lead-out overlapping, the second one 138 mm late into the wall at
-  every speed; with `--solve 1` (diagonals) its turns still end 15-30 mm wide of their line, as its side sensors
+  every speed; with `--solve 1` (diagonals, the default) its turns still end 15-30 mm wide of their line, as its side sensors
   find its wall ends some 10 mm after its firmware expects them (116 mm) and its turns' yaw rate overshoots 5-8 %.
 
 ## KOGUMA-CHAN Mk3

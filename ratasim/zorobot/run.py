@@ -28,7 +28,7 @@ def main(argv=None):
     p.add_argument('--speed', type=int, default=1, help='run speed of its menu: 0 explore .. 5 haki')
     p.add_argument('--explore-type', type=int, default=0, help='0 to the goal, 1 and back home, 2 complete')
     p.add_argument('--floodfill', type=int, default=0, help='0 basic, 1 diagonal, 2 time')
-    p.add_argument('--solve', type=int, default=0, help='its speed run: 0 standard (turns of 90 and 180 deg), 1 diagonals')
+    p.add_argument('--solve', type=int, default=1, help='its speed run: 1 diagonals (as its makers run it), 0 standard (turns of 90 and 180 deg)')
     p.add_argument('--run', action='store_true', help='explore, then the speed run')
     add_view_args(p)
     p.add_argument('--max-s', type=float, help='stop after these simulated seconds (default 400; with a window, none)')
