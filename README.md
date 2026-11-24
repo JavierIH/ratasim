@@ -141,11 +141,13 @@ End puts it back at the start.
 <img src="docs/images/maze-zorobot3.jpg" alt="ZoroBot3 exploring the OSHWDEM 2026 maze" align="right" width="280">
 
 ```sh
-ratasim zorobot --maze oshwdem2026 --record zorobot.mp4
+ratasim zorobot --maze oshwdem2026 --run --record zorobot.mp4 [--camera fixed]
 ```
 
 Export its Onshape "Full Assembly" as STEP to `ratasim/zorobot/cad/Full_Assembly.step` first. Started with a hand at
-its right front sensor; `--run` explores, then speed runs.
+its right front sensor; `--run` explores, then speed runs. Its menu as its makers ran it at OSHWDem 2026 (explore
+complete, time-based floodfill, diagonals, speed 5): its search reaches the goal in 63 s and its speed run in 5.05 s
+(about 5.5 s on the real robot's video).
 
 ### Running KOGUMA-CHAN Mk3
 

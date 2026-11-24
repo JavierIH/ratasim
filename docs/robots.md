@@ -46,8 +46,10 @@ By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OP
   radius is its firmware's (12.44 mm, the CAD's tire 11.56).
 - **Run:** `ratasim zorobot --maze oshwdem2026 [--run [--speed 0..5] [--explore-type 0..2] [--floodfill 0..3]
   [--solve 0|1]] [--record out.mp4 [--camera fixed]]`: it boots, picks the run with its menu buttons and starts with a hand in front of
-  its right front sensor, as on the real robot. Its makers run it with `--explore-type 2 --floodfill 2 --solve 1`
-  (explore complete, time-based floodfill, diagonals).
+  its right front sensor, as on the real robot. Its menu by default as its makers ran it at OSHWDem 2026 (explore
+  complete, time-based floodfill, diagonals, speed 5): its search reaches the goal in 63 s and is back at its start
+  at 96 s; its speed run reaches the goal in 5.05 s. On its makers' video of that run (it won) it takes the same way
+  (north up column 0, the middle rows, the south rows, the goal) in about 5.5 s.
 - **Sensors:** each one its emitter's spot (SFH 4550, +-3 deg) as seven rays, a Gaussian of 2.5 deg, each ray's light
   at its length times the cosine of its incidence over its calibration's: in its diagonals its front sensors read the
   posts (12 mm) beside them as part of the spot, at a slant. Its side sensors 3 deg forward of the CAD's axes, so that they lose a wall's end where its makers
@@ -55,8 +57,7 @@ By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OP
   108 mm at 2 m/s. Its turns after a wall's end then end 2-8 mm off their cell's centre.
 - **Wall touches:** in its exploration they are its tail against the wall behind it: in a dead end it turns round
   and backs onto that wall to square up (move_back()).
-- **Open:** with its makers' menu its speed runs at speeds 4 and 5 reach the goal (5.5 and 5.1 s; it won OSHWDem
-  2026 on this maze in under 10 s); at 1-3 they end at post (13,1): from column 15 down to row 0 its four 45 deg
+- **Open:** its speed runs at speeds 4 and 5 reach the goal (5.5 and 5.1 s); at 1-3 they end at post (13,1): from column 15 down to row 0 its four 45 deg
   turns without side walls leave it 20 mm south of the line its firmware plans, it enters the NW diagonal 17 mm
   towards that post, and its diagonal correction (its front right sensor first, at 266 mm) turns it into it. Its
   motors' lag, its yaw inertia and a tyre scrub damping do not change it. With `--solve 0` (not how its makers run

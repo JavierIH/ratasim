@@ -17,7 +17,7 @@ it).
 
 The full check (--full) is the whole run, as before: it fails when the firmware does not build, stops, or the robot
 does not do its run (Ratatron: the search to the goal and back, then race 2.4 on its map; ZoroBot3: its exploration
-to the goal; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
+to the goal and back, then its speed run at speed 5 to the goal, its makers' menu; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
 the goal and back; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
 following, away from the start; Gamusino: its 1.5 m and back; Futura: its controller sample's cells and pivots, up
 to the maze's north rows; Miniskybot: through 10 cells, not toppled; KERISE v1: its search to the goal and back
@@ -166,14 +166,14 @@ def zorobot(full):
     if not full:
         return short(['zorobot'], SHORT_S['zorobot'], clean=False, started='started: True')
     fails = []
-    out = run(['zorobot', '--headless', '--maze', MAZE, '--max-s', '400'])
+    out = run(['zorobot', '--headless', '--maze', MAZE, '--run', '--max-s', '400'])
     common(out, fails, clean=False)
     if 'started: True' not in out:
         fails.append('not started')
     if 'race over' not in out:
-        fails.append('its exploration did not end')
-    elif not goal_times(out):
-        fails.append('no time to the goal (the stopwatch)')
+        fails.append('its runs did not end')
+    elif len(goal_times(out)) < 2:
+        fails.append('its exploration and its speed run not both at the goal (the stopwatch)')
     return fails
 
 
