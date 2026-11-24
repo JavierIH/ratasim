@@ -1,7 +1,8 @@
 """The MuJoCo scene with KOGUMA: the same maze as Ratatron's (ratasim/model.py) and the robot from its STEP
 (koguma/cad.py: every part's mesh, merged per body and colour, its carbon fibre plate's faces textured); simple
-shapes for its collisions: a box over its plate and what stands on it (walls only), its two tyres, two skids under
-its plate's nose and tail (its plate rides 2.2 mm over the floor)."""
+shapes for its collisions: its plate's outline from it up to its top (walls only), its two tyres, two skids under
+its plate's nose and tail (its plate rides 2.2 mm over the floor; its nose's skid a felt pad in its photo: their
+contacts overdamped, so that its nose dipping as it brakes does not bounce its wheels off the floor)."""
 import json
 import os
 import re
@@ -31,13 +32,20 @@ def _visual(entry, pos=(0, 0, 0)):
 def defaults_xml():
     return (f'<default class="kgvisual"><geom type="mesh" group="{ROBOT_GROUP}" contype="0" conaffinity="0" mass="0"/></default>'
             '<default class="kghull"><geom group="3" contype="2" conaffinity="0" rgba="0 0 1 0.1" mass="0" friction="0.3"/></default>'
-            '<default class="kgskid"><geom group="3" contype="2" conaffinity="1" rgba="0 0 1 0.3" mass="0" friction="0.05 0.001 0.0001"/></default>'
+            '<default class="kgskid"><geom group="3" contype="2" conaffinity="1" rgba="0 0 1 0.3" mass="0" friction="0.05 0.001 0.0001" solref="0.01 3"/></default>'
             f'<default class="kgtire"><geom group="3" contype="2" conaffinity="1" rgba="0 0 0 0.3" friction="{K.TIRE_FRICTION} 0.005 0.0001" condim="3" solref="0.004 1"/></default>')
+
+
+def hull_mesh_xml():
+    """Its collision hull against the walls: its plate's outline (K.PLATE_OUTLINE) from its plate up to its top."""
+    z0, z1 = K.PLATE_Z_MM[0], K.TOP_MM
+    pts = [(x, y, z) for z in (z0, z1) for x, y in K.PLATE_OUTLINE]
+    return f'<mesh name="kg_hull" vertex="{" ".join(_f(*(c * MM for c in p)) for p in pts)}"/>'
 
 
 def assets_xml():
     d = K.CAD_MESHES
-    out = ''
+    out = hull_mesh_xml()
     for e in _meshes():
         tyre = any(k in p for p in e['parts'] for k in cad.TYRE) and e['body'] != 'chassis'
         scale = (MM, MM * TIRE_SCALE, MM * TIRE_SCALE) if tyre else (MM, MM, MM)
@@ -62,15 +70,13 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
         wheels += f'''
       <body name="wheel_{side}" pos="{_f(x * MM, 0, 0)}">
         <joint name="wheel_{side}" type="hinge" axis="-1 0 0" armature="{K.WHEEL_ARMATURE:.3g}" damping="{K.WHEEL_VISCOUS:.4g}" frictionloss="{K.WHEEL_FRICTION_NM:.4g}"/>
-        <geom name="tire_{side}" class="kgtire" type="cylinder" size="{_f(r * MM, 3.0 * MM)}" euler="0 90 0" mass="0.002"/>
+        <geom name="tire_{side}" class="kgtire" type="ellipsoid" size="{_f(3.0 * MM, r * MM, r * MM)}" mass="0.002"/>
         {visual}
       </body>'''
     z_skid = K.PLATE_Z_MM[0]
     skids = ''.join(f'<geom name="skid_{n}" class="kgskid" type="sphere" size="{1.5 * MM:.6g}" '
                     f'pos="{_f(0, y * MM, (z_skid + 1.5) * MM)}"/>' for n, y in (('front', 54), ('rear', -54)))
-    z0, z1 = K.PLATE_Z_MM[0], K.TOP_MM
-    hull = (f'<geom name="hull" class="kghull" type="box" pos="{_f(0, sum(K.PLATE_Y) / 2 * MM, (z0 + z1) / 2 * MM)}" '
-            f'size="{_f(K.PLATE_HALF_X * MM, (K.PLATE_Y[1] - K.PLATE_Y[0]) / 2 * MM, (z1 - z0) / 2 * MM)}"/>')
+    hull = '<geom name="hull" class="kghull" type="mesh" mesh="kg_hull"/>'
     m = K.MASS_KG - 0.004
     xml = f'''
     <body name="robot" pos="{_f(start_xy[0] * RC.CELL_MM * MM, start_xy[1] * RC.CELL_MM * MM, r * MM)}">
@@ -80,6 +86,17 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
       {chassis}{sites}{wheels}
     </body>'''
     return re.sub(r'( name| joint)="', rf'\1="{prefix}', xml) if prefix else xml
+
+
+def tyre_pairs_xml(prefix=''):
+    """Its tyres on the floor as explicit contacts whose friction gives a little (K.TYRE_CREEP: MuJoCo's
+    solreffriction): a rubber tyre's slip under its lateral force in a turn, and under its drive."""
+    if not K.TYRE_CREEP:
+        return ''
+    mu = K.TIRE_FRICTION
+    return '<contact>' + ''.join(
+        f'<pair geom1="{prefix}tire_{s}" geom2="floor" condim="3" friction="{mu} {mu} 0.005 0.0001 0.0001" '
+        f'solref="0.004 1" solreffriction="{_f(*K.TYRE_CREEP)}"/>' for s in 'lr') + '</contact>'
 
 
 def scene_xml(maze):
@@ -111,6 +128,7 @@ def scene_xml(maze):
     {robot_xml()}
     {hand_xml()}
   </worldbody>
+  {tyre_pairs_xml()}
   <actuator>
     <motor name="motor_l" joint="wheel_l"/>
     <motor name="motor_r" joint="wheel_r"/>

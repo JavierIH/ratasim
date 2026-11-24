@@ -545,19 +545,36 @@ diodes, SFH 229FA photodiodes through op-amps), a 4-cell LiPo; turns up to 2.4 m
   build time from Kyosho's photos: a dished face of sixteen spokes in eight close pairs from a hub disc with a raised
   ring up to a rounded lip. Its sensors' emitters and photodiodes, in none of its STEP's parts, are put in its
   holders' holes, found in each holder's mesh (the emitter in the upper one, its dome out of the face, their legs bent
-  down into the board). Collisions: a box over its plate, its tyres, two skids under its plate.
-- **Sensors:** where its holders' holes are and the way their faces look: its front pair at its flanks, 10° out;
-  its side pair crossed by its nose, 30° ahead of square. Each reading is what its maker measured at that distance
-  (its `WallDistance.c` tables, 2026-10-06, and its venue's scales), over its beam's length, interpolated as powers
-  of the distance; past its tables' far ends at least as the distance to the 2.5 (assumed).
-- **Physics:** its mass (78 g) and its motors' resistance (5.4 Ω) from its firmware; the rest fitted to what its
-  logs told its maker (`docs/next_robot.md`): the voltage a wheel needs, 1.25 V + 1.5 V per m/s + 0.35 V per m/s²
-  (its motors' constant from the last, viscous and Coulomb friction for the rest), its yaw inertia (3.7e-5 kg m²),
-  its battery's 0.64 Ω. Its fan's downforce (6 N at 11 V) assumed: what its 9 g of grip in its turns needs.
+  down into the board). Collisions: its plate's outline (its STEP's, its corners cut to its nose and tail) up to its
+  top, its tyres as single contact points (ellipsoids), two skids under its plate.
+- **Sensors:** where its holders' holes are and the way their faces look: its front pair at its flanks, 10° out; its
+  side pair crossed by its nose, 30° ahead of square. Each reading is what its maker measured at that distance (its
+  `WallDistance.c` tables, 2026-10-06, and its venue's scales), over its beam's length, interpolated as powers of the
+  distance; past its tables' far ends at least as the distance to the 2.5 (assumed). What each sensor sees is its
+  laser diode's narrow spot, seven rays across it, a Gaussian of 2°: a wall fills it, a far post takes part of it. Its
+  width was tried against its fastest run: 1° to 3° reach its goal, its wall ends where its `Edge_Off` (87 to 99 mm)
+  expects them; 4° and 6° smear its wall ends along the wall and its turns start late.
+- **Physics:** its mass (78 g) and its motors' resistance (5.4 Ω) from its firmware; the rest fitted to what its logs
+  told its maker (`docs/next_robot.md`): the voltage a wheel needs going straight, 1.25 V, plus 1.5 V per m/s, plus
+  0.35 V per m/s² (its motors' constant from the last, viscous and Coulomb friction for the rest), and turning, 0.063
+  V per rad/s plus 0.006 V per rad/s² (its yaw inertia, 3.7e-5 kg m², and its tyres' scrub, a yaw damping: the
+  simulated robot, held at those voltages, turns within 2 to 4 % of them), its battery's 0.64 Ω. Its tyres touch the
+  floor at one point each, their friction 1.2 and stiff (MuJoCo's `solreffriction` 0.002 s: a fraction of a degree of
+  slip in a turn; a rigid cylinder's four points across its 8 mm scrubbed it nearly to a stop turning). Its wheels'
+  inertia with its rotor, pinion and gears (1e-7 kg m², assumed: lighter, unloaded without its fan, they spun and
+  chattered as it backed against a wall). Its fan's downforce assumed, 9 N at 11 V (quadratic in its voltage): its
+  fastest run turns at 2 m/s and up to 2000°/s (70 m/s²) with its fan at 50 %, which at its tyres' friction needs 4.2
+  N, and its logs found its turns short of voltage, not of grip. Its nose's skid (a felt pad in its photo) and its
+  tail's are overdamped contacts: its nose dips as it brakes from 4.5 m/s, and a bouncing skid would lift its wheels
+  off the floor.
 - **Maze:** classic: 180 mm cells, 12 mm walls 50 mm high.
-- **Run:** `ratasim koguma --maze oshwdem2026 [--number N] [--echo] [--headless] [--record out.mp4]`: switched on
-  in the start cell, its tail at the back wall; held up, its right wheel turned forward to pick its mode 0 number
-  (half a turn each), put down, a hand in front of its left front sensor (its buzzer), then over its side sensors:
-  it waits for the hand to go and goes. No.1, its slalom search at 500 mm/s without its fan, reaches the goal of the
-  OSHWDEM 2026 maze in 88.7 s and is back in its start cell at 131 s, its map right (392 walls and openings seen).
-  At the end the runner prints its map against the maze.
+- **Run:** `ratasim koguma --maze oshwdem2026 [--number N] [--echo] [--headless] [--record out.mp4]`: switched on in
+  the start cell, its tail at the back wall; held up, its right wheel turned forward to pick its mode 0 number (half a
+  turn each; the runner prints the mode and number its LEDs show), put down, a hand in front of its left front sensor
+  (its buzzer), then over its side sensors: it waits for the hand to go and goes. No.1, its slalom search at 500 mm/s
+  without its fan, reaches the goal of the OSHWDEM 2026 maze in 86.6 s and is back in its start cell at 128.5 s, its
+  map right (392 walls and openings seen); the runner prints its map against the maze. Its fastest run (Dijkstra, 2
+  m/s turns, straights up to 6 m/s, its fan at 50 %), with the maze's walls all in its map (its mode 1 No.5), reaches
+  the goal in 6.63 s (6.3 to 6.5 s at APEC 2026), a post grazed in its last U-turn. Not yet after its own search
+  (No.8, the same run on the map its search makes, its unseen walls as walls): it touches a post in the south rows and
+  its fail-safe stops it.

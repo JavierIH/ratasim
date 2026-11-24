@@ -27,7 +27,9 @@ TIRE_CAD_RADIUS_MM = 12.0                       # Mini-Z narrow tyres, 24 mm
 TRACK_MM = 60.6                                 # between its tyres' middles (8 mm wide)
 # Its carbon fibre bottom plate (120 x 72 mm, 1 mm, 2.5 mm over the floor in its STEP) and its board over it
 PLATE_Z_MM = (61.8 - AXLE_IN_STEP_MM[2], 62.8 - AXLE_IN_STEP_MM[2])
-PLATE_HALF_X, PLATE_Y = 36.0, (-60.0, 60.0)
+# Its plate's outline (its STEP's, its convex hull simplified): 72 mm across its middle, tapering to its nose and tail
+PLATE_OUTLINE = ((-36.0, -20.6), (-10.4, -59.4), (-9.2, -60.0), (9.2, -60.0), (10.4, -59.4), (36.0, -20.6),
+                 (36.0, 21.0), (7.4, 57.0), (3.5, 59.7), (-3.5, 59.7), (-7.4, 57.0), (-36.0, 21.0))
 TOP_MM = 91.3 - AXLE_IN_STEP_MM[2]              # its fan motor's cover
 TAIL_MM = 60.0                                  # its plate's tail behind the axle (its firmware: 120 mm long)
 START_BACK_MM = 84.0 - TAIL_MM - 0.3            # its tail 0.3 mm off the start cell's back wall: its axle 24 back
@@ -75,7 +77,11 @@ COM_MM = (0.0, 0.0, 2.0)
 YAW_INERTIA = 3.7e-5            # kg m^2: docs/next_robot.md, from its logs (the turns' voltage)
 BATTERY_V = 16.0                # 4S LiPo, 180 mAh cells: its maker runs it from 15.8 V up
 BATTERY_R_OHM = 0.64            # its battery and wiring (docs/next_robot.md: 0.56 to 0.79, median 0.64)
-TIRE_FRICTION = 1.1
+TIRE_FRICTION = 1.2
+# Its tyres' grip on the floor, single contact points (ellipsoids: a rigid cylinder's four points across its 8 mm
+# scrub far more than a rubber tyre, which twists), their friction stiff (MuJoCo's solreffriction: its time
+# constant, its damping ratio): what slips in a turn is a fraction of a degree, its turns' voltages as its logs'
+TYRE_CREEP = (0.002, 1.0)
 # Its motors (NFP-D0816S coreless, 8 mm; 5.4 ohm, Define.h MOTORR) at the wheel: torque = K (V - K w) / R, its
 # gears' and fan's losses as friction. Fitted to the voltage its logs need per wheel (docs/next_robot.md: V = 1.25 +
 # 1.5 v + 0.35 a, v in m/s, a in m/s^2): K from the 0.35 (half its mass at the wheel), viscous friction for the rest
@@ -84,10 +90,16 @@ MOTOR_R_OHM = 5.4
 MOTOR_K = MOTOR_R_OHM * MASS_KG / 2 * (WHEEL_RADIUS_MM / 1000) / 0.35          # N m/A at the wheel
 WHEEL_VISCOUS = (1.5 - MOTOR_K / (WHEEL_RADIUS_MM / 1000)) * MOTOR_K * (WHEEL_RADIUS_MM / 1000) / MOTOR_R_OHM
 WHEEL_FRICTION_NM = 1.25 * MOTOR_K / MOTOR_R_OHM
-WHEEL_ARMATURE = 2e-8           # the rotor through its 71:20 gears (kg m^2 at the wheel)
-# Its fan (an 8520 coreless motor, a 32 mm acrylic impeller, a skirt): its downforce at 11 V (its runs' duty 70 %
-# of 15.8 V), assumed: what its 9 g of grip in its turns (docs/next_robot.md: 75 to 91 m/s^2) needs, at TIRE_FRICTION.
-FAN_DOWNFORCE_N = 6.0
+# Its tyres' scrub turning: its logs' rotation needs 0.063 V a wheel per rad/s of yaw (docs/next_robot.md), its
+# motors' model 0.045 (1.5 V per m/s at its 30.3 mm): the rest, 0.018 V, a yaw damping on its body.
+YAW_DAMPING = 2 * (MOTOR_K * 0.018 / (MOTOR_R_OHM * WHEEL_RADIUS_MM / 1000)) * TRACK_MM / 2000    # N m s/rad
+WHEEL_ARMATURE = 1e-7           # its rotor, pinion, spur gear and encoder's gear at the wheel (kg m^2), assumed: with
+                                # less its wheels, light without its fan, spin and chatter against a wall
+# Its fan (a coreless motor, a 32 mm acrylic impeller, a skirt): its downforce at 11 V (its runs' duty 70 % of
+# 15.8 V), quadratic in the voltage, assumed: its fastest run turns at 2 m/s and 2000 deg/s (ShortParam.c: 70 m/s^2,
+# docs/next_robot.md: 64 to 70 measured) with its fan at 50 % (7.9 V); at TIRE_FRICTION that needs 4.2 N there, and
+# its logs found its turns short of voltage, not of grip: 9 N at 11 V gives it 4.6 N (83 m/s^2).
+FAN_DOWNFORCE_N = 9.0
 FAN_RATED_V = 11.0
 FAN_CURRENT_A = 0.5             # docs/next_robot.md: about 0.5 A of its peak current
 

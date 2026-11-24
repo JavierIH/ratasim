@@ -267,7 +267,7 @@ ratasim koguma --maze oshwdem2026 --record koguma.mp4
 
 The All Japan classic champion, Akihiro Suda's, with its contest firmware on a simulated STM32F446 (ST's HAL):
 picked by turning its right wheel and started with a hand, as its maker does. Its search reaches the goal in
-88.7 s and is back at 131 s; `--number 8` adds its fastest run after it.
+86.6 s and is back at 128.5 s; its fastest run, on a map of the whole maze, in 6.63 s.
 
 ## Tests and CI
 

@@ -33,7 +33,13 @@ from . import model
 
 FW_DIR = os.path.join(K.HERE, 'fw')
 LIB = os.path.join(K.BUILD, 'libkogumafw.so')
-IR_SPREAD_DEG = 2.5
+# What each sensor sees: its laser diode's narrow spot, as rays (deg off its axis, weight), a Gaussian of 2 deg: a
+# wall fills it, a post (12 mm) only part of it once far. Tried against its fastest run: 1 to 3 deg reach its goal
+# (its wall ends where its Edge_Off expects them, 87 to 99 mm), 4 and 6 do not (its wall ends smeared over the wall)
+IR_SIGMA_DEG = float(os.environ.get('KOGUMA_IR_SIGMA', '2'))
+IR_RAYS = tuple((a, math.exp(-a * a / (2 * IR_SIGMA_DEG ** 2))) for a in
+                (IR_SIGMA_DEG * k / 1.5 for k in (-3, -2, -1, 0, 1, 2, 3)))
+IR_RAYS_WEIGHT = sum(w for _, w in IR_RAYS)
 FAR_POWER = 2.5         # its readings past its table's farthest point (204 mm ahead, 133 mm aside), assumed: its
                         # table flattens there (FR 120, 112 at 192, 204 mm), and at that rate its front sensors would
                         # see, where its search reads the next cell's front wall, the one a cell beyond it
@@ -197,37 +203,36 @@ class KRobot:
         d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
         return d / MM if d >= 0 else 2000.0
 
-    def beam_mm(self):
-        """Each sensor's distance to what its spot lights (mm): three rays across it, their harmonic mean."""
+    def ir_counts(self):
+        """Each sensor's reading (lit minus dark, counts): its spot as IR_RAYS rays across it, each one what its
+        maker's table gives at the distance it hits something, weighted. A wall fills the spot: its reading is its
+        table's; a post (12 mm) takes only part of it, as on the robot."""
         out = {}
         R = self.data.site_xmat
         for name, (_, _, deg) in K.IR_SENSORS.items():
             sid = self.sites[name]
             p = self.data.site_xpos[sid]
             rot = R[sid].reshape(3, 3)
-            inv = 0.0
-            for spread in (-IR_SPREAD_DEG, 0.0, IR_SPREAD_DEG):
+            total = 0.0
+            for spread, w in IR_RAYS:
                 a = math.radians(deg + spread)
-                inv += 1.0 / max(self._ray(p, rot @ np.array([math.cos(a), math.sin(a), 0.0])), 1.0)
-            out[name] = 3.0 / inv
+                total += w * self.table_counts(name, self._ray(p, rot @ np.array([math.cos(a), math.sin(a), 0.0])))
+            out[name] = total / IR_RAYS_WEIGHT
         return out
 
-    def ir_counts(self, beam):
-        """A reading (lit minus dark, counts) at these beam lengths (mm): its maker's table."""
-        out = {}
-        for name, b in beam.items():
-            xs, ys = self.curves[name]
-            x = math.log(max(b, 5.0))
-            if x <= xs[0]:
-                k = (ys[1] - ys[0]) / (xs[1] - xs[0])
-                y = ys[0] + k * (x - xs[0])
-            elif x >= xs[-1]:          # past its table, falling at least as the distance to the 2.5
-                k = min((ys[-1] - ys[-2]) / (xs[-1] - xs[-2]), -FAR_POWER)
-                y = ys[-1] + k * (x - xs[-1])
-            else:
-                y = float(np.interp(x, xs, ys))
-            out[name] = min(math.exp(y), 4095.0 - K.IR_DARK)
-        return out
+    def table_counts(self, name, beam):
+        """A reading (lit minus dark, counts) at this beam length (mm): its maker's table."""
+        xs, ys = self.curves[name]
+        x = math.log(max(beam, 5.0))
+        if x <= xs[0]:
+            k = (ys[1] - ys[0]) / (xs[1] - xs[0])
+            y = ys[0] + k * (x - xs[0])
+        elif x >= xs[-1]:          # past its table, falling at least as the distance to the 2.5
+            k = min((ys[-1] - ys[-2]) / (xs[-1] - xs[-2]), -FAR_POWER)
+            y = ys[-1] + k * (x - xs[-1])
+        else:
+            y = float(np.interp(x, xs, ys))
+        return min(math.exp(y), 4095.0 - K.IR_DARK)
 
     def _imu(self):
         w = math.degrees(self.data.qvel[self.free_dof + 5])            # its body's z rate (deg/s)
@@ -274,7 +279,7 @@ class KRobot:
             w = self.data.qvel[self.wheel_dof[s]]
             sign = 1 if s == 'l' else -1
             lib.ksim_set_encoder(i, sign * q * k, sign * w * k * 1e-9)
-        counts = self.ir_counts(self.beam_mm())
+        counts = self.ir_counts()
         for name, (index, _, _) in K.IR_SENSORS.items():
             lib.ksim_set_ir(index, counts[name], K.IR_DARK)
         gz, up = self._imu()
@@ -289,6 +294,7 @@ class KRobot:
                 return self.fw.state
             fan_v = self._drive()
             self.data.xfrc_applied[self.body, 2] = -K.FAN_DOWNFORCE_N * (fan_v / K.FAN_RATED_V) ** 2
+            self.data.xfrc_applied[self.body, 5] = -K.YAW_DAMPING * self.data.qvel[self.free_dof + 5]
             now = self.fw.time_ms()
             for s, (rate, until) in list(self.turning.items()):
                 if now >= until:
