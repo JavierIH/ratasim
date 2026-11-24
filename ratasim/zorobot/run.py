@@ -2,7 +2,7 @@
 of a sensor as on the real robot, and runs it in a maze; optionally records a video.
 
     ratasim zorobot [--maze oshwdem2026] [--speed 0..5] [--explore-type 0..2] [--run]
-                [--headless] [--record out.mp4] [--max-s N]
+                [--solve 0|1] [--headless] [--record out.mp4] [--max-s N]
 
 --run: EXPLORE & RUN (explore, then the speed run at --speed); else only the exploration.
 """
@@ -28,13 +28,14 @@ def main(argv=None):
     p.add_argument('--speed', type=int, default=1, help='run speed of its menu: 0 explore .. 5 haki')
     p.add_argument('--explore-type', type=int, default=0, help='0 to the goal, 1 and back home, 2 complete')
     p.add_argument('--floodfill', type=int, default=0, help='0 basic, 1 diagonal, 2 time')
+    p.add_argument('--solve', type=int, default=0, help='its speed run: 0 standard (turns of 90 and 180 deg), 1 diagonals')
     p.add_argument('--run', action='store_true', help='explore, then the speed run')
     add_view_args(p)
     p.add_argument('--max-s', type=float, help='stop after these simulated seconds (default 400; with a window, none)')
     p.add_argument('--log', help='write everything the firmware prints here')
     a = p.parse_args(argv)
     maze = Maze.load(maze_path(a.maze))
-    menu = (a.speed, 0, a.explore_type, a.floodfill, 1, 0, 2)
+    menu = (a.speed, 0, a.explore_type, a.floodfill, 1, a.solve, 2)
     r = ZRobot(maze, menu=menu)
     clock = Stopwatch(r.maze)
     rec = make_view(r, a, 'ZoroBot3 (OPRobots)', led=r.fw.rgb, clock=clock)

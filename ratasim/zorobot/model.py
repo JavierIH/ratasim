@@ -35,7 +35,7 @@ def robot_xml(start_xy=(0.5, 0.5)):
         wheels += f'''
       <body name="wheel_{side}" pos="{_f(x * MM, 0, 0)}">
         <joint name="wheel_{side}" type="hinge" axis="-1 0 0" armature="{Z.MOTOR_ROTOR_INERTIA * Z.GEAR ** 2:.3g}"/>
-        <geom name="tire_{side}" class="ztire" type="cylinder" size="{_f(r * MM, 1.0 * MM)}" euler="0 90 0" mass="0.004"/>
+        <geom name="tire_{side}" class="ztire" type="ellipsoid" size="{_f(3.0 * MM, r * MM, r * MM)}" mass="0.004"/>
         {visual}
       </body>'''
     skids = ''.join(f'<geom name="skid_{n}" class="zskid" type="sphere" size="{1.5 * MM:.6g}" '
@@ -54,6 +54,14 @@ def robot_xml(start_xy=(0.5, 0.5)):
       {hull}{skids}
       {chassis}{sites}{wheels}
     </body>'''
+
+
+def tyre_pairs_xml():
+    """Its tyres on the floor as explicit contacts with stiff friction (Z.TYRE_CREEP: MuJoCo's solreffriction)."""
+    mu = Z.TIRE_FRICTION
+    return '<contact>' + ''.join(
+        f'<pair geom1="tire_{s}" geom2="floor" condim="3" friction="{mu} {mu} 0.005 0.0001 0.0001" '
+        f'solref="0.004 1" solreffriction="{_f(*Z.TYRE_CREEP)}"/>' for s in 'lr') + '</contact>'
 
 
 def scene_xml(maze):
@@ -92,6 +100,7 @@ def scene_xml(maze):
     {robot_xml()}
     {hand_xml()}
   </worldbody>
+  {tyre_pairs_xml()}
   <actuator>
     <motor name="motor_l" joint="wheel_l"/>
     <motor name="motor_r" joint="wheel_r"/>

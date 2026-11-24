@@ -54,6 +54,10 @@ MOTOR_ROTOR_INERTIA = 6e-9                     # kg m^2 (on the motor shaft)
 GEAR_EFFICIENCY = 0.85
 MOTOR_FRICTION_NM = 1.5e-4                     # at the motor shaft
 TIRE_FRICTION = 1.1
+# Its tyres' grip on the floor: single contact points (ellipsoids), their friction stiff (MuJoCo's solreffriction:
+# its time constant, its damping ratio). With the default soft friction its tyres crept sideways at 0.23 m/s in its
+# speed runs' turns (6 deg of slip at 60 % of their grip), every turn ending 20-40 mm wide of its cell's centre.
+TYRE_CREEP = (0.002, 1.0)
 FAN_DOWNFORCE_N = 8.0                           # at 100 % duty, quadratic in it: its explore turns (~1.2 g) slid with less
 
 
