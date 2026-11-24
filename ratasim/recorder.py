@@ -11,10 +11,14 @@ import mujoco
 
 class Recorder:
     """An mp4 (ffmpeg): a camera following the robot, the whole maze in a corner with its trail, the time, a status
-    line, an LED and the stopwatch (.clock). The robot: .model, .data, .maze, .pose() (mm, deg) and .fw.time_ms()."""
+    line, an LED and the stopwatch (.clock). The robot: .model, .data, .maze, .pose() (mm, deg) and .fw.time_ms().
+    camera 'fixed': the whole maze from above its south side, still, up to 1920x1080 (no corner view)."""
 
-    def __init__(self, robot, path, title, width=1280, height=720, fps=30, speed=1.0, led=None):
-        self.r, self.fps, self.speed = robot, fps, speed
+    def __init__(self, robot, path, title, width=1280, height=720, fps=30, speed=1.0, led=None, camera='follow'):
+        self.r, self.fps, self.speed, self.fixed = robot, fps, speed, camera == 'fixed'
+        if self.fixed:      # as large as its model's offscreen buffer allows
+            width = min(1920, robot.model.vis.global_.offwidth)
+            height = min(width * 9 // 16, robot.model.vis.global_.offheight)
         m = robot.model
         self.big = mujoco.Renderer(m, height, width)
         self.small = mujoco.Renderer(m, 300, 300)
@@ -23,6 +27,9 @@ class Recorder:
         self.top.lookat[:] = (side / 2, side / 2, 0)
         self.top.distance, self.top.elevation, self.top.azimuth = side * 1.75, -90, 90
         self.cam.distance, self.cam.elevation, self.cam.azimuth = 0.55, -45, 90
+        if self.fixed:
+            self.cam.lookat[:] = (side / 2, side / 2 - side * 0.12, 0)
+            self.cam.distance, self.cam.elevation, self.cam.azimuth = side * 1.3, -60, 90
         self.next_ms = robot.fw.time_ms()
         self.w, self.h = width, height
         self.trail = []
@@ -42,21 +49,32 @@ class Recorder:
         speed = 8.0 if fast else self.speed
         self.next_ms = t + max(1, int(1000 * speed / self.fps))
         x, y, yaw = r.pose()
-        look, target = self.cam.lookat, (x / 1000, y / 1000, 0.0)
-        for i in range(3):
-            look[i] = 0.8 * look[i] + 0.2 * target[i] if look.any() else target[i]
+        if not self.fixed:
+            look, target = self.cam.lookat, (x / 1000, y / 1000, 0.0)
+            for i in range(3):
+                look[i] = 0.8 * look[i] + 0.2 * target[i] if look.any() else target[i]
         self.big.update_scene(r.data, self.cam)
         frame = Image.fromarray(self.big.render())
+        self.trail.append((x, y))
+        if not self.fixed:
+            self._inset(frame, x, y)
+        self._overlay(frame, t, speed)
+
+    def _inset(self, frame, x, y):
+        from PIL import Image, ImageDraw
+        r = self.r
         self.small.update_scene(r.data, self.top)
         inset = Image.fromarray(self.small.render())
         d2 = ImageDraw.Draw(inset)
-        self.trail.append((x, y))
         side = r.maze.size * 180.0
         k = 300 / (2 * 1.75 * side * math.tan(math.radians(self.r.model.vis.global_.fovy / 2)))   # px per mm
         pts = [(150 + (px - side / 2) * k, 150 - (py - side / 2) * k) for px, py in self.trail[-4000:]]
         if len(pts) > 1:
             d2.line(pts, fill=(80, 200, 255), width=2)
         frame.paste(inset, (self.w - 310, 10))
+
+    def _overlay(self, frame, t, speed):
+        from PIL import ImageDraw
         d = ImageDraw.Draw(frame)
         d.rectangle((0, 0, 420, 64), fill=(0, 0, 0))
         d.text((10, 8), f'{self.title} - its firmware, simulated    t = {t / 1000:6.1f} s   x{speed:g}', fill=(255, 255, 255))
@@ -114,8 +132,8 @@ class Viewer:
 class Both:
     """The window and the video at once (--record without --headless). Same calls as Recorder."""
 
-    def __init__(self, robot, path, title, speed=1.0, led=None):
-        self.parts = [Recorder(robot, path, title, speed=speed, led=led), Viewer(robot, speed=speed)]
+    def __init__(self, robot, path, title, speed=1.0, led=None, camera='follow'):
+        self.parts = [Recorder(robot, path, title, speed=speed, led=led, camera=camera), Viewer(robot, speed=speed)]
 
     status = property(lambda s: s.parts[0].status,
                       lambda s, v: [setattr(p, 'status', v) for p in s.parts])
@@ -135,6 +153,8 @@ def add_view_args(p):
     p.add_argument('--headless', action='store_true', help='no window (--record then records without showing it)')
     p.add_argument('--record', metavar='MP4')
     p.add_argument('--record-speed', type=float, default=1.0, help='the pace of window and video (x real time)')
+    p.add_argument('--camera', choices=('follow', 'fixed'), default='follow',
+                   help="the video's camera: following the robot, or the whole maze from above, still")
     p.add_argument('--trace', metavar='NPZ', help='no window: its joints every 10 ms to this file (ratasim/trace.py)')
 
 
@@ -149,9 +169,9 @@ def make_view(robot, a, title, led=None, clock=None):
         from .trace import Tracer
         view = Tracer(robot, a.trace)
     elif a.record and (a.headless or no_screen()):
-        view = Recorder(robot, a.record, title, speed=a.record_speed, led=led)
+        view = Recorder(robot, a.record, title, speed=a.record_speed, led=led, camera=a.camera)
     elif a.record:
-        view = Both(robot, a.record, title, speed=a.record_speed, led=led)
+        view = Both(robot, a.record, title, speed=a.record_speed, led=led, camera=a.camera)
     elif a.headless:
         return None
     elif no_screen():

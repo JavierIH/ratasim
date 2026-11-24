@@ -45,7 +45,7 @@ By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OP
   fitted to its logs. Its tyres single contact points with stiff friction, tire friction 1.1 (assumed); the wheel
   radius is its firmware's (12.44 mm, the CAD's tire 11.56).
 - **Run:** `ratasim zorobot --maze oshwdem2026 [--run [--speed 0..5] [--explore-type 0..2] [--floodfill 0..3]
-  [--solve 0|1]] [--record out.mp4]`: it boots, picks the run with its menu buttons and starts with a hand in front of
+  [--solve 0|1]] [--record out.mp4 [--camera fixed]]`: it boots, picks the run with its menu buttons and starts with a hand in front of
   its right front sensor, as on the real robot. Its makers run it with `--explore-type 2 --floodfill 2 --solve 1`
   (explore complete, time-based floodfill, diagonals).
 - **Sensors:** each one its emitter's spot (SFH 4550, +-3 deg) as seven rays, a Gaussian of 2.5 deg, each ray's light
