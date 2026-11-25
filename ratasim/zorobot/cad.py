@@ -51,7 +51,7 @@ def tessellate(step):
     gmsh.model.occ.synchronize()
     gmsh.option.setNumber('Mesh.MeshSizeMin', 0.15)
     gmsh.option.setNumber('Mesh.MeshSizeMax', 3.0)
-    gmsh.option.setNumber('Mesh.MeshSizeFromCurvature', 10)
+    gmsh.option.setNumber('Mesh.MeshSizeFromCurvature', 24)     # points per turn; the minimum keeps vias coarse
     gmsh.option.setNumber('Mesh.Algorithm', 6)
     gmsh.model.mesh.generate(2)
     tags, xyz, _ = gmsh.model.mesh.getNodes()
