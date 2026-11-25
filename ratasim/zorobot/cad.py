@@ -6,12 +6,11 @@ y forward, z up, origin on the axle between the wheels, found from the two wheel
 
 The simulator calls ensure(), which needs gmsh only when the meshes are missing or older than the STEP.
 
-Writes OUT_DIR/<body>_<n>.stl and OUT_DIR/manifest.json: [{"file", "body", "rgba", "parts"}], body in
+Writes OUT_DIR/<body>_<n>.obj (with each CAD face's own normals) and OUT_DIR/manifest.json: [{"file", "body", "rgba", "parts"}], body in
 chassis, wheel_l, wheel_r.
 """
 import json
 import os
-import struct
 import sys
 
 import numpy as np
@@ -67,15 +66,32 @@ def tessellate(step):
             types, _, nodes = gmsh.model.mesh.getElements(2, abs(s))
             faces += [index[nd.astype(int).reshape(-1, 3)] for ty, nd in zip(types, nodes) if ty == 2]  # triangles
         if faces:
-            parts.append((name, colour(name, gmsh.model.getColor(d, v)), np.concatenate(outward(faces, xyz))))
+            faces = outward(faces, xyz)
+            parts.append((name, colour(name, gmsh.model.getColor(d, v)), np.concatenate([xyz[f] for f in faces]),
+                          np.concatenate([normals(f, xyz) for f in faces])))
     gmsh.finalize()
     return parts
 
 
+def normals(f, xyz):
+    """A face's normals at its triangles' corners (n, 3, 3): at each node the mean of its triangles' normals in that
+    face only (weighted by their areas), so that a curved face shades smooth and the edges between faces stay sharp
+    (the renderer's own normals average across them: the parts looked moulded in clay)."""
+    t = xyz[f]
+    n = np.cross(t[:, 1] - t[:, 0], t[:, 2] - t[:, 0])         # twice the area along the normal
+    acc = np.zeros((len(xyz), 3))
+    for k in range(3):
+        np.add.at(acc, f[:, k], n)
+    out = acc[f]
+    length = np.linalg.norm(out, axis=-1, keepdims=True)
+    flat = np.repeat((n / np.maximum(np.linalg.norm(n, axis=-1, keepdims=True), 1e-12))[:, None], 3, axis=1)
+    return np.where(length > 1e-12, out / np.maximum(length, 1e-12), flat)
+
+
 def outward(faces, xyz):
-    """Each face's triangles (node indices; consistent within a face, not across faces) as coordinates, flipped so
-    that neighbouring faces run their shared edges in opposite directions and each connected piece encloses a
-    positive volume: the renderer hides triangles seen from behind."""
+    """Each face's triangles (node indices; consistent within a face, not across faces), flipped so that
+    neighbouring faces run their shared edges in opposite directions and each connected piece encloses a positive
+    volume: the renderer hides triangles seen from behind."""
     links = {}      # face: [(neighbour, same direction on their shared edge)]
     edges = {}      # undirected border edge: [(face, direction)]
     for i, f in enumerate(faces):
@@ -100,20 +116,22 @@ def outward(faces, xyz):
                     flip[b] = flip[a] ^ same
                     todo.append(b)
                     piece.append(b)
-        tris = {i: xyz[faces[i][:, ::-1] if flip[i] else faces[i]] for i in piece}
-        vol = sum(np.einsum('ij,ij->i', t[:, 0], np.cross(t[:, 1], t[:, 2])).sum() for t in tris.values())
-        for i, t in tris.items():
-            out[i] = t[:, ::-1] if vol < 0 else t
+        tris = {i: faces[i][:, ::-1] if flip[i] else faces[i] for i in piece}
+        vol = sum(np.einsum('ij,ij->i', t[:, 0], np.cross(t[:, 1], t[:, 2])).sum() for t in (xyz[f] for f in tris.values()))
+        for i, f in tris.items():
+            out[i] = f[:, ::-1] if vol < 0 else f
     return out
 
 
 def robot_frame(parts):
-    """STEP (x forward, y left, z up) to the robot frame, with the origin midway between the wheels' centres."""
-    centres = [(t.reshape(-1, 3).min(0) + t.reshape(-1, 3).max(0)) / 2 for n, _, t in parts if n.endswith('/Rueda/Rueda')]
+    """STEP (x forward, y left, z up) to the robot frame, with the origin midway between the wheels' centres: a
+    function of the points and one of the normals (the turn alone)."""
+    centres = [(t.reshape(-1, 3).min(0) + t.reshape(-1, 3).max(0)) / 2 for n, _, t, _ in parts if n.endswith('/Rueda/Rueda')]
     if len(centres) != 2:
         raise SystemExit(f'expected two wheels (Rueda), found {len(centres)}')
     c = np.mean(centres, axis=0)
-    return lambda t: np.stack([-(t[..., 1] - c[1]), t[..., 0] - c[0], t[..., 2] - c[2]], axis=-1)
+    turn = lambda t: np.stack([-t[..., 1], t[..., 0], t[..., 2]], axis=-1)    # noqa: E731
+    return lambda t: turn(t - c), turn
 
 
 def body(name):
@@ -122,31 +140,36 @@ def body(name):
     return 'chassis'
 
 
-def write_stl(path, tris):
-    tris = np.asarray(tris, np.float32).reshape(-1, 3, 3)
-    rec = np.zeros(len(tris), dtype=np.dtype([('n', '<3f4'), ('v', '<9f4'), ('a', '<u2')]))
-    rec['v'] = tris.reshape(-1, 9)
-    with open(path, 'wb') as f:
-        f.write(b'\0' * 80 + struct.pack('<I', len(tris)) + rec.tobytes())
+def write_obj(path, tris, norms):
+    """Triangles with their corners' normals (an STL has none: MuJoCo would make its own, across sharp edges)."""
+    n = len(tris)
+    lines = (['v %.4f %.4f %.4f' % tuple(p) for p in np.asarray(tris).reshape(-1, 3)] +
+             ['vn %.4f %.4f %.4f' % tuple(p) for p in np.asarray(norms).reshape(-1, 3)] +
+             ['f %d//%d %d//%d %d//%d' % (a, a, a + 1, a + 1, a + 2, a + 2) for a in range(1, 3 * n, 3)])
+    with open(path, 'w') as f:
+        f.write('\n'.join(lines) + '\n')
 
 
 def build(step, out):
     parts = tessellate(step)
-    rim = next(rgb for n, rgb, _ in parts if n.split('/')[-1] == RIM)
-    parts = [(n, rim if n.split('/')[-1] == FAN else rgb, t) for n, rgb, t in parts]
-    to_robot = robot_frame(parts)
+    rim = next(rgb for n, rgb, *_ in parts if n.split('/')[-1] == RIM)
+    parts = [(n, rim if n.split('/')[-1] == FAN else rgb, t, nn) for n, rgb, t, nn in parts]
+    to_robot, turn = robot_frame(parts)
     groups = {}
-    for name, rgb, t in parts:
-        groups.setdefault((body(name), rgb), []).append((name, to_robot(t)))
+    for name, rgb, t, nn in parts:
+        groups.setdefault((body(name), rgb), []).append((name, to_robot(t), turn(nn)))
     os.makedirs(out, exist_ok=True)
+    for old in os.listdir(out):
+        if old.endswith(('.stl', '.obj')):
+            os.remove(os.path.join(out, old))
     manifest = []
     for i, ((b, rgb), items) in enumerate(sorted(groups.items())):
-        f = f'{b}_{i:02d}.stl'
-        write_stl(os.path.join(out, f), np.concatenate([t for _, t in items]))
+        f = f'{b}_{i:02d}.obj'
+        write_obj(os.path.join(out, f), np.concatenate([t for _, t, _ in items]), np.concatenate([nn for *_, nn in items]))
         manifest.append({'file': f, 'body': b, 'rgba': [round(c / 255, 3) for c in rgb] + [1],
-                         'parts': sorted({n.split('/')[-1] for n, _ in items})})
+                         'parts': sorted({n.split('/')[-1] for n, *_ in items})})
     json.dump(manifest, open(os.path.join(out, 'manifest.json'), 'w'), indent=1)
-    print(f'{len(parts)} parts, {sum(len(t) for *_, t in parts)} triangles, {len(manifest)} meshes in {out}')
+    print(f'{len(parts)} parts, {sum(len(t) for _, _, t, _ in parts)} triangles, {len(manifest)} meshes in {out}')
 
 
 def ensure(step, out):
