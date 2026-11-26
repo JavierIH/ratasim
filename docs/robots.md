@@ -95,15 +95,21 @@ diodes, SFH 229FA photodiodes through op-amps), a 4-cell LiPo; turns up to 2.4 m
   `while` or `for` take 50 ns of the chip's time, so that its interrupts come in the middle of them, as on the chip.
 - **Model:** its STEP (`hardware/KOGUMA.Mk3.step`, its Fusion 360 assembly), tessellated with gmsh at build time
   (`ratasim/koguma/cad.py`) and merged per body and colour. Its colours are its maker's photo's, not its STEP's: its
-  carbon fibre plate (its two faces textured with a 2/2 twill drawn at build time), its board's black solder mask, its
-  printed parts black, its silver motors, the black end cap of its fan's motor, its brass pinions, white spur gears,
+  carbon fibre plate (its two faces textured with a 2/2 twill drawn at build time), its printed parts black, its
+  silver motors, the black end cap of its fan's motor, its brass pinions, white spur gears,
   orange axle screws, silver bearing collars, purple nylon nuts; its battery's four cells as one block in black tape,
   its edges rounded (1 mm), and the screw on its fan motor holder's nose, as its photo shows them. Its STEP's wheels
   are plain discs: its rims, Kyosho's Mini-Z Multi Wheel II (narrow, white, offset 2.0, MZH131W-N2B), are drawn at
   build time from Kyosho's photos: a dished face of sixteen spokes in eight close pairs from a hub disc with a raised
   ring up to a rounded lip. Its sensors' emitters and photodiodes, in none of its STEP's parts, are put in its
   holders' holes, found in each holder's mesh (the emitter in the upper one, its dome out of the face, their legs bent
-  down into the board). Collisions: its plate's outline (its STEP's, its corners cut to its nose and tail) up to its
+  down into the board). Its board is its STEP's (its outline and holes) dressed from its KiCad board
+  (`hardware/ecad/KOGUMA-CHAN.MkII_v2.kicad_pcb`, read at build time: `ratasim/koguma/pcb.py`): its two faces drawn as
+  textures (its tracks and ground pour under its black solder mask, gold pads, white silkscreen with its parts'
+  references), and its bigger parts at their packages' sizes where its footprints put them: its STM32F446 (LQFP-64,
+  its leads, its marking), drivers, regulators, IMU, op-amps, transistors, diodes, resonator, buzzer, electrolytic
+  capacitor, switches, JST-PH connectors and programming header (its small passives and LEDs left to the textures).
+  Collisions: its plate's outline (its STEP's, its corners cut to its nose and tail) up to its
   top, its tyres as single contact points (ellipsoids), two skids under its plate.
 - **Sensors:** where its holders' holes are and the way their faces look: its front pair at its flanks, 10° out; its
   side pair crossed by its nose, 30° ahead of square. Each reading is what its maker measured at that distance (its

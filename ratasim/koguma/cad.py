@@ -2,20 +2,22 @@
 where it is), tessellated with gmsh (as ZoroBot3's: zorobot/cad.py) and merged per moving body and colour, in the
 robot frame (mm: x right, y forward, z up, origin on the axle between its tyres). Its colours are its photo's (its
 maker's: KOGUMA-CHAN. Mk3), not its STEP's: its carbon fibre bottom plate (its two faces textured with a 2/2 twill
-weave, drawn here), its board's black solder mask, its printed parts black (its sensors' holders, its motors' mounts,
-its fan motor's holder), its wheels white with black tyres, its spur gears white, its motors' pinions brass, its
-silver motors, its orange axle screws and silver bearing collars, its purple nylon nuts. Drawn here, as its photos
-show them and its STEP does not: its rims (Kyosho's Multi Wheel II: rim()), its IR emitters and photodiodes with
-their legs (sensors()), its battery's four cells as one block in black tape with rounded edges (battery()), the
-screw on its fan motor holder's nose (nose_screw()). The beams its STEP draws from its four sensors (3.2 mm rods
-125 mm long) are left out.
+weave, drawn here), its board's faces and parts from its KiCad board (board(): pcb.py), its printed parts black
+(its sensors' holders, its motors' mounts, its fan motor's holder), its wheels white with black tyres, its spur
+gears white, its motors' pinions brass, its silver motors, its orange axle screws and silver bearing collars, its
+purple nylon nuts. Drawn here, as its photos show them and its STEP does not: its rims (Kyosho's Multi Wheel II:
+rim()), its IR emitters and photodiodes with their legs (sensors()), its battery's four cells as one block in black
+tape with rounded edges (battery()), the screw on its fan motor holder's nose (nose_screw()). The beams its STEP
+draws from its four sensors (3.2 mm rods 125 mm long) are left out.
 
     python -m ratasim.koguma.cad [STEP OUT_DIR]
 
-The simulator calls ensure(), which needs gmsh only when the meshes are missing or older than the STEP or this file.
+The simulator calls ensure(), which needs gmsh only when the meshes are missing or older than the STEP, the KiCad
+board or the code.
 
-Writes OUT_DIR/<body>_<n>.stl, OUT_DIR/plate_{top,bottom}.obj and carbon.png (its plate's faces, UVs on the weave)
-and OUT_DIR/manifest.json: [{"file", "body", "rgba", "parts"[, "texture"]}], body in chassis, wheel_l, wheel_r.
+Writes OUT_DIR/<body>_<n>.stl, OUT_DIR/plate_{top,bottom}.obj and carbon.png (its plate's faces, UVs on the weave),
+pcb_{top,bottom}.obj and .png (its board's faces), mcu_top.obj and .png (its STM32's marking) and
+OUT_DIR/manifest.json: [{"file", "body", "rgba", "parts"[, "texture"]}], body in chassis, wheel_l, wheel_r.
 """
 import json
 import math
@@ -30,6 +32,7 @@ from . import config as K
 TYRE = ('コンポーネント1', 'Component1')
 WHEEL_PARTS = ('ホイール＆タイヤ', 'T71')       # turn with the wheel: its tyre and rim, its spur gear
 PLATE = '底板'
+BOARD = '基板2'                                  # its board: its faces from its KiCad board (board())
 RIM = 'ホイール＆タイヤ'                         # its STEP's wheel (a plain disc in its tyre), drawn again: rim()
 RIM_X_MM = (26.3, 34.3)                         # the right rim's across (its STEP's, less its spur gear's 2 mm)
 RIM_SPOKES = 16
@@ -53,7 +56,6 @@ PART_RGB = (
     (('ボタンビス', 'Screw'), (214, 104, 38)),                   # its axles' screws: orange, as its STEP and photo
     (('スペーサー',), (34, 34, 36)),                             # its board's posts: black in its photo
     (('ベアリング', 'LF-630', '磁石', '平行ピン'), (128, 130, 136)),
-    (('基板2',), (20, 21, 23)),                                  # its board's black solder mask
     (('エンコーダ基板', 'TSSOP14'), (22, 22, 24)),
     (('Lipo',), (17, 17, 18)),                                   # its cells, one block in black tape (battery())
     (('ナベ小ネジ',), (38, 38, 41)),                              # the screw on its fan motor holder's nose
@@ -127,9 +129,9 @@ def carbon_texture(path):
     Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8)).save(path)
 
 
-def plate_faces(tris, out):
-    """Its plate's top and bottom faces as OBJ files, their UVs on the weave's tile (MuJoCo repeats it); the rest of
-    it (its edges) returned."""
+def plate_faces(tris, out, prefix='plate', uv=None):
+    """A plate's top and bottom faces as OBJ files (OUT/PREFIX_top.obj, PREFIX_bottom.obj), their UVs by uv (from
+    their vertices, mm: by default on the weave's tile, which MuJoCo repeats); the rest of it (its edges) returned."""
     n = np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0])
     n = n[:, 2] / np.linalg.norm(n, axis=1)
     z0, z1 = tris[..., 2].min(), tris[..., 2].max()
@@ -138,12 +140,53 @@ def plate_faces(tris, out):
     for face, m in faces.items():
         v, idx = np.unique(tris[m].reshape(-1, 3).round(4), axis=0, return_inverse=True)
         idx = idx.reshape(-1, 3) + 1
-        uv = v[:, :2] / (4 * TOW_MM)
-        with open(os.path.join(out, f'plate_{face}.obj'), 'w') as f:
+        uvs = v[:, :2] / (4 * TOW_MM) if uv is None else uv(v)
+        with open(os.path.join(out, f'{prefix}_{face}.obj'), 'w') as f:
             f.write(''.join(f'v {a:.4f} {b:.4f} {c:.4f}\n' for a, b, c in v))
-            f.write(''.join(f'vt {a:.5f} {b:.5f}\n' for a, b in uv))
+            f.write(''.join(f'vt {a:.5f} {b:.5f}\n' for a, b in uvs))
             f.write(''.join(f'f {a}/{a} {b}/{b} {c}/{c}\n' for a, b, c in idx))
     return tris[~(faces['top'] | faces['bottom'])]
+
+
+def board(tris, out):
+    """Its board from its KiCad board (pcb.py) on its STEP's (its triangles, robot frame): its top and bottom faces
+    textured (pcb_top.obj, pcb_bottom.obj), its parts, its MCU's marked top (mcu_top.obj). KiCad's main board
+    centred on the STEP's (their outlines the same to 0.1 mm). Returns its manifest's entries and {rgb: triangles}
+    (its edges, its parts)."""
+    from . import pcb
+    fx0, fy0, fx1, fy1 = pcb.textures(out)
+    kx0, ky0, kx1, ky1 = pcb.main_frame()
+    v = tris.reshape(-1, 3)
+    lo, hi = v.min(0), v.max(0)
+    ox, oy, top = (lo[0] + hi[0] - kx0 - kx1) / 2, (lo[1] + hi[1] + ky0 + ky1) / 2, hi[2]
+
+    def uv(p):
+        return np.stack([(p[:, 0] - ox - fx0) / (fx1 - fx0), 1 - (oy - p[:, 1] - fy0) / (fy1 - fy0)], axis=1)
+
+    def robot(t):
+        r = np.stack([t[..., 0] + ox, oy - t[..., 1], top + t[..., 2]], axis=-1)
+        return r[:, ::-1]                       # KiCad's y down: mirrored, its winding turned back outward
+
+    edges = plate_faces(tris, out, 'pcb', uv)
+    groups = {pcb.EDGE_RGB: [edges]}
+    made, mcu = pcb.parts()
+    for rgb, t in made.items():
+        groups.setdefault(rgb, []).append(robot(t))
+    entries = [{'file': f'pcb_{face}.obj', 'body': 'chassis', 'rgba': [1, 1, 1, 1], 'parts': [BOARD],
+                'texture': f'pcb_{face}.png'} for face in ('top', 'bottom')]
+    if mcu is not None:
+        pcb.mcu_texture(os.path.join(out, 'mcu_top.png'))
+        c = robot(mcu[None])[0][::-1]           # its corners from its pin 1's, in order
+        uvs = ((0, 1), (1, 1), (1, 0), (0, 0))
+        n = np.cross(c[1] - c[0], c[2] - c[0])[2]
+        faces = ((1, 2, 3), (1, 3, 4)) if n > 0 else ((1, 3, 2), (1, 4, 3))
+        with open(os.path.join(out, 'mcu_top.obj'), 'w') as f:
+            f.write(''.join(f'v {a:.4f} {b:.4f} {z:.4f}\n' for a, b, z in c))
+            f.write(''.join(f'vt {a} {b}\n' for a, b in uvs))
+            f.write(''.join(f'f {a}/{a} {b}/{b} {c_}/{c_}\n' for a, b, c_ in faces))
+        entries.append({'file': 'mcu_top.obj', 'body': 'chassis', 'rgba': [1, 1, 1, 1], 'parts': ['STM32F446RET6'],
+                        'texture': 'mcu_top.png'})
+    return entries, groups
 
 
 def _occ_triangles(volumes, size=(0.1, 1.0), curvature=24):
@@ -428,6 +471,12 @@ def build(step=K.CAD_STEP, out=K.CAD_MESHES):
     groups = {}
     for name, t in parts:
         t = t - axle
+        if BOARD in name:
+            entries, made = board(t, out)
+            manifest += entries
+            for rgb, tris in made.items():
+                groups.setdefault(('chassis', rgb), []).extend((f'{BOARD}/KiCad', x) for x in tris)
+            continue
         if PLATE in name:
             groups.setdefault(('chassis', PLATE_EDGE_RGB), []).append((name, plate_faces(t, out)))
             continue
@@ -447,10 +496,11 @@ def build(step=K.CAD_STEP, out=K.CAD_MESHES):
 
 
 def ensure(step=K.CAD_STEP, out=K.CAD_MESHES):
-    """The meshes' directory, built first if they are missing or older than the STEP or this file."""
+    """The meshes' directory, built first if they are missing or older than the STEP, the KiCad board or the code."""
+    from . import pcb
     m = os.path.join(out, 'manifest.json')
-    if os.path.exists(m) and os.path.getmtime(m) >= os.path.getmtime(__file__) and \
-            (not os.path.exists(step) or os.path.getmtime(m) >= os.path.getmtime(step)):
+    sources = [__file__, pcb.__file__] + [f for f in (step, pcb.PCB) if os.path.exists(f)]
+    if os.path.exists(m) and all(os.path.getmtime(m) >= os.path.getmtime(f) for f in sources):
         return out
     if not os.path.exists(step):
         raise SystemExit(f'KOGUMA: its STEP is missing ({step}): git submodule update --init external/KOGUMA.MkIIl')
