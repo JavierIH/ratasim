@@ -41,26 +41,33 @@ By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OP
   placed them), tessellated with gmsh (`ratasim/zorobot/cad.py`, `pip install -e .[cad]`). The STEP is not in its
   repository nor in this one: put it at `ratasim/zorobot/cad/Full_Assembly.step`.
 - **Physics:** from its makers (OPRobots): 75 g, 350-400 g of suction at 70 % fan (7.5 N at full, quadratic in its
-  duty), 8520 coreless motors at 7.4 V of 50 000 rpm free, 0.2 A free and 5 A stall (1.5 Ω). Its yaw inertia 4.0e-5 kg m², as KOGUMA's
-  fitted to its logs. Its tyres single contact points with stiff friction, tire friction 1.1 (assumed); the wheel
+  duty), 8520 coreless motors at 7.4 V of 50 000 rpm free, 0.2 A free and 5 A stall (1.5 Ω). Its yaw inertia 2.9e-5 kg m² (KOGUMA's,
+  fitted to its logs, 3.7e-5 at 78 g: its battery, motors and fan closer to its middle). Its tyres single contact points with stiff friction, tire friction 1.1 (assumed); the wheel
   radius is its firmware's (12.44 mm, the CAD's tire 11.56).
 - **Run:** `ratasim zorobot --maze oshwdem2026 [--run [--speed 0..5] [--explore-type 0..3] [--floodfill 0..2]
   [--solve 0|1]] [--record out.mp4 [--camera fixed]]`: it boots, picks the run with its menu buttons and starts with a hand in front of
   its right front sensor, as on the real robot. Its menu by default as its makers ran it at OSHWDem 2026 (explore
-  complete, time-based floodfill, diagonals, speed 5): its search reaches the goal in 63 s and is back at its start
-  at 96 s; its speed run reaches the goal in 5.05 s. On its makers' video of that run (it won) it takes the same way
-  (north up column 0, the middle rows, the south rows, the goal) in about 5.5 s.
-- **Sensors:** each one its emitter's spot (SFH 4550, +-3 deg) as seven rays, a Gaussian of 2.5 deg, each ray's light
-  at its length times the cosine of its incidence over its calibration's: in its diagonals its front sensors read the
-  posts (12 mm) beside them as part of the spot, at a slant. Its side sensors 3 deg forward of the CAD's axes, so that they lose a wall's end where its makers
-  measured it (116 mm before the next cell, its firmware's WALL_LOSS_TO_SENSING_POINT_DISTANCE): as the CAD has them,
-  108 mm at 2 m/s. Its turns after a wall's end then end 2-8 mm off their cell's centre.
+  complete, time-based floodfill, diagonals, speed 5), its firmware at 8b71701 (2026-10-26): its search reaches the
+  goal in 73.3 s and is back at its start at 112 s; its speed run reaches the goal at speeds 1 and 2 (7.82 and 6.92 s,
+  `--speed 2` in `tests/robots.py --full`); at 3-5 (its makers' 5, about 5.5 s on their video of that run, which won)
+  it ends on a post. The real robot finishes it: see Open.
+- **Sensors:** each one its emitter's spot (SFH 4550, +-3 deg, a Gaussian of 2.5 deg) seen through its receiver's
+  field, as seven rays, a Gaussian of 1.25 deg, each ray's light at its length times the cosine of its incidence over
+  its calibration's: in its diagonals its front sensors read the posts (12 mm) beside them as part of the spot, at a
+  slant. With the emitter's spot alone a side sensor took 32 mm to lose a wall's end, and one side half off it read as
+  a drift its firmware steered 10-16 deg on (its search reached the goal 4 times in 12; now 6 in 6). Its side sensors
+  4.5 (left) and 6.5 deg (right) forward of the CAD's axes, both 43.5 deg off the side axis, the right one losing a
+  wall first, as its makers' LEFT/RIGHT_WALL_LOSS_TO_SENSING_POINT_DISTANCE (110, 116). Its firmware since 2026 lets go
+  of a wall 6-8 ms after its reading crosses (a hysteresis, an EMA, a median of three): 20-26 mm at 3 m/s, so that as
+  the CAD has them its speed runs' turns began 10-25 mm late.
 - **Wall touches:** in its exploration they are its tail against the wall behind it: in a dead end it turns round
   and backs onto that wall to square up (move_back()).
-- **Open:** its speed runs at speeds 4 and 5 reach the goal (5.5 and 5.1 s); at 1-3 they end at post (13,1): from column 15 down to row 0 its four 45 deg
-  turns without side walls leave it 20 mm south of the line its firmware plans, it enters the NW diagonal 17 mm
-  towards that post, and its diagonal correction (its front right sensor first, at 266 mm) turns it into it. Its
-  motors' lag, its yaw inertia and a tyre scrub damping do not change it. With `--solve 0` (not how its makers run
+- **Open:** its speed runs at speeds 3-5 end on a post: from column 15 down and along rows 0-1 it runs 1.3 m of 45
+  and 90 deg turns with no wall to resync on, each one ending 3-5 mm wide of the path its firmware commands (its yaw
+  rate 3 ms behind its PI's target), and the 90 deg turn between diagonals at (10,1) puts it on post (9,1). Its
+  makers moved those turns' start 6 mm later in 2026 (MOVE_*_45_TO_45, 39.0 to 45.25 mm): the real robot turns
+  tighter than it commands, the simulated one wider. Alone (its maze loaded in its EEPROM, a left hand start) its
+  speed runs at 1-3 reach the goal for 7 or 8 of 12 seeds of its sensors' noise. With `--solve 0` (not how its makers run
   it) two 90 deg turns in adjacent cells overlap, each one's 68.8 mm lead-in and lead-out, and the second one runs
   138 mm late.
 

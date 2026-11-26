@@ -146,8 +146,8 @@ ratasim zorobot --maze oshwdem2026 --run --record zorobot.mp4 [--camera fixed]
 
 Export its Onshape "Full Assembly" as STEP to `ratasim/zorobot/cad/Full_Assembly.step` first. Started with a hand at
 its right front sensor; `--run` explores, then speed runs. Its menu as its makers ran it at OSHWDem 2026 (explore
-complete, time-based floodfill, diagonals, speed 5): its search reaches the goal in 63 s and its speed run in 5.05 s
-(about 5.5 s on the real robot's video).
+complete, time-based floodfill, diagonals, speed 5): its search reaches the goal in 73.3 s; its speed run reaches it at
+speeds 1 and 2 (7.82 and 6.92 s, `--speed 2`), at 3-5 it ends on a post (about 5.5 s on the real robot's video at 5).
 
 ### Running KOGUMA-CHAN Mk3
 
