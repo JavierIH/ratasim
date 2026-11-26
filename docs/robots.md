@@ -146,7 +146,7 @@ By [Team Raiju](https://raiju.team/robot/fujin/v1) ([marcoabensur](https://githu
 [team-raiju/fujin](https://github.com/team-raiju/fujin) (no licence file: nothing of it is copied here, everything is
 made from the submodule at build time)
 
-- **Firmware:** `external/fujin/firmware` at its `RCX_2026` tag, C++23: its application (main loop, state machine,
+- **Firmware:** `external/fujin/firmware` at its makers' last commit (29543c8, 2026-10-16, four after its `RCX_2026` tag), C++23: its application (main loop, state machine,
   services, flood fill, movement profiles and control) compiled unchanged, its `main()` renamed. Its firmware is split
   into a BSP interface (`inc/bsp/*.hpp`) and its implementations; none of these is used (neither its STM32G474 one
   nor its PC one, which needs their unpublished simulator bridge). Ours, `ratasim/fujin/fw/fbsp.cpp`, implements its
@@ -181,7 +181,7 @@ made from the submodule at build time)
 - **Run:** `ratasim fujin --maze oshwdem2026 [--mode slow|medium|fast] [--headless] [--record out.mp4]`: started as
   its makers do, with its two buttons (button 2: search; button 1 held: its speeds, stepped with button 2; held: its
   exploration; held: it waits) and a hand in front of its front sensors, read for 0.4 s; two seconds' beep and it
-  goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 105.7 s, back at 175 s. Medium and
+  goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 106.1 s, back at 177 s. Medium and
   fast (its fan on) touch walls after their first turns: their curves land 10 to 15 mm off.
 
 ## KERISE v1

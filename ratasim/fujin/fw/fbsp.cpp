@@ -469,9 +469,13 @@ bool battery_low() { return battery_latest_reading_mv_real() <= BATTERY_LOW_MV; 
 float ir_distance_mm(SensingDirection d) { return dist[d]; }
 uint32_t ir_raw_reading(SensingDirection d) { return raw[d]; }
 
-static float detect_th(SensingDirection d) {
-    return d == RIGHT ? services::Config::ir_wall_detect_th_right : services::Config::ir_wall_detect_th_left;
-}
+// A side sensor's wall threshold (mm): its own since 003dd98, set from its general parameters (Control::init)
+static float wall_detect_th[2] = {240.0f, 240.0f};     // left, right: services::Config's defaults
+static float detect_th(SensingDirection d) { return d == RIGHT ? wall_detect_th[1] : wall_detect_th[0]; }
+void set_ir_wall_detect_th_left(float th) { wall_detect_th[0] = th; }
+void set_ir_wall_detect_th_right(float th) { wall_detect_th[1] = th; }
+float get_ir_wall_detect_th_left() { return wall_detect_th[0]; }
+float get_ir_wall_detect_th_right() { return wall_detect_th[1]; }
 bool ir_reading_wall(SensingDirection d) {
     if (d == FRONT_LEFT || d == FRONT_RIGHT) return dist[d] < FRONT_SEEING_MM;
     if (d != LEFT && d != RIGHT) return false;
