@@ -7,7 +7,7 @@ robot per job, in the short check; locally, any of them or all, short or full:
 The short check (the default, the CI's) asks each robot only the basics: its firmware builds, it is started as its
 makers start it (its start sequence printed: Ratatron's search, ZoroBot3's and Fujin's "started: True", Bulebule's
 "exploring", UKMARSBOT's "Off we go", NezumiBot's wall following, Perenquén's "keeping to the" wall, Gamusino's
-"blue:", Futura's "run " on its display, KERISE v1's and KOGUMA's "started: True"), it runs for a few simulated seconds (SHORT_S)
+"it goes" (its menu at option 6), Futura's "run " on its display, KERISE v1's and KOGUMA's "started: True"), it runs for a few simulated seconds (SHORT_S)
 without its firmware halting, resetting or faulting and without a Python exception, the runner ends with its end pose,
 and the robot leaves the start cell: the stopwatch starts a run (ratasim/stopwatch.py, "run 1 started (left the start
 cell)"). Wall touches fail Ratatron, NezumiBot and Futura, which run clean, and are only reported for the others. A
@@ -19,7 +19,7 @@ The full check (--full) is the whole run, as before: it fails when the firmware 
 does not do its run (Ratatron: the search to the goal and back, then race 2.4 on its map; ZoroBot3: its exploration
 to the goal and back, then its speed run at speed 5 to the goal, its makers' menu; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
 the goal and back; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
-following, away from the start; Gamusino: its 1.5 m and back; Futura: its controller sample's cells and pivots, up
+following, away from the start; Gamusino: its 1.62 m ahead and its 180 deg turn; Futura: its controller sample's cells and pivots, up
 to the maze's north rows; Miniskybot: through 10 cells, not toppled; KERISE v1: its search to the goal and back
 to its start cell; KOGUMA: its search to the goal and back to its start cell, its fail-safe not tripped). Wall touches as in the short check. The stopwatch's times are reported;
 Ratatron, ZoroBot3, Fujin, UKMARSBOT, KERISE v1 and KOGUMA, which reach the goal, fail without one.
@@ -39,9 +39,9 @@ sys.path.insert(0, REPO)
 MAZE = 'oshwdem2026'
 CI = os.environ.get('GITHUB_ACTIONS') == 'true'
 # The short check's simulated seconds per robot: about 5 s more than its start sequence and its leaving the start
-# cell take in the OSHWDEM 2026 maze (the stopwatch's start: Futura 1.4 s, Perenquén 2.9, UKMARSBOT 3.7, Gamusino 4.4,
-# KERISE v1 4.5, KOGUMA 5.3, NezumiBot 6.2, Ratatron 6.8, ZoroBot3 8.9, Fujin 11.0, Bulebule 18.0)
-SHORT_S = {'ratatron': 12, 'zorobot': 14, 'gamusino': 10, 'bulebule': 23, 'nezumibot': 11, 'perenquen': 8,
+# cell take in the OSHWDEM 2026 maze (the stopwatch's start: Futura 1.4 s, Perenquén 2.9, UKMARSBOT 3.7, KERISE v1 4.5,
+# KOGUMA 5.3, NezumiBot 6.2, Ratatron 6.8, Gamusino 7.8, ZoroBot3 8.9, Fujin 11.0, Bulebule 18.0)
+SHORT_S = {'ratatron': 12, 'zorobot': 14, 'gamusino': 13, 'bulebule': 23, 'nezumibot': 11, 'perenquen': 8,
            'fujin': 16, 'futura': 6, 'ukmarsbot': 9, 'miniskybot': 10, 'kerise': 10, 'koguma': 11}
 
 
@@ -179,15 +179,17 @@ def zorobot(full):
 
 def gamusino(full):
     if not full:
-        return short(['gamusino'], SHORT_S['gamusino'], clean=False, started='blue:')
+        return short(['gamusino'], SHORT_S['gamusino'], clean=False, started='it goes')
     fails = []
-    out = run(['gamusino', '--headless', '--maze', MAZE, '--max-s', '30'])
+    out = run(['gamusino', '--headless', '--maze', MAZE, '--max-s', '25'])
     pose = common(out, fails, clean=False)
     m = re.search(r'put down in cell \((\d+), (\d+)\)', out)
-    if not m or 'blue:' not in out:
+    if not m or 'it goes' not in out:
         fails.append('its run did not start')
-    elif far_from(pose, ((int(m[1]) + 0.5) * 180, (int(m[2]) + 0.5) * 180), 120):
-        fails.append(f'not back at its start cell ({pose})')
+    elif far_from(pose, ((int(m[1]) + 0.5) * 180, (int(m[2]) + 0.5) * 180 + 1620), 120):
+        fails.append(f'not stopped 1.62 m ahead of its start ({pose})')
+    elif pose is not None and abs(abs(pose[2]) - 180) > 15:
+        fails.append(f'not turned round ({pose})')
     return fails
 
 

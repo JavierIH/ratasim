@@ -214,7 +214,8 @@ follower instead.
 ratasim gamusino --maze oshwdem2026 --record gamusino.mp4
 ```
 
-Its ESP32 sketch: 1.5 m ahead and back, over and over, on the maze's longest straight. It reads no walls yet.
+Its ESP32 sketch, started from its menu with its wheels as its maker does: 1.62 m ahead on the maze's longest
+straight, a brake and a 180 deg turn on the spot. `--option N` runs its menu's tests (`ratasim gamusino --help`).
 
 ### Running Bulebule
 

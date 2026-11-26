@@ -389,19 +389,28 @@ By [turmandreams](https://github.com/turmandreams) · [turmandreams/gamusino](ht
   C++ as the Arduino IDE does (`gen_ino.py`: its functions' prototypes), its `setup()` and `loop()` in a coroutine,
   on a simulated clock that moves when it waits and by what its calls cost on the chip (reading the clock, a pass of
   `loop()`, each SPI byte at its bus clock, the NeoPixels' bits, an ADC conversion). Its peripherals: pins, the LEDC
-  PWM channels, the ADC, SPI to its LSM6DSR (a register file: its angular rates and accelerations latched at its
+  PWM channels (its motors' H-bridge, its suction motor), the ADC (its four wall sensors), SPI to its LSM6DSR (a register file: its angular rates and accelerations latched at its
   output data rate, a zero-rate offset and noise) read by the library its maker installs, STM32duino LSM6DSR
   (unchanged, downloaded at build time, pinned), ESP32Encoder's counts at the time they are read (from its wheels'
-  angle and speed), the NeoPixels' colours, the serial port. What it runs: 1.5 m ahead at 1.6 m/s, steering to the
-  point by its gyro and encoders, a stop, a 180 deg turn, a rest, and back, over and over; no wall sensor yet.
+  angle and speed), the NeoPixels' colours, the serial port. What it runs: its menu (every 200 ms its encoders: its
+  right wheel turned by hand steps through seven options, shown in binary on its four LEDs, its left wheel runs one):
+  its encoders', gyro's, motors', suction's and wall sensors' tests, its gyro's calibration and, option 6, 1.62 m
+  ahead at 1.6 m/s steering to the point by its gyro and encoders, a brake by its braking table, a 180 deg turn on
+  the spot and a stop. Only its sensors' test reads its wall sensors.
+- **Wall sensors:** four IR LED and phototransistor boards (positions and axes from its model): two at the front,
+  10 deg out, and two crossed at 45 deg; each read on the ADC with its side's LED off and on. Assumed: the maze's
+  light (150 counts) and the light back as the inverse square of the beam's length, 3500 counts over the dark (its
+  test's threshold) at 50 mm. Which board is which of its sketch's IA, DA, IW, DW is assumed too.
 - **Physics, assumed:** 90 g; its motors at the speed its maker measured for each PWM duty with its wheels in the air
   (`src/pruebas/pwmtovel/resultados.txt`, its sketch's tables), pushing 0.5 N for each m/s their wheel runs below
   it; its H-bridge (its own, of MOSFETs) braking with both inputs equal; its odometry's 5.336 um a count on its
-  20 mm wheels (11776 counts a turn). In the maze it reaches 1.55 m/s and stops 0.27 m after its 1.5 m.
-- **Run:** `ratasim gamusino --maze oshwdem2026 [--headless] [--record out.mp4] [--max-s 30] [--echo]`: put down in the
-  start cell, facing north, and switched on, as its maker starts it (green, its gyro measured after 3 s, blue: it
-  goes). In the OSHWDEM 2026 maze the column along the west wall is open for 16 cells (2.88 m): its 1.5 m and its
-  stop (1.77 m) fit. Coming back it stops 0.27 m past its start, so it touches the start cell's south wall once.
+  20 mm wheels (11776 counts a turn); its suction, 1 N at full duty (quadratic in it). In the maze it stops 1.61 m
+  ahead, its turn 6 deg short (its gyro's offset and noise).
+- **Run:** `ratasim gamusino [--option N] --maze oshwdem2026 [--headless] [--record out.mp4] [--max-s 30] [--echo]`: as
+  its maker starts it: switched on (red, green, blue), held up, its right wheel flicked back once (option 6; or to
+  option N), its left wheel flicked forward, put down in the start cell facing north while its LEDs blink and go red;
+  its gyro measured after 3 s, blue for 1 s, red: it goes (7.8 s after it was switched on). In the OSHWDEM 2026 maze
+  the column along the west wall is open for 16 cells (2.88 m): its 1.62 m fit.
 
 ## Bulebule
 

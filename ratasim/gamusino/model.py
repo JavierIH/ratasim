@@ -1,6 +1,6 @@
 """The MuJoCo scene with Gamusino: the same maze as Ratatron's (sim/model.py) and the robot from its 3D model
-(gamusino/cad.py: the meshes per body and material, the PCB's silkscreen as a texture); simple shapes for its
-collisions: a box hull over the PCB, the two tyres, the two ball casters."""
+(gamusino/cad.py: the meshes per body and material, the PCB's silkscreen as a texture), a site at each wall sensor's
+lens; simple shapes for its collisions: a box hull over the PCB, the two tyres, the two ball casters."""
 import json
 import os
 
@@ -58,12 +58,14 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
     top = geo['robot'][1][2]
     hull = (f'<geom name="{p}hull" class="ghull" type="box" pos="{_f((x0 + x1) / 2 * MM, (y0 + y1) / 2 * MM, (z0 + top) / 2 * MM)}" '
             f'size="{_f((x1 - x0) / 2 * MM, (y1 - y0) / 2 * MM, (top - z0) / 2 * MM)}"/>')
+    sites = ''.join(f'<site name="{p}ir_{n}" pos="{_f(x * MM, y * MM, G.IR_Z_MM * MM)}" size="0.001" group="4"/>'
+                    for n, (_, _, (x, y), _) in G.IR_SENSORS.items())
     m = G.MASS_KG - 0.006
     return f'''
     <body name="{p}robot" pos="{_f(start_xy[0] * RC.CELL_MM * MM, start_xy[1] * RC.CELL_MM * MM, geo['axle_height'] * MM)}">
       <freejoint name="{p}robot"/>
       <inertial pos="{_f(*(v * MM for v in G.COM_MM))}" mass="{m:.4f}" diaginertia="{_f(4.5e-5 * m / 0.09, 3.0e-5 * m / 0.09, 7.0e-5 * m / 0.09)}"/>
-      {hull}{casters}
+      {hull}{casters}{sites}
       {chassis}{wheels}
     </body>'''
 

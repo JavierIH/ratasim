@@ -1,9 +1,11 @@
-"""Gamusino in the simulator: its sketch (src/gamusino/gamusino.ino) on its simulated ESP32. What it runs: 1.5 m
-ahead at 1.6 m/s steering to the point (1.5, 0) by its gyro and encoders, a stop, a 180 deg turn, a rest, and back;
-over and over. It reads no wall sensor: it is put down in the start cell, facing the maze's first straight (in the OSHWDEM
-2026 maze, sixteen cells along its west wall) and switched on, as its maker starts it.
+"""Gamusino in the simulator: its sketch (src/gamusino/gamusino.ino) on its simulated ESP32. It boots into its menu,
+worked with its wheels (config.py, OPTIONS); started as its maker starts it: switched on, held up, its right wheel
+flicked to the option, its left wheel flicked to run it, put down in the start cell facing the maze's first straight
+(in the OSHWDEM 2026 maze, sixteen cells along its west wall). Option 6, the default: 1.62 m ahead at 1.6 m/s
+steering to the point (1.62, 0) by its gyro and encoders, a brake, a 180 deg turn on the spot, a stop; then its menu
+again. It reads its wall sensors only in its sensors' test (option 5).
 
-    ratasim gamusino [--maze oshwdem2026] [--headless] [--record out.mp4] [--max-s N] [--echo]
+    ratasim gamusino [--option N] [--maze oshwdem2026] [--headless] [--record out.mp4] [--max-s N] [--echo]
 """
 import argparse
 import os
@@ -24,6 +26,8 @@ from .robot import GRobot   # noqa: E402
 def main(argv=None):
     p = argparse.ArgumentParser(prog='ratasim gamusino', description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument('--option', type=int, default=6, choices=sorted(G.OPTIONS),
+                   help='its menu\'s option (default 6: its run; the others its tests)')
     p.add_argument('--maze', default='oshwdem2026')
     add_view_args(p)
     p.add_argument('--max-s', type=float, help='stop after these simulated seconds (default 30; with a window, none)')
@@ -70,8 +74,15 @@ def main(argv=None):
 
     cell = (0, 0)       # the start cell, facing north: the column along the maze's west wall (16 cells, 2.88 m)
     say(f'put down in cell {cell}, the start cell')
-    play(r, G.start(cell, 0.0), lambda ms: run(ms, fast=True), say)
-    say('blue: 1.5 m ahead, a 180 deg turn, back')
+    steps = G.start(cell, 0.0, a.option)
+    k = next(i for i, st in enumerate(steps) if st[0] == 'wheel' and st[1] == 'l') - 1   # its menu set: its LEDs
+    play(r, steps[:k], lambda ms: run(ms, fast=True), say)
+    on = G.option_from_leds(r.leds())
+    say(f'its LEDs show option {on}')
+    if on != a.option:
+        print(f'its menu is at option {on}, not {a.option}')
+    play(r, steps[k:], lambda ms: run(ms, fast=True), say)
+    say(f'option {a.option}: {G.OPTIONS[a.option]}' + (' (red: it goes)' if a.option == 6 else ''))
     while r.fw.time_ms() < a.max_s * 1000:
         if not run(500):
             break

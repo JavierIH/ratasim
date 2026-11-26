@@ -24,7 +24,13 @@ MODES = {
         ('  --solve N', 'speed run: 1 diagonals (default), 0 standard (90 and 180 deg turns)'),
     ],
     'gamusino': [
-        ('ratasim gamusino', 'its only program: 1.5 m ahead at 1.6 m/s, a 180 deg turn, back; over and over'),
+        ('ratasim gamusino', 'its menu\'s option 6: 1.62 m ahead at 1.6 m/s, a brake, a 180 deg turn on the spot'),
+        ('ratasim gamusino --option 0', 'its encoders\' test (held up: its LEDs as each wheel turns)'),
+        ('ratasim gamusino --option 1', 'its gyro\'s test: four 90 deg turns on the spot'),
+        ('ratasim gamusino --option 2', 'its motors\' test: each 1 s forward, 1 s back'),
+        ('ratasim gamusino --option 3', 'its gyro measured'),
+        ('ratasim gamusino --option 4', 'its suction\'s test: 5 s at 60/255'),
+        ('ratasim gamusino --option 5', 'its wall sensors\' test: an LED for each one seeing a wall close'),
     ],
     'nezumibot': [
         ('ratasim nezumibot', 'left wall follower'),
