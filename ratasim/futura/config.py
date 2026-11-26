@@ -16,6 +16,7 @@ import hashlib
 import math
 import os
 import ssl
+import time
 import urllib.error
 import urllib.request
 import zipfile
@@ -57,22 +58,35 @@ def _sha256(path):
         return hashlib.sha256(f.read()).hexdigest()
 
 
-def _get(url, path):
-    """The file at url to path. Its site's certificate expired (2026): if it is refused for that, the file is fetched
-    without checking it; the SHA-256 checked after (download()) is what vouches for its bytes."""
+def _fetch(url):
     try:
-        data = urllib.request.urlopen(url, timeout=60).read()
+        return urllib.request.urlopen(url, timeout=60).read()
     except urllib.error.URLError as e:
         if not isinstance(e.reason, ssl.SSLCertVerificationError):
             raise
-        data = urllib.request.urlopen(url, timeout=60, context=ssl._create_unverified_context()).read()
+        return urllib.request.urlopen(url, timeout=60, context=ssl._create_unverified_context()).read()
+
+
+def _get(url, path):
+    """The file at url to path. Its site's certificate expired (2026): if it is refused for that, the file is fetched
+    without checking it; the SHA-256 checked after (download()) is what vouches for its bytes. Its site times out
+    now and then (the CI's futura check failed on it): four tries, 5, 10 and 20 s apart."""
+    for attempt in range(4):
+        try:
+            data = _fetch(url)
+            break
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            if attempt == 3:
+                raise
+            print(f'{os.path.basename(path)}: {e}; again in {5 * 2 ** attempt} s', flush=True)
+            time.sleep(5 * 2 ** attempt)
     with open(path + '.part', 'wb') as f:
         f.write(data)
     os.replace(path + '.part', path)
 
 
 def download():
-    """Its files in BUILD (once; FUTURA_DOWNLOADS: a directory where they already are), checked, unzipped: its
+    """Its files in BUILD (once; FUTURA_DOWNLOADS: a directory where they already are, or are kept), checked, unzipped: its
     firmware's sources to PROJECT, its STL files to PRINTS, its Gerber files to GERBERS; its controller sample
     mended to SAMPLE."""
     os.makedirs(BUILD, exist_ok=True)
@@ -85,6 +99,10 @@ def download():
                     dst.write(src.read())
             else:
                 _get(url, path)
+                if local and _sha256(path) == sha:            # kept there for the next time (the CI's cache)
+                    os.makedirs(local, exist_ok=True)
+                    with open(path, 'rb') as src, open(os.path.join(local, name), 'wb') as dst:
+                        dst.write(src.read())
         if _sha256(path) != sha:
             os.unlink(path)
             raise RuntimeError(f'{name}: not the file pinned in ratasim/futura/config.py (SHA-256 {sha})')

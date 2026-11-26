@@ -33,5 +33,14 @@ jobs:
           sudo apt-get update -q && sudo apt-get install -y -q libglu1-mesa libxrender1 libxcursor1 libxft2
           libxinerama1 libegl1 libgl1
       - run: pip install -e ".[cad]"
+      # Futura's files from its maker's site, which times out now and then: kept between runs (pinned by SHA-256)
+      - if: matrix.robot == 'futura'
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/futura-downloads
+          key: futura-downloads-${{ hashFiles('ratasim/futura/config.py') }}
+          restore-keys: futura-downloads-
       # the short check (not --full)
       - run: python tests/robots.py ${{ matrix.robot }}
+        env:
+          FUTURA_DOWNLOADS: ${{ runner.temp }}/futura-downloads
