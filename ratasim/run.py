@@ -25,13 +25,16 @@ import sys
 import threading
 import time
 
-from . import paths
-from .firmware import STATE_NAMES, build
-from .config import start as ratatron_start
-from .maze import Maze, maze_path   # the robots' runners import maze_path from here
-from .robot import Robot
-from .stopwatch import Stopwatch
-from .start import actions
+os.environ.setdefault('MUJOCO_GL', 'egl')   # its video renders off screen, as the other robots' runners
+
+from . import paths   # noqa: E402
+from .firmware import STATE_NAMES, build   # noqa: E402
+from .config import start as ratatron_start   # noqa: E402
+from .maze import Maze, maze_path   # noqa: E402  (the robots' runners import maze_path from here)
+from .recorder import Both, Recorder, Viewer, no_screen   # noqa: E402
+from .robot import Robot   # noqa: E402
+from .stopwatch import Stopwatch   # noqa: E402
+from .start import actions   # noqa: E402
 
 KEY_PAGE_UP, KEY_PAGE_DOWN, KEY_END = 266, 267, 269
 
@@ -56,6 +59,7 @@ class Session:
         self.status = ''
         self.clock = Stopwatch(self.maze, goal=[(3, 2)] if args.practice else None)   # the firmware's default goal
         self.starting, self.start_until = None, 0     # its start sequence's steps, and the end of its current wait
+        self.viewer = None
 
     def start(self, steps):
         def say(text):
@@ -120,6 +124,8 @@ class Session:
             self.wait = 'start'
         elif cmd == 'speed' and len(words) > 1:
             self.speed = float(words[1])
+            if self.viewer:
+                self.viewer.speed = self.speed
         elif cmd in ('quit', 'eof'):
             if cmd == 'quit' or not self.args.headless:
                 self.quit = cmd == 'quit'
@@ -219,113 +225,56 @@ class Session:
         if self.args.max_s and r.fw.time_ms() > self.args.max_s * 1000:
             self.quit = True
 
-    def run_headless(self):
-        wall0, sim0 = time.monotonic(), self.robot.fw.time_ms()
-        if self.args.trace:
+    def leds(self):
+        """Its six LEDs for the video, left to right."""
+        bits = self.robot.fw.leds()
+        return [(1.0, 0.16, 0.08) if bits >> (5 - i) & 1 else (0.24, 0.08, 0.08) for i in range(6)]
+
+    def make_view(self):
+        """What shows the run (ratasim/recorder.py, every robot's): its video (--record) and the window (not
+        --headless), or both at once; --trace: its joints to a file."""
+        a, r = self.args, self.robot
+        if a.trace:
             from .trace import Tracer
-            rec = Tracer(self.robot, self.args.trace)
-        else:
-            rec = Recorder(self, self.args.record) if self.args.record else None
-        while not self.quit:
-            self.step()
-            if rec:
-                rec.maybe_frame()
-            if self.speed > 0:
-                ahead = (self.robot.fw.time_ms() - sim0) / 1000.0 / self.speed - (time.monotonic() - wall0)
-                if ahead > 0.01:
-                    time.sleep(ahead)
-        if rec:
-            rec.close()
+            return Tracer(r, a.trace)
+        parts = []
+        if a.record:
+            parts.append(Recorder(r, a.record, 'Ratatron', speed=a.record_speed, led=self.leds, camera=a.camera))
+        if not a.headless and no_screen():
+            print('no screen (DISPLAY): running headless', flush=True)
+        elif not a.headless:
+            self.viewer = Viewer(r, speed=self.speed, key_callback=self.key, follow=a.follow)
+            parts.append(self.viewer)
+        if not parts:
+            return None
+        view = parts[0] if len(parts) == 1 else Both(*parts)
+        view.clock = self.clock
+        return view
 
-    def run_viewer(self):
-        import mujoco.viewer
+    def run(self):
+        """Until :quit, the end (--until-idle, --max-s) or the window closed. The window paces the run at --speed;
+        without it, the loop does. Recording, the waits between runs go at 8x."""
+        view = self.make_view()
         r = self.robot
-        with mujoco.viewer.launch_passive(r.model, r.data, key_callback=self.key) as v:
-            v.cam.lookat[:] = (r.maze.size * 0.09, r.maze.size * 0.09, 0)
-            v.cam.distance, v.cam.elevation, v.cam.azimuth = 3.6, -70, 90
-            wall0, sim0, last_sync = time.monotonic(), r.fw.time_ms(), 0.0
-            rec = Recorder(self, self.args.record) if self.args.record else None   # window and video at once
-            while v.is_running() and not self.quit:
-                with v.lock():
-                    for _ in range(10):
-                        self.step()
-                        if rec:
-                            rec.maybe_frame()
-                now = time.monotonic()
-                if now - last_sync > 1 / 60:
-                    if self.args.follow:
-                        x, y, _ = r.pose()
-                        v.cam.lookat[:] = (x / 1000, y / 1000, 0)
-                    v.set_texts(self.clock.overlay())
-                    v.sync()
-                    last_sync = now
-                if self.speed > 0:
-                    ahead = (r.fw.time_ms() - sim0) / 1000.0 / self.speed - (time.monotonic() - wall0)
-                    if ahead > 0.002:
+        wall0, sim0 = time.monotonic(), r.fw.time_ms()
+        try:
+            while not self.quit:
+                self.step()
+                if view:
+                    view.status = self.status
+                    view.maybe_frame(fast=bool(self.args.record) and not r.fw.lib.app_run_active())
+                if not self.viewer and self.speed > 0:
+                    t = r.fw.time_ms()
+                    if t < sim0:        # a reset: its clock from 0 again
+                        wall0, sim0 = time.monotonic(), t
+                    ahead = (t - sim0) / 1000.0 / self.speed - (time.monotonic() - wall0)
+                    if ahead > 0.01:
                         time.sleep(ahead)
-                    elif ahead < -0.5:      # slower than asked: do not try to catch up
-                        wall0, sim0 = time.monotonic(), r.fw.time_ms()
-        if rec:
-            rec.close()
-
-
-class Recorder:
-    """An mp4 (ffmpeg) of the run: a camera following the robot, the whole maze in a corner, time, mode, LEDs and the
-    stopwatch.
-    Runs (the robot moving) at --record-speed, the waits between them at 8x."""
-
-    def __init__(self, session, path, width=1280, height=720, fps=30):
-        import subprocess
-        import mujoco
-        from PIL import Image, ImageDraw     # noqa: F401  (checked here: needed for the overlay)
-        self.s, self.fps = session, fps
-        m = session.robot.model
-        self.mujoco = mujoco
-        self.big = mujoco.Renderer(m, height, width)
-        self.small = mujoco.Renderer(m, 300, 300)
-        self.cam, self.top = mujoco.MjvCamera(), mujoco.MjvCamera()
-        side = session.maze.size * 0.18
-        self.top.lookat[:] = (side / 2, side / 2, 0)
-        self.top.distance, self.top.elevation, self.top.azimuth = side * 1.75, -90, 90
-        self.cam.distance, self.cam.elevation, self.cam.azimuth = 0.75, -50, 90
-        self.next_ms = session.robot.fw.time_ms()
-        self.w, self.h = width, height
-        self.ff = subprocess.Popen(['ffmpeg', '-loglevel', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24',
-                                    '-s', f'{width}x{height}', '-r', str(fps), '-i', '-', '-c:v', 'libx264',
-                                    '-pix_fmt', 'yuv420p', '-crf', '23', path], stdin=subprocess.PIPE)
-
-    def maybe_frame(self):
-        r = self.s.robot
-        t = r.fw.time_ms()
-        if t < self.next_ms:
-            return
-        moving = r.fw.lib.app_run_active()
-        speed = self.s.args.record_speed if moving else 8.0
-        self.next_ms = t + max(1, int(1000 * speed / self.fps))
-        from PIL import Image, ImageDraw
-        x, y, _ = r.pose()
-        look, target = self.cam.lookat, (x / 1000, y / 1000, 0.0)
-        for i in range(3):
-            look[i] = 0.85 * look[i] + 0.15 * target[i] if look.any() else target[i]
-        self.big.update_scene(r.data, self.cam)
-        frame = Image.fromarray(self.big.render())
-        self.small.update_scene(r.data, self.top)
-        inset = Image.fromarray(self.small.render())
-        frame.paste(inset, (self.w - 310, 10))
-        d = ImageDraw.Draw(frame)
-        leds = r.fw.leds()
-        d.rectangle((0, 0, 330, 60), fill=(0, 0, 0))
-        d.text((10, 8), f't = {t / 1000:6.1f} s   x{speed:g}', fill=(255, 255, 255))
-        d.text((10, 30), self.s.status, fill=(255, 220, 60))
-        self.s.clock.draw(d, 0, 60)
-        for i in range(6):
-            on = leds >> (5 - i) & 1
-            d.ellipse((200 + i * 20, 8, 212 + i * 20, 20), fill=(255, 40, 20) if on else (60, 20, 20))
-        self.ff.stdin.write(frame.tobytes())
-
-    def close(self):
-        self.ff.stdin.close()
-        self.ff.wait()
+        except SystemExit:      # the window closed
+            pass
+        finally:
+            if view:
+                view.close()
 
 
 def make_parser():
@@ -358,8 +307,11 @@ def make_parser():
     p.add_argument('--poses', action='store_true', help='print the true pose at every firmware pose report')
     p.add_argument('--follow', action='store_true', help='the viewer camera follows the robot')
     p.add_argument('--record', metavar='MP4', help='record a video (ffmpeg); with the window, both at once')
-    p.add_argument('--record-speed', type=float, default=2.0, help='video speed while the robot runs (default 2x)')
-    p.add_argument('--trace', metavar='NPZ', help='headless: its joints every 10 ms to this file (ratasim/trace.py)')
+    p.add_argument('--record-speed', type=float, default=1.0, help='video speed while the robot runs (x real time)')
+    p.add_argument('--camera', choices=('follow', 'fixed'), default='follow',
+                   help="the video's camera: following the robot, or the whole maze from above, still")
+    p.add_argument('--trace', metavar='NPZ', help='no window, no video: its joints every 10 ms to this file '
+                   '(ratasim/trace.py)')
     p.add_argument('--save-maze', help='write the maze to this file and go on')
     return p
 
@@ -403,7 +355,7 @@ def main():
     if not args.headless or not args.cmd:
         threading.Thread(target=s.stdin_reader, daemon=True).start()
     try:
-        s.run_headless() if args.headless else s.run_viewer()
+        s.run()
     except KeyboardInterrupt:
         pass
     s.output(s.robot.fw.received())

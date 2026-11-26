@@ -1,4 +1,5 @@
-"""Videos of a robot running its firmware in a maze (ZoroBot3, NezumiBot)."""
+"""What shows a robot running its firmware in a maze, every robot's: a video (Recorder), MuJoCo's window (Viewer),
+both at once (Both)."""
 import math
 import os
 import subprocess
@@ -11,7 +12,9 @@ import mujoco
 
 class Recorder:
     """An mp4 (ffmpeg): a camera following the robot, the whole maze in a corner with its trail, the time, a status
-    line, an LED and the stopwatch (.clock). The robot: .model, .data, .maze, .pose() (mm, deg) and .fw.time_ms().
+    line, its LEDs and the stopwatch (.clock). The robot: .model, .data, .maze, .pose() (mm, deg) and .fw.time_ms().
+    led: its LED's colour now (r, g, b from 0 to 1), or a list of them (a row of LEDs, as Ratatron's six).
+    A reset (a new boot: its firmware's clock from 0 again) goes on recording from there.
     camera 'fixed': the whole maze from above its south side, still, up to 1920x1080 (no corner view)."""
 
     def __init__(self, robot, path, title, width=1280, height=720, fps=30, speed=1.0, led=None, camera='follow'):
@@ -30,7 +33,7 @@ class Recorder:
         if self.fixed:
             self.cam.lookat[:] = (side / 2, side / 2 - side * 0.12, 0)
             self.cam.distance, self.cam.elevation, self.cam.azimuth = side * 1.3, -60, 90
-        self.next_ms = robot.fw.time_ms()
+        self.next_ms = self.last_t = robot.fw.time_ms()
         self.w, self.h = width, height
         self.trail = []
         self.status = ''
@@ -44,6 +47,9 @@ class Recorder:
         from PIL import Image, ImageDraw
         r = self.r
         t = r.fw.time_ms()
+        if t < self.last_t:         # its clock went back: a reset
+            self.next_ms = t
+        self.last_t = t
         if t < self.next_ms:
             return
         speed = 8.0 if fast else self.speed
@@ -80,8 +86,12 @@ class Recorder:
         d.text((10, 8), f'{self.title} - its firmware, simulated    t = {t / 1000:6.1f} s   x{speed:g}', fill=(255, 255, 255))
         d.text((10, 34), self.status, fill=(255, 220, 60))
         if self.led:
-            rgb = tuple(int(255 * c) for c in self.led())
-            d.ellipse((392, 34, 410, 52), fill=rgb, outline=(120, 120, 120))
+            leds = self.led()
+            leds = leds if isinstance(leds, list) else [leds]
+            size = 18 if len(leds) == 1 else 12
+            for i, c in enumerate(reversed(leds)):     # right-aligned on the status line
+                x1 = 410 - i * (size + 4)
+                d.ellipse((x1 - size, 52 - size, x1, 52), fill=tuple(int(255 * v) for v in c), outline=(120, 120, 120))
         if self.clock:
             self.clock.draw(d, 0, 64)
         self.ff.stdin.write(frame.tobytes())
@@ -92,13 +102,15 @@ class Recorder:
 
 
 class Viewer:
-    """MuJoCo's window on the run, paced to the clock (the waits between runs at 8x). Same calls as Recorder."""
+    """MuJoCo's window on the run, paced to the clock (the waits between runs at 8x; speed 0: as fast as it goes; .speed
+    can change on the way). Same calls as Recorder. key_callback: its keys (MuJoCo's keycodes); follow: its camera
+    on the robot."""
 
-    def __init__(self, robot, speed=1.0):
+    def __init__(self, robot, speed=1.0, key_callback=None, follow=False):
         import mujoco.viewer
-        self.r, self.speed, self.status, self.clock = robot, speed, '', None
+        self.r, self.speed, self.status, self.clock, self.follow = robot, speed, '', None, follow
         before = set(threading.enumerate())
-        self.v = mujoco.viewer.launch_passive(robot.model, robot.data)
+        self.v = mujoco.viewer.launch_passive(robot.model, robot.data, key_callback=key_callback)
         self.threads = [t for t in threading.enumerate() if t not in before]     # its window's
         side = robot.maze.size * 0.18
         self.v.cam.lookat[:] = (side / 2, side / 2, 0)
@@ -110,13 +122,18 @@ class Viewer:
             raise SystemExit('window closed')
         rate = 8.0 if fast else self.speed
         now, t = time.monotonic(), self.r.fw.time_ms()
-        if rate != self.rate:                       # re-anchor the clock when the pace changes
+        if rate != self.rate or t < self.sim0:      # re-anchor the clock when the pace changes, or after a reset
             self.wall0, self.sim0, self.rate = now, t, rate
         if now - self.last > 1 / 60:
+            if self.follow:
+                x, y, _ = self.r.pose()
+                self.v.cam.lookat[:] = (x / 1000, y / 1000, 0)
             if self.clock:
                 self.v.set_texts(self.clock.overlay())
             self.v.sync()
             self.last = now
+        if rate <= 0:
+            return
         ahead = (t - self.sim0) / 1000.0 / rate - (now - self.wall0)
         if ahead > 0.002:
             time.sleep(min(ahead, 0.05))
@@ -130,10 +147,11 @@ class Viewer:
 
 
 class Both:
-    """The window and the video at once (--record without --headless). Same calls as Recorder."""
+    """The video and the window at once (--record without --headless): Both(Recorder(...), Viewer(...)). Same calls
+    as Recorder."""
 
-    def __init__(self, robot, path, title, speed=1.0, led=None, camera='follow'):
-        self.parts = [Recorder(robot, path, title, speed=speed, led=led, camera=camera), Viewer(robot, speed=speed)]
+    def __init__(self, *parts):
+        self.parts = list(parts)
 
     status = property(lambda s: s.parts[0].status,
                       lambda s, v: [setattr(p, 'status', v) for p in s.parts])
@@ -171,7 +189,8 @@ def make_view(robot, a, title, led=None, clock=None):
     elif a.record and (a.headless or no_screen()):
         view = Recorder(robot, a.record, title, speed=a.record_speed, led=led, camera=a.camera)
     elif a.record:
-        view = Both(robot, a.record, title, speed=a.record_speed, led=led, camera=a.camera)
+        view = Both(Recorder(robot, a.record, title, speed=a.record_speed, led=led, camera=a.camera),
+                    Viewer(robot, speed=a.record_speed))
     elif a.headless:
         return None
     elif no_screen():
