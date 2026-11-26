@@ -31,12 +31,15 @@ IR_SENSORS = {          # firmware index: (x, y), direction
     'SL': (2, (13.88, 42.67), 141.0),
     'SR': (3, (-14.10, 42.93), 37.1),
 }
-# Its side sensors turned this much forward of the CAD's axes: as the CAD has them they lose a wall's end 108 mm before
-# the next cell at its speed runs' 2 m/s (111 mm standing); its makers measured 116 (WALL_LOSS_TO_SENSING_POINT_DISTANCE,
-# found on the robot in the maze for its best centring), which 3 deg gives (114.5 at 2 m/s, 119.5 standing).
-SIDE_SENSORS_FORWARD_DEG = float(os.environ.get('ZOROBOT_SIDE_FORWARD_DEG', '3.0'))
+# Its side sensors turned forward of the CAD's axes, the right one more (the CAD's left one points 1.9 deg further
+# forward; its makers' wall loss distances, LEFT/RIGHT_WALL_LOSS_TO_SENSING_POINT_DISTANCE 110 and 116, have the right
+# one lose a wall's end first): both 43.5 deg off the side axis. Its firmware since 2026 lets go of a wall 6-8 ms after
+# its reading crosses (WALL_DETECT_RELEASE_COUNT, an EMA, a median of three: c83c6e6, 18e21af), 20-26 mm at its runs'
+# 3 m/s: as the CAD has them (or 3 deg forward, as for its 2025 firmware) its speed runs' turns began 10-25 mm late.
+SIDE_FORWARD_DEG = {'SL': float(os.environ.get('ZOROBOT_SL_FORWARD_DEG', '4.5')),
+                    'SR': float(os.environ.get('ZOROBOT_SR_FORWARD_DEG', '6.5'))}
 for _n, _s in (('SL', -1), ('SR', 1)):
-    IR_SENSORS[_n] = IR_SENSORS[_n][:2] + (IR_SENSORS[_n][2] + _s * SIDE_SENSORS_FORWARD_DEG,)
+    IR_SENSORS[_n] = IR_SENSORS[_n][:2] + (IR_SENSORS[_n][2] + _s * SIDE_FORWARD_DEG[_n],)
 IR_Z_MM = 2.66              # the emitters' height over the axle (11.75 over the board)
 BOARD_FRONT_MM = 51.23      # the board's outline from the axle: a semicircle in front
 TIRE_CAD_RADIUS_MM = 11.56  # less than the firmware's 12.44 (below): the visual tire is scaled to it
@@ -51,10 +54,11 @@ AXLE_OVER_PCB_MM = 9.09      # the axle over the board's top face
 
 # ---- Physics: its mass, suction and motors' resistance from its makers (OPRobots, 2026-11); the rest assumed -----
 MASS_KG = 0.075             # 2S 260 mAh LiPo, two 8520, a PCB chassis, printed brackets and fan
-# Its yaw inertia (kg m^2), as KOGUMA's fitted to its logs (3.7e-5 at 78 g, a 22 mm radius of gyration): a uniform
-# board's 8.8e-5 made its firmware's PI (no feed-forward) overshoot every turn by 2-4 deg, and its explore's 180 deg
-# turns, whose angular error its firmware then discards (reset_control_errors), left it 4-5 deg off into the walls.
-YAW_INERTIA = 4.0e-5
+# Its yaw inertia (kg m^2): KOGUMA's, fitted to its logs, is 3.7e-5 at 78 g (a 22 mm radius of gyration); its own
+# battery, motors and fan sit closer to its middle: 2.9e-5 (19.7 mm). A uniform board's 8.8e-5 made its firmware's PI
+# (no feed-forward) overshoot every turn by 2-4 deg; at 4e-5 its speed runs' turns end 3-5 mm wide of the path its
+# firmware commands, and its 1.3 m of 45 deg turns along rows 0-1 (no wall to resync on) end on the posts (9,1) and (15,2).
+YAW_INERTIA = float(os.environ.get('ZOROBOT_YAW_INERTIA', '2.9e-5'))
 COM_MM = (0.0, 4.0, 2.0)
 BATTERY_V = 8.0
 # 8520 coreless at 7.4 V, from its makers (the specification's): 50000 rpm free, 0.2 A free, 5 A stall (1.5 ohm;

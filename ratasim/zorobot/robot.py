@@ -21,9 +21,13 @@ from ..model import MM, WALL_GROUP
 
 FW_DIR = os.path.join(Z.HERE, 'fw')
 IR_FAR_MM = 400.0
-# Its emitters (SFH 4550, +-3 deg at half power): their spot as rays (deg off its axis, weight), a Gaussian of
-# 2.5 deg. In its diagonals its front sensors read the posts (12 mm) beside them: three rays read them in steps.
-IR_SIGMA_DEG = float(os.environ.get('ZOROBOT_IR_SIGMA', '2.5'))
+# Its emitters (SFH 4550, +-3 deg at half power, a Gaussian of 2.5 deg) seen through its receivers' field: the light it
+# reads, their product, as rays (deg off its axis, weight), a Gaussian of 1.25 deg. With the emitter's alone its side
+# sensors took 32 mm of travel to lose a wall's end; meanwhile one side read 90-120 mm, which its firmware takes for
+# drifting (get_side_sensors_error: -2 x that error while the other side is lost) and steered 10-16 deg off, its
+# search's map then wrong (4 searches in 12 reached the goal; with 1.25, 6 in 6).
+# In its diagonals its front sensors read the posts (12 mm) beside them: three rays read them in steps.
+IR_SIGMA_DEG = float(os.environ.get('ZOROBOT_IR_SIGMA', '1.25'))
 IR_RAYS = tuple((k * IR_SIGMA_DEG / 1.5, math.exp(-(k / 1.5) ** 2 / 2)) for k in (-3, -2, -1, 0, 1, 2, 3))
 IR_RAYS_WEIGHT = sum(w for _, w in IR_RAYS)
 ADC_LSB = 3.3 / 4096
@@ -65,13 +69,32 @@ def raw_at(cal, name, mm):
     return max(0.0, math.exp(a / (max(mm - L0[name], 1.0) / 1000.0 + b)) - c)
 
 
-def flash_image(menu, cal):
+def ln_table():
+    """Its firmware's ln lookup (utils.c): ln(4 k), ln(0) as 1."""
+    text = open(os.path.join(Z.ZORO_SRC, 'src', 'utils.c')).read()
+    return [float(v) for v in re.search(r'ln_lookup\[[^]]*\] = \{([^}]*)\}', text)[1].split(',') if v.strip()]
+
+
+LN = None
+
+
+def firmware_distance(cal, name, counts):
+    """The distance (mm, from its axle) its update_sensors_magics() makes of these counts, before its offsets."""
+    global LN
+    LN = LN or ln_table()
+    a, b, c = cal[name]
+    k = min(max(0, int((int(counts) + c) / 4)), len(LN) - 1)
+    return max(0, int((a / LN[k] - b) * 1000)) + int(L0[name])
+
+
+def flash_image(menu, cal, offsets=(0, 0, 0, 0)):
     """Its EEPROM sector as its calibration routines leave it on a robot whose sensors read as its (a, b, c) say
-    (offsets 0): raw thresholds as front_sensors_calibration (a wall at a cell less half a wall) and
+    (its side offsets, side_sensors_calibration's in its start cell, given): raw thresholds as front_sensors_calibration (a wall at a cell less half a wall) and
     side_sensors_calibration (centred) set them, the front middle targets as front_sensors_middle_calibration (centred,
     a wall ahead), its makers' wall lost distances, the run menu's values (speed, race, explore type, floodfill type,
     maze type, solve strategy, explore algorithm) and the checksum eeprom_load() checks."""
     words = [0] * EE_WORDS
+    words[EE_SENSORS:EE_SENSORS + 4] = offsets
     f2 = RAW_THRESHOLD_FACTOR ** 2
     words[EE_SENSORS + 4:EE_SENSORS + 8] = [int(raw_at(cal, 'FL', CELL - WALL / 2) / f2),
                                             int(raw_at(cal, 'FR', CELL - WALL / 2) / f2),
@@ -171,7 +194,10 @@ class ZRobot:
         self.hand = Hand(self.model, self.data)
         self.fan = 0.0
         self.lib = build()
-        self.fw = ZFirmware(self.lib, flash_image(list(menu), self.cal))
+        mujoco.mj_kinematics(self.model, self.data)
+        side = self.ir_signals(noise=False)[2:]
+        offsets = [0, 0] + [int(MIDDLE - firmware_distance(self.cal, n, c)) for n, c in zip(('SL', 'SR'), side)]
+        self.fw = ZFirmware(self.lib, flash_image(list(menu), self.cal, offsets))
         self.enc_zero = {s: self.data.qpos[self.wheel_qpos[s]] for s in 'lr'}
 
     # ---- inputs --------------------------------------------------------------------------------------------
@@ -218,7 +244,7 @@ class ZRobot:
         d = max(dist - L0[name], 1.0) / 1000.0
         return max(0.0, math.exp(min(a_ / (d + b_), 9.0)) - c_)
 
-    def ir_signals(self):
+    def ir_signals(self, noise=True):
         """Each sensor's reading: its emitter's spot as IR_RAYS rays across it, each one's light at the length it
         reaches a wall or post, times the cosine of its incidence over the one its calibration had (fronts: a wall
         ahead; sides: the side wall), weighted. A post takes part of the spot, a face at a slant returns less."""
@@ -235,10 +261,11 @@ class ZRobot:
                 a = a0 + math.radians(spread)
                 beam, cos = self._hit(p, rot @ np.array([math.cos(a), math.sin(a), 0.0]))
                 total += w * self._counts(name, beam) * cos / cal_cos
-            sig.append(total / IR_RAYS_WEIGHT * (1.0 + self.rng.gauss(0.0, 0.004)))
+            sig.append(total / IR_RAYS_WEIGHT * (1.0 + (self.rng.gauss(0.0, 0.004) if noise else 0.0)))
         return sig
 
     def encoders(self):
+        """Each wheel's turns in its encoder's counts (its firmware takes them at its 12.44 mm radius)."""
         q = self.data.qpos
         mm = {s: (q[self.wheel_qpos[s]] - self.enc_zero[s]) * self.r / MM for s in 'lr'}
         return tuple(math.floor(mm[s] * 1000.0 / Z.MICROMETERS_PER_TICK) for s in 'lr')

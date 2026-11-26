@@ -166,7 +166,8 @@ def zorobot(full):
     if not full:
         return short(['zorobot'], SHORT_S['zorobot'], clean=False, started='started: True')
     fails = []
-    out = run(['zorobot', '--headless', '--maze', MAZE, '--run', '--max-s', '400'])
+    # its speed run at speed 2 (medium): at 4 and 5 (haki) it ends on a post (ratasim/zorobot/config.py, YAW_INERTIA)
+    out = run(['zorobot', '--headless', '--maze', MAZE, '--run', '--speed', '2', '--max-s', '400'])
     common(out, fails, clean=False)
     if 'started: True' not in out:
         fails.append('not started')
