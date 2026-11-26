@@ -1,5 +1,5 @@
-// ZoroBot3's chip, simulated: its main() in a coroutine, its interrupts (SysTick, TIM5 = control_loop, TIM2 =
-// sm_emitter_adc at 16 kHz) once per simulated millisecond, and the peripherals its code touches through
+// ZoroBot3's chip, simulated: its main() in a coroutine, its SysTick at 16 kHz (sm_emitter_adc() every tick, its
+// clock, buttons, battery, encoders, sensors, gyro and control_loop() each once in 16) each simulated millisecond, and the peripherals its code touches through
 // libopencm3 (fakecm3.h). Python (zorobot/robot.py) drives it with the zsim_* functions at the end.
 //
 // Time: main() yields every YIELD_CALLS calls of the functions its waiting loops poll (get_clock_ticks, the
@@ -152,6 +152,10 @@ uint16_t spi_read(uint32_t spi) {
   (void)spi;
   return spi_rx;
 }
+uint16_t spi_xfer(uint32_t spi, uint16_t data) {   // libopencm3's: a word out, the word in (its firmware since 2026)
+  spi_send(spi, data);
+  return spi_read(spi);
+}
 
 // ---- USART3 (printf) ----
 static char tx[1 << 17];
@@ -214,9 +218,7 @@ uint8_t zsim_step(void) {
   tick++;
   cycles += 168000u;
   in_isr = 1;
-  sys_tick_handler();
-  control_loop();
-  for (int i = 0; i < 16; i++) sm_emitter_adc();
+  for (int i = 0; i < 16; i++) sys_tick_handler();   // SysTick at 16 kHz: sm_emitter_adc() each tick, the rest in turn
   in_isr = 0;
   swapcontext(&sim_ctx, &fw_ctx);
   return state;
