@@ -20,7 +20,7 @@
     ratasim mazes [PATTERN] [--show NAME]   the mazes --maze takes by name (525 classic competition ones)
     ratasim help                    this
 
-ratasim ROBOT --help: its options.
+ratasim ROBOT --help: its modes (explore, race, speeds ...) and its options; no simulation.
 """
 import runpy
 import sys
@@ -72,6 +72,11 @@ def main(argv=None):
     if message:
         print('ratasim: ' + message, file=sys.stderr)
         return 1
+    if '-h' in args or '--help' in args:
+        from ratasim import modes
+        block = modes.text(args_command)
+        if block:
+            print(block)
     sys.argv = [name] + args
     runpy.run_module(module, run_name='__main__')     # sys.argv[0] stays the command's name (argparse prog)
     return 0
