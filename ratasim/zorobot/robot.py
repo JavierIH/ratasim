@@ -31,8 +31,16 @@ VOLT_DIV_A = 3.96           # battery.c, robot version A (the simulated chip's U
 BUTTON_RAW = {None: 0, 'up': 1500, 'mode': 2500, 'down': 3900}
 # Firmware's distance = (a / ln(raw + c) - b) * 1000 + L0: L0 is ROBOT_FRONT_LENGTH or ROBOT_WIDTH / 2.
 L0 = {'FL': Z.ROBOT_FRONT_LENGTH, 'FR': Z.ROBOT_FRONT_LENGTH, 'SL': Z.ROBOT_WIDTH / 2, 'SR': Z.ROBOT_WIDTH / 2}
-# EEPROM words (include/eeprom.h): gyro offsets 3, sensor offsets 4, maze 256, run menu 7, RC5 5.
-EE_MENU = 3 + 4 + 256
+# EEPROM words (include/eeprom.h): gyro offsets 3, sensor offsets 4, raw wall thresholds 4, front middle targets 4
+# (mm FL, FR; raw FL, FR), wall lost distances 2, maze 256, run menu 7, RC5 5, then a checksum (all of them sum 0).
+EE_SENSORS = 3
+EE_MAZE = EE_SENSORS + 4 + 4 + 4 + 2
+EE_MENU = EE_MAZE + 256
+EE_WORDS = EE_MENU + 7 + 5
+CELL, WALL = 180.0, 12.0
+MIDDLE = (CELL - WALL) / 2                  # config.h MIDDLE_MAZE_DISTANCE: from its axle to a wall, centred
+RAW_THRESHOLD_FACTOR = 1.5                  # config.h SENSOR_RAW_THRESHOLD_DISTANCE_FACTOR
+WALL_LOST = (110, 116)                      # config.h LEFT/RIGHT_WALL_LOSS_TO_SENSING_POINT_DISTANCE
 
 
 def build():
@@ -51,11 +59,29 @@ def sensor_calibration(version='A'):
     return {n: (d['a'], d['b'], d['c']) for n, d in out.items()}
 
 
-def flash_image(menu):
-    """A blank EEPROM sector with the run menu's values (speed, race, explore type, floodfill type, maze type,
-    solve strategy, explore algorithm)."""
-    words = [0] * (EE_MENU + 7 + 5)
+def raw_at(cal, name, mm):
+    """The emitter-on minus emitter-off counts its calibration (a, b, c) gives at mm from its axle."""
+    a, b, c = cal[name]
+    return max(0.0, math.exp(a / (max(mm - L0[name], 1.0) / 1000.0 + b)) - c)
+
+
+def flash_image(menu, cal):
+    """Its EEPROM sector as its calibration routines leave it on a robot whose sensors read as its (a, b, c) say
+    (offsets 0): raw thresholds as front_sensors_calibration (a wall at a cell less half a wall) and
+    side_sensors_calibration (centred) set them, the front middle targets as front_sensors_middle_calibration (centred,
+    a wall ahead), its makers' wall lost distances, the run menu's values (speed, race, explore type, floodfill type,
+    maze type, solve strategy, explore algorithm) and the checksum eeprom_load() checks."""
+    words = [0] * EE_WORDS
+    f2 = RAW_THRESHOLD_FACTOR ** 2
+    words[EE_SENSORS + 4:EE_SENSORS + 8] = [int(raw_at(cal, 'FL', CELL - WALL / 2) / f2),
+                                            int(raw_at(cal, 'FR', CELL - WALL / 2) / f2),
+                                            int(raw_at(cal, 'SL', MIDDLE) / f2), int(raw_at(cal, 'SR', MIDDLE) / f2)]
+    words[EE_SENSORS + 8:EE_SENSORS + 12] = [int(MIDDLE), int(MIDDLE), int(raw_at(cal, 'FL', MIDDLE)),
+                                             int(raw_at(cal, 'FR', MIDDLE))]
+    words[EE_MAZE - 2:EE_MAZE] = WALL_LOST
     words[EE_MENU:EE_MENU + 7] = menu
+    words = [((w + 0x8000) & 0xffff) - 0x8000 for w in words]
+    words.append(((-sum(words) + 0x8000) & 0xffff) - 0x8000)
     data = b''.join(struct.pack('<i', w) for w in words)
     return data + b'\xff' * (4096 - len(data))
 
@@ -145,7 +171,7 @@ class ZRobot:
         self.hand = Hand(self.model, self.data)
         self.fan = 0.0
         self.lib = build()
-        self.fw = ZFirmware(self.lib, flash_image(list(menu)))
+        self.fw = ZFirmware(self.lib, flash_image(list(menu), self.cal))
         self.enc_zero = {s: self.data.qpos[self.wheel_qpos[s]] for s in 'lr'}
 
     # ---- inputs --------------------------------------------------------------------------------------------
