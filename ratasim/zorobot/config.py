@@ -80,5 +80,5 @@ def start(run=False):
              ('say', 'a hand in front of the right front sensor: EXPLORE' + (' & RUN' if run else '')),
              ('hand', ['FR'], 500), ('wait', 900)]
     if run:
-        steps.append(('hand', ['FL'], 300))
+        steps.append(('hand', ['FL'], 500))   # SENSOR_START_MIN_MS 350 since 2026
     return steps + [('wait', 2500)]
