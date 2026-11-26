@@ -78,7 +78,7 @@ frame, two NFP-D0816 coreless motors through 71:20 gears to Mini-Z narrow wheels
 suction fan, MP6550 drivers, AS5047P encoders on a gear of their own, an LSM6DSR gyro, four IR sensors (OPV332 laser
 diodes, SFH 229FA photodiodes through op-amps), a 4-cell LiPo; turns up to 2.4 m/s, 30 m/s², 6 m/s.
 
-- **Firmware:** `external/KOGUMA.MkIIl` at 5473f0a (2026-11-24): all of `Core/Src` (its CubeMX files, its search,
+- **Firmware:** `external/KOGUMA.MkIIl` at 90f1b71 (2026-11-24): all of `Core/Src` (its CubeMX files, its search,
   its maze, its Dijkstra, its turns' tables, its wall control and wall cuts, its fail-safe) compiled unchanged, its
   `main()` renamed; only its ARM build's own files left out (`system_stm32f4xx.c`, `syscalls.c`, `sysmem.c`). ST's
   HAL in its `Drivers/` is not used: `ratasim/koguma/fw/include/stm32f4xx_hal.h` gives the types, registers and
