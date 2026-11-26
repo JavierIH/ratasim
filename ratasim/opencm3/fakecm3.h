@@ -222,6 +222,7 @@ static inline bool dwt_enable_cycle_counter(void) { return true; }
 #define SPI_CR1_MSBFIRST 0
 void spi_send(uint32_t spi, uint16_t data);
 uint16_t spi_read(uint32_t spi);
+uint16_t spi_xfer(uint32_t spi, uint16_t data);
 #define spi_reset(...) ((void)0)
 #define spi_init_master(...) ((void)0)
 #define spi_enable_software_slave_management(...) ((void)0)
