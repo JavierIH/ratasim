@@ -19,8 +19,8 @@ MODES = {
         ('ratasim zorobot', 'exploration only (complete, time floodfill)'),
         ('ratasim zorobot --run', 'EXPLORE & RUN: exploration, then the speed run (speed 5, haki)'),
         ('ratasim zorobot --run --speed N', 'speed run at N: 0 explore, 1 normal, 2 medium, 3 fast, 4 super, 5 haki'),
-        ('  --explore-type N', '0 to the goal, 1 and back home, 2 complete (default)'),
-        ('  --floodfill N', '0 basic, 1 diagonal, 2 time (default), 3 time v2'),
+        ('  --explore-type N', '0 to the goal, 1 and back home, 2 complete (default), 3 endless'),
+        ('  --floodfill N', '0 basic, 1 diagonal, 2 time (default)'),
         ('  --solve N', 'speed run: 1 diagonals (default), 0 standard (90 and 180 deg turns)'),
     ],
     'gamusino': [

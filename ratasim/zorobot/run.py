@@ -1,7 +1,7 @@
 """ZoroBot3 in the simulator: boots its firmware, picks the run in its menu (buttons), starts it with a hand in front
 of a sensor as on the real robot, and runs it in a maze; optionally records a video.
 
-    ratasim zorobot [--maze oshwdem2026] [--speed 0..5] [--explore-type 0..2] [--floodfill 0..3] [--run]
+    ratasim zorobot [--maze oshwdem2026] [--speed 0..5] [--explore-type 0..3] [--floodfill 0..2] [--run]
                 [--solve 0|1] [--headless] [--record out.mp4] [--max-s N]
 
 --run: EXPLORE & RUN (explore, then the speed run at --speed); else only the exploration. Its menu by default as its
@@ -30,8 +30,8 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--maze', default='oshwdem2026')
     p.add_argument('--speed', type=int, default=5, help='run speed of its menu: 0 explore .. 5 haki (its makers\' at OSHWDem 2026)')
-    p.add_argument('--explore-type', type=int, default=2, help='0 to the goal, 1 and back home, 2 complete (its makers\')')
-    p.add_argument('--floodfill', type=int, default=2, help='0 basic, 1 diagonal, 2 time (its makers\'), 3 time v2')
+    p.add_argument('--explore-type', type=int, default=2, choices=range(4), help='0 to the goal, 1 and back home, 2 complete (its makers\'), 3 endless (to random cells)')
+    p.add_argument('--floodfill', type=int, default=2, choices=range(3), help='0 basic, 1 diagonal, 2 time (its makers\')')
     p.add_argument('--solve', type=int, default=1, help='its speed run: 1 diagonals (as its makers run it), 0 standard (turns of 90 and 180 deg)')
     p.add_argument('--run', action='store_true', help='explore, then the speed run')
     add_view_args(p)

@@ -34,8 +34,8 @@ By [JavierIH](https://github.com/JavierIH) · [JavierIH/ratatron](https://github
 By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OPRobots/ZoroBot3) (GPLv3)
 
 - **Firmware:** `external/ZoroBot3`, unchanged, on a fake libopencm3 chip (`ratasim/zorobot/fw/`): its `main()` in a
-  coroutine, SysTick, its control loop (TIM5) and its IR emitter/ADC state machine (TIM2, 16 kHz) every simulated
-  millisecond; the LSM6DSR on SPI, the AS5145B encoders, the MP6551 motor PWM, the fan, the RGB LED, the EEPROM
+  coroutine, its SysTick at 16 kHz (its IR emitter/ADC state machine every tick, its clock, sensors, gyro and control
+  loop once a millisecond) sixteen times every simulated millisecond; the LSM6DSR on SPI, the AS5145B encoders, the MP6551 motor PWM, the fan, the RGB LED, the EEPROM
   sector, the UART.
 - **Model:** its Onshape assembly (the "Full Assembly", exported as one STEP file, 297 parts where its designers
   placed them), tessellated with gmsh (`ratasim/zorobot/cad.py`, `pip install -e .[cad]`). The STEP is not in its
@@ -44,7 +44,7 @@ By [OPRobots](https://oprobots.org) · [OPRobots/ZoroBot3](https://github.com/OP
   duty), 8520 coreless motors at 7.4 V of 50 000 rpm free, 0.2 A free and 5 A stall (1.5 Ω). Its yaw inertia 4.0e-5 kg m², as KOGUMA's
   fitted to its logs. Its tyres single contact points with stiff friction, tire friction 1.1 (assumed); the wheel
   radius is its firmware's (12.44 mm, the CAD's tire 11.56).
-- **Run:** `ratasim zorobot --maze oshwdem2026 [--run [--speed 0..5] [--explore-type 0..2] [--floodfill 0..3]
+- **Run:** `ratasim zorobot --maze oshwdem2026 [--run [--speed 0..5] [--explore-type 0..3] [--floodfill 0..2]
   [--solve 0|1]] [--record out.mp4 [--camera fixed]]`: it boots, picks the run with its menu buttons and starts with a hand in front of
   its right front sensor, as on the real robot. Its menu by default as its makers ran it at OSHWDem 2026 (explore
   complete, time-based floodfill, diagonals, speed 5): its search reaches the goal in 63 s and is back at its start
