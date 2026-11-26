@@ -11,6 +11,7 @@ chassis, wheel_l, wheel_r.
 """
 import json
 import os
+import struct
 import sys
 
 import numpy as np
@@ -40,8 +41,10 @@ def colour(name, rgba):
     return rgb
 
 
-def tessellate(step):
-    """[(name, rgb, triangles (n, 3, 3) mm in the STEP frame)] for every volume."""
+def tessellate(step, with_normals=False, per_turn=10):
+    """[(name, rgb, triangles (n, 3, 3) mm in the STEP frame)] for every volume; with_normals: and their corners'
+    normals (n, 3, 3) last (ZoroBot3's OBJ). per_turn: points per turn on curves (ZoroBot3's own meshes take 24;
+    Fujin's and KOGUMA's, built with this too, keep 10)."""
     import gmsh
     gmsh.initialize()
     gmsh.option.setNumber('General.Terminal', 0)
@@ -51,7 +54,7 @@ def tessellate(step):
     gmsh.model.occ.synchronize()
     gmsh.option.setNumber('Mesh.MeshSizeMin', 0.15)
     gmsh.option.setNumber('Mesh.MeshSizeMax', 3.0)
-    gmsh.option.setNumber('Mesh.MeshSizeFromCurvature', 24)     # points per turn; the minimum keeps vias coarse
+    gmsh.option.setNumber('Mesh.MeshSizeFromCurvature', per_turn)     # points per turn; the minimum keeps vias coarse
     gmsh.option.setNumber('Mesh.Algorithm', 6)
     gmsh.model.mesh.generate(2)
     tags, xyz, _ = gmsh.model.mesh.getNodes()
@@ -66,9 +69,9 @@ def tessellate(step):
             types, _, nodes = gmsh.model.mesh.getElements(2, abs(s))
             faces += [index[nd.astype(int).reshape(-1, 3)] for ty, nd in zip(types, nodes) if ty == 2]  # triangles
         if faces:
-            faces = outward(faces, xyz)
-            parts.append((name, colour(name, gmsh.model.getColor(d, v)), np.concatenate([xyz[f] for f in faces]),
-                          np.concatenate([normals(f, xyz) for f in faces])))
+            faces = outward_faces(faces, xyz)
+            part = (name, colour(name, gmsh.model.getColor(d, v)), np.concatenate([xyz[f] for f in faces]))
+            parts.append(part + (np.concatenate([normals(f, xyz) for f in faces]),) if with_normals else part)
     gmsh.finalize()
     return parts
 
@@ -89,6 +92,11 @@ def normals(f, xyz):
 
 
 def outward(faces, xyz):
+    """outward_faces' triangles as coordinates [(n, 3, 3)] (Fujin's, KOGUMA's, UKMARSBOT's and Bulebule's cad)."""
+    return [xyz[f] for f in outward_faces(faces, xyz)]
+
+
+def outward_faces(faces, xyz):
     """Each face's triangles (node indices; consistent within a face, not across faces), flipped so that
     neighbouring faces run their shared edges in opposite directions and each connected piece encloses a positive
     volume: the renderer hides triangles seen from behind."""
@@ -140,6 +148,15 @@ def body(name):
     return 'chassis'
 
 
+def write_stl(path, tris):
+    """Binary STL, no normals (Fujin's, KOGUMA's and UKMARSBOT's meshes)."""
+    tris = np.asarray(tris, np.float32).reshape(-1, 3, 3)
+    rec = np.zeros(len(tris), dtype=np.dtype([('n', '<3f4'), ('v', '<9f4'), ('a', '<u2')]))
+    rec['v'] = tris.reshape(-1, 9)
+    with open(path, 'wb') as f:
+        f.write(b'\0' * 80 + struct.pack('<I', len(tris)) + rec.tobytes())
+
+
 def write_obj(path, tris, norms):
     """Triangles with their corners' normals (an STL has none: MuJoCo would make its own, across sharp edges)."""
     n = len(tris)
@@ -151,7 +168,7 @@ def write_obj(path, tris, norms):
 
 
 def build(step, out):
-    parts = tessellate(step)
+    parts = tessellate(step, with_normals=True, per_turn=24)
     rim = next(rgb for n, rgb, *_ in parts if n.split('/')[-1] == RIM)
     parts = [(n, rim if n.split('/')[-1] == FAN else rgb, t, nn) for n, rgb, t, nn in parts]
     to_robot, turn = robot_frame(parts)
