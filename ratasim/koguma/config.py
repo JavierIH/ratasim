@@ -46,7 +46,7 @@ IR_SENSORS = {
     'L': (2, (9.35, 37.35), 150.0),
     'FR': (3, (27.35, 24.4), 80.0),
 }
-# Its side sensors' axes as its robot sees with them: 5 (right) and 3 (left) deg further ahead than its STEP's 30, from
+# Its side sensors' axes as its robot sees with them (measured): 5 (right) and 3 (left) deg further ahead than its STEP's 30, from
 # its maker's wall-cut test (docs/pillar_cut_design.md 12; logs/20261018-16*_edge_v1000.txt: its side sensors' signal
 # each mm past a lone post, a wall's end, on either side, at 1000 mm/s; at speed 0, 6 mm later, its Edge_V_K). With its
 # PillarEdge's rule (half the last 30 mm's highest) on the simulated signal, robot centred, the five ends fall 3.4 mm
@@ -55,12 +55,19 @@ IR_SENSORS = {
 # one's Edge_Off 7-12 mm more than his left one's, "its sensors' angle or mounting a few degrees off" (1 deg: 2.2 mm).
 # The beam's width and the cosine of incidence hardly move them (1.5 to 4 deg). (The test's left side, as its signal
 # shows it: a wall in cell 1, then lone posts; its doc says a wall in cell 3 too.)
-SIDE_AHEAD_DEG = {'R': 5.0, 'L': 3.0}
+# Measured, not applied (2026-11-27): with them (and SIDE_LEAD_S below) its fastest runs reach the goal in fewer mazes
+# (1 of 10; 5 as its STEP has them, OSHWDEM 2026's in 6.5 s): its turns in the simulator are tighter than the real
+# robot's (after a turn at 2 m/s the real one is 13-38 mm behind its odometry, the simulated one on it), and its
+# sensors' error made up for it. Kept as its STEP has them until its turns are fitted too (KOGUMA_SIDE_AHEAD="5,3").
+MEASURED_SIDE_AHEAD_DEG = {'R': 5.0, 'L': 3.0}
+SIDE_AHEAD_DEG = dict(zip('RL', (float(v) for v in os.environ.get('KOGUMA_SIDE_AHEAD', '0,0').split(','))))
 # And, as its maker measured in the same test, the faster it goes the earlier its side sensors see the ends: 6 mm a
 # m/s (1000, 2000, 2400 mm/s; every end, either side, their rises too: "not the way they are found: something on the
 # side of the distance or the time; the cause is not known"; its firmware adds it back, Edge_V_K 0.006). Modelled as
-# measured: its side sensors see from where it will be this much later (at speed 0 nothing changes).
-SIDE_LEAD_S = float(os.environ.get('KOGUMA_SIDE_LEAD_S', '0.006'))
+# measured: its side sensors see from where it will be this much later (at speed 0 nothing changes). Measured, not
+# applied, as SIDE_AHEAD_DEG (KOGUMA_SIDE_LEAD_S=0.006).
+MEASURED_SIDE_LEAD_S = 0.006
+SIDE_LEAD_S = float(os.environ.get('KOGUMA_SIDE_LEAD_S', '0'))
 IR_SENSORS['R'] = IR_SENSORS['R'][:2] + (IR_SENSORS['R'][2] + SIDE_AHEAD_DEG['R'],)
 IR_SENSORS['L'] = IR_SENSORS['L'][:2] + (IR_SENSORS['L'][2] - SIDE_AHEAD_DEG['L'],)
 IR_Z_MM = 5.56                  # its emitters' axis over its axle (its photodiodes' 4.6 mm under)

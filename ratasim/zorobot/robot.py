@@ -16,7 +16,6 @@ import numpy as np
 
 from . import config as Z
 from . import model
-from .. import config as RC
 from ..hand import Hand
 from ..ir import Beam, Hits
 from ..model import MM, WALL_GROUP
@@ -186,8 +185,9 @@ class ZRobot:
         self.sites = {n: m.site(f'ir_{n}').id for n in Z.IR_SENSORS}
         self.hits = Hits(m, self.data, WALL_GROUP, self.body, IR_FAR_MM)
         self.r = Z.WHEEL_RADIUS_MM * MM
-        # its start: its tail against the back wall (Z.START_AXLE_MM), or where --start puts it
-        x, y = cell_pose((0, 0), 0.0, back_mm(m, self.data, self.body, RC.CELL_MM / 2 - Z.START_AXLE_MM))
+        # its start: in the cell's middle, or where --start puts it (its firmware counts its tail against the back
+        # wall: Z.START_AXLE_MM, --start wall)
+        x, y = cell_pose((0, 0), 0.0, back_mm(m, self.data, self.body, Z.START_BACK_MM))
         self.data.qpos[self.free_qpos:self.free_qpos + 2] = (x * MM, y * MM)
         mujoco.mj_forward(self.model, self.data)
         self.cal = sensor_calibration('A')

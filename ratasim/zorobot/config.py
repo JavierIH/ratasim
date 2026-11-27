@@ -19,11 +19,15 @@ ROBOT_BACK_LENGTH = 40.706
 ROBOT_WIDTH = 70.2
 WHEELS_SEPARATION = 62.0
 CELL_MM = RC.CELL_MM
-# Its start: its tail against the start cell's back wall, as its makers put it down (its firmware's MOVE_START,
-# set_starting_position: its axle ROBOT_BACK_LENGTH + WALL_WIDTH / 2 from the wall's middle), 0.3 mm off its face.
-# In the cell's middle (before) it was 43 mm further on than its firmware counted until a wall's end or a front wall
-# put it right: its first turn 43 mm late (the stairs maze: on the wall at its first turn).
+# Its start. Its firmware counts its tail against the start cell's back wall (MOVE_START, set_starting_position: its
+# axle ROBOT_BACK_LENGTH + WALL_WIDTH / 2 from the wall's middle; START_AXLE_MM, --start wall). By default it stands in
+# the cell's middle (START_BACK_MM 0), as its side sensors' angles (SIDE_FORWARD_DEG) were fitted with it there: so its
+# speed runs at 1 and 2 reach the goal in OSHWDEM 2026 (7.82, 6.92 s). There it is 43 mm further on than its firmware
+# counts until a wall's end or a front wall puts it right (its first turns 43 mm late: in the stairs maze and Portugal
+# 2025's final, on the wall at its first turn), and its side sensors' calibration at its exploration's start
+# (floodfill.c, side_sensors_calibration) reads the next cell's walls. With --start wall its run at 2 ends on a post.
 START_AXLE_MM = ROBOT_BACK_LENGTH + 12.0 / 2 + 0.3
+START_BACK_MM = 0.0
 
 # ---- From its Onshape assembly (cad.py): the "Full Assembly" exported as one STEP file into cad/ (not committed)
 CAD_STEP = os.environ.get('ZOROBOT3_STEP', os.path.join(HERE, 'cad', 'Full_Assembly.step'))
