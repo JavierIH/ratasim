@@ -46,6 +46,18 @@ IR_SENSORS = {
     'L': (2, (9.35, 37.35), 150.0),
     'FR': (3, (27.35, 24.4), 80.0),
 }
+# Its side sensors' axes as its robot sees with them: 5 (right) and 3 (left) deg further ahead than its STEP's 30, from
+# its maker's wall-cut test (docs/pillar_cut_design.md 12; logs/20261018-16*_edge_v1000.txt: its side sensors' signal
+# each mm past a lone post, a wall's end, on either side, at 1000 mm/s; at speed 0, 6 mm later, its Edge_V_K). With its
+# PillarEdge's rule (half the last 30 mm's highest) on the simulated signal, robot centred, the five ends fall 3.4 mm
+# (rms) from the real ones; as its STEP has them, 10 to 20 mm late (its firmware, with its Edge_Off measured on the
+# robot, put the borders 20 mm further on than they were and began its turns late). Its maker suspected it: his right
+# one's Edge_Off 7-12 mm more than his left one's, "its sensors' angle or mounting a few degrees off" (1 deg: 2.2 mm).
+# The beam's width and the cosine of incidence hardly move them (1.5 to 4 deg). (The test's left side, as its signal
+# shows it: a wall in cell 1, then lone posts; its doc says a wall in cell 3 too.)
+SIDE_AHEAD_DEG = {'R': 5.0, 'L': 3.0}
+IR_SENSORS['R'] = IR_SENSORS['R'][:2] + (IR_SENSORS['R'][2] + SIDE_AHEAD_DEG['R'],)
+IR_SENSORS['L'] = IR_SENSORS['L'][:2] + (IR_SENSORS['L'][2] - SIDE_AHEAD_DEG['L'],)
 IR_Z_MM = 5.56                  # its emitters' axis over its axle (its photodiodes' 4.6 mm under)
 
 # ---- From its firmware (external/KOGUMA.MkIIl/Core) --------------------------------------------------------------
