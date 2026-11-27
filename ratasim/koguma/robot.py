@@ -26,6 +26,7 @@ import numpy as np
 
 from ..hand import Hand
 from ..ir import Beam, Hits
+from .. import tyre
 from ..maze import E, N, S, W
 from ..model import MM, WALL_GROUP
 from .. import config as RC
@@ -203,9 +204,11 @@ class KRobot:
         table's; a post (12 mm) takes only part of it, as on the robot."""
         out = {}
         R = self.data.site_xmat
+        ahead = self.data.qvel[self.free_dof:self.free_dof + 3] * K.SIDE_LEAD_S      # its velocity's (world)
         for name, (_, _, deg) in K.IR_SENSORS.items():
             sid = self.sites[name]
-            out[name] = IR_BEAM.light(self.hits, self.data.site_xpos[sid], R[sid].reshape(3, 3), deg,
+            origin = self.data.site_xpos[sid] + (ahead if name in ('L', 'R') else 0.0)
+            out[name] = IR_BEAM.light(self.hits, origin, R[sid].reshape(3, 3), deg,
                                       lambda mm, n=name: self.table_counts(n, mm), cosine=False)
         return out
 
@@ -296,6 +299,10 @@ class KRobot:
                 self.data.qpos[self.free_qpos:self.free_qpos + 7] = self.lifted
                 self.data.qvel[self.free_dof:self.free_dof + 6] = 0
             mujoco.mj_step(self.model, self.data)
+            if self.lifted is None:
+                load = K.MASS_KG * tyre.G + K.FAN_DOWNFORCE_N * (fan_v / K.FAN_RATED_V) ** 2
+                tyre.slide(self.model, self.data, self.body, self.free_qpos, self.free_dof, K.MASS_KG, load,
+                           K.TYRE_CORNERING, STEP_NS * 1e-9)
         return self.fw.state
 
     def leds(self):

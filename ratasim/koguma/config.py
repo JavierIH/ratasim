@@ -56,6 +56,11 @@ IR_SENSORS = {
 # The beam's width and the cosine of incidence hardly move them (1.5 to 4 deg). (The test's left side, as its signal
 # shows it: a wall in cell 1, then lone posts; its doc says a wall in cell 3 too.)
 SIDE_AHEAD_DEG = {'R': 5.0, 'L': 3.0}
+# And, as its maker measured in the same test, the faster it goes the earlier its side sensors see the ends: 6 mm a
+# m/s (1000, 2000, 2400 mm/s; every end, either side, their rises too: "not the way they are found: something on the
+# side of the distance or the time; the cause is not known"; its firmware adds it back, Edge_V_K 0.006). Modelled as
+# measured: its side sensors see from where it will be this much later (at speed 0 nothing changes).
+SIDE_LEAD_S = float(os.environ.get('KOGUMA_SIDE_LEAD_S', '0.006'))
 IR_SENSORS['R'] = IR_SENSORS['R'][:2] + (IR_SENSORS['R'][2] + SIDE_AHEAD_DEG['R'],)
 IR_SENSORS['L'] = IR_SENSORS['L'][:2] + (IR_SENSORS['L'][2] - SIDE_AHEAD_DEG['L'],)
 IR_Z_MM = 5.56                  # its emitters' axis over its axle (its photodiodes' 4.6 mm under)
@@ -94,6 +99,8 @@ TIRE_FRICTION = 1.2
 # scrub far more than a rubber tyre, which twists), their friction stiff (MuJoCo's solreffriction: its time
 # constant, its damping ratio): what slips in a turn is a fraction of a degree, its turns' voltages as its logs'
 TYRE_CREEP = (0.002, 1.0)
+# Its tyres sliding sideways in its turns (ratasim/tyre.py): their cornering stiffness, per radian of slip angle.
+TYRE_CORNERING = float(os.environ.get('RATASIM_TYRE_C', '0')) or None
 # Its motors (NFP-D0816S coreless, 8 mm; 5.4 ohm, Define.h MOTORR) at the wheel: torque = K (V - K w) / R, its
 # gears' and fan's losses as friction. Fitted to the voltage its logs need per wheel (docs/next_robot.md: V = 1.25 +
 # 1.5 v + 0.35 a, v in m/s, a in m/s^2): K from the 0.35 (half its mass at the wheel), viscous friction for the rest
