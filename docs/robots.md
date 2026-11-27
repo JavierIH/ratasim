@@ -206,16 +206,17 @@ made from the submodule at build time)
   friction 1.2: its logs turn at 55 to 80 m/s² sideways without slipping, from about 90 with; 2.3 N before let the
   simulated one slip from 30. With its fan on, its logs need 0.93 V a wheel per m/s: the suction's rolling losses, a
   viscous drag of 0.1 N per m/s for each N of downforce on each wheel, which also resists its turns as its logs'
-  turning voltages show. Its tyres' friction stiff (MuJoCo's `solreffriction` 0.002 s, as ZoroBot3's and KOGUMA's).
+  turning voltages show. Its tyres' friction stiff (MuJoCo's `solreffriction` 0.002 s, as ZoroBot3's and KOGUMA's). Its tyres squashed by
+  their load (its makers' runs with its fan take its wheels' radius as 13.1 mm, its search 13.25): 0.015 mm a newton,
+  13.19 at fan 600, and its in-place scrub refitted to its new inertia (its turn around of 180.7 deg turns 179-180):
+  these two, and its suction's drag (0.075), fitted to its runs at medium reaching the goal in every mode (outcomes,
+  within its makers' figures). `ratasim/fujin/fw/fprobe.cpp` gives the simulator its navigation's belief (its distance
+  in a move, its cell) for diagnostics.
 - **Run:** `ratasim fujin --maze oshwdem2026 [--mode slow|medium|fast] [--headless] [--record out.mp4]`: started as
   its makers do, with its two buttons (button 2: search; button 1 held: its speeds, stepped with button 2; held: its
   exploration; held: it waits) and a hand in front of its front sensors, read for 0.4 s; two seconds' beep and it
-  goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 104.1 s, back at 173 s. Medium and
-  fast (its fan on) not yet: after two turns in a row they end 10-16 mm off their cell's centre line and 4 deg off
-  (left then right at (5,7)-(5,8)), where their side sensors read a wall that is there as none (236-244 mm); its
-  search's turns end 3-10 mm wide of the corridor's centre line. With its
-  sensors' references at 180 and 165 (its firmware's before 086fc9e) both reached the goal: their readings 3-7 % lower
-  hid it.
+  goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 104.9 s, back at 174 s; medium (its
+  fan on) the goal in 66.5 s and back. Fast not yet (a wall read as none at (5,8)).
 - **Speed runs:** `--run` (after its search) or `--known` (no search: the maze written in its EEPROM, as its search
   saves it, every wall known): put back in the start cell and started from its menu as its makers do
   (`fsm/states/run.cpp`: from idle, button 2 twice; button 1 held: its run's speeds, button 2 stepping custom, slow,
@@ -223,8 +224,9 @@ made from the submodule at build time)
   hard-coded (a fixed test sequence of its makers'); held: its map, the one saved at its search's end or its backup,
   saved at the goal; held: it waits for a hand). `--run-speed`, `--run-mode`, `--backup`. Its custom speeds come from
   its EEPROM, which its BLE app fills: here it has none, and its run does not start. On the OSHWDEM 2026 maze slow
-  reaches the goal in 21.2 s (diagonals; 21.7 smooth), medium in 9.0 s (diagonals), fast in 6.9 s with one seed of
-  four (the others touch a post at (4,3)); super touches posts on its way.
+  reaches the goal in 21.2 s (diagonals, time; 21.7 smooth), four seeds in four; medium in 9.0 s (diagonals, time,
+  four in four; smooth 9.35 s, three in four: its three turns in a row at (3,4)-(4,3) end 5 mm late with one seed);
+  fast and super end on posts in the south rows (columns 13-15, rows 0-2: chains of 45 deg turns with no walls).
 
 ## KERISE v1
 

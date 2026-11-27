@@ -86,12 +86,20 @@ class FFirmware:
         lib.fsim_console.restype = C.c_uint32
         lib.fsim_eeprom_write.argtypes = [C.c_uint32, C.c_char_p, C.c_uint32]
         lib.fsim_eeprom_read.argtypes = [C.c_uint32, C.c_char_p, C.c_uint32]
+        lib.fsim_nav.argtypes = [C.POINTER(C.c_float)]
+        self._nav = (C.c_float * 6)()
         self._buf = C.create_string_buffer(1 << 16)
         self.state = 0
         lib.fsim_ir_model(*F.IR_MODEL)
         lib.fsim_set_battery(battery_v)
         if not lib.fsim_boot():
             raise RuntimeError('fsim_boot failed')
+
+    def nav(self):
+        """What its navigation believes (diagnostics): its distance in this move (mm), its position in it (x, y mm),
+        its cell (x, y) and its direction (0 N, 1 W, 2 S, 3 E)."""
+        self.lib.fsim_nav(self._nav)
+        return tuple(self._nav)
 
     def close(self):
         try:
@@ -130,6 +138,8 @@ class FRobot:
         self.free_qpos = m.joint('robot').qposadr[0]
         self.free_dof = m.joint('robot').dofadr[0]
         self.wheel_qpos = {s: m.joint(f'wheel_{s}').qposadr[0] for s in 'lr'}
+        self.tyres = [m.geom(f'tire_{s}').id for s in 'lr']
+        self.tyre_size = {g: m.geom_size[g].copy() for g in self.tyres}
         self.wheel_dof = {s: m.joint(f'wheel_{s}').dofadr[0] for s in 'lr'}
         self.act = {s: m.actuator(f'motor_{s}').id for s in 'lr'}
         self.sites = {n: m.site(f'ir_{n}').id for n in F.IR_SENSORS}
@@ -287,6 +297,20 @@ class FRobot:
         drag = (F.ROLL_DRAG + F.ROLL_DRAG_PER_N * self.downforce()) / 2 * (F.WHEEL_RADIUS_MM / 1000) ** 2
         return F.MOTOR_KT * (v - F.MOTOR_KT * w) / F.MOTOR_R_OHM - drag * w
 
+    def _squash(self):
+        """Its tyres squashed by their load (its weight and its fan's downforce, half each): their rolling radius
+        F.TYRE_SQUASH_MM_PER_N less a newton."""
+        load = (F.MASS_KG * 9.81 + self.downforce()) / 2
+        d = F.TYRE_SQUASH_MM_PER_N * load * MM
+        for g in self.tyres:
+            size = self.tyre_size[g].copy()
+            if F.TYRE_ELLIPSOID:
+                size[1] -= d
+                size[2] -= d
+            else:
+                size[0] -= d
+            self.model.geom_size[g] = size
+
     def downforce(self):
         return F.FAN_DOWNFORCE_N * self.fan() ** 2
 
@@ -341,6 +365,7 @@ class FRobot:
             for i, s in enumerate('lr'):
                 self.data.ctrl[self.act[s]] = self._torque(s, self.fw.lib.fsim_motor(i))
             self.data.xfrc_applied[self.body, 2] = -self.downforce()
+            self._squash()
             self.data.xfrc_applied[self.body, 5] = self._scrub()
             if self.lifted is not None:
                 self.data.qpos[self.free_qpos:self.free_qpos + 7] = self.lifted

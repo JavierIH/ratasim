@@ -19,7 +19,7 @@ CXXFLAGS  := -std=gnu++2b -O2 -g -fPIC -w -fno-builtin-printf -U_FORTIFY_SOURCE 
 
 APP := $(FW)/src/main.cpp $(wildcard $(FW)/src/fsm/*.cpp $(FW)/src/fsm/states/*.cpp $(FW)/src/algorithms/*.cpp \
          $(FW)/src/utils/*.cpp $(FW)/src/services/*.cpp)
-OURS := fchip.cpp fbsp.cpp fconsole.cpp
+OURS := fchip.cpp fbsp.cpp fconsole.cpp fprobe.cpp
 OBJS := $(patsubst $(FW)/src/%.cpp,$(OBJ)/app/%.o,$(APP)) $(patsubst %.cpp,$(OBJ)/%.o,$(OURS))
 HEADERS := $(wildcard $(FW)/inc/*/*.hpp) fsim.h Makefile
 

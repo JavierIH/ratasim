@@ -18,7 +18,7 @@ it).
 The full check (--full) is the whole run, as before: it fails when the firmware does not build, stops, or the robot
 does not do its run (Ratatron: the search to the goal and back, then race 2.4 on its map; ZoroBot3: its exploration
 to the goal and back, then its speed run at speed 5 to the goal, its makers' menu; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
-the goal and back, and its slow and medium speed runs (--known) to the goal; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
+the goal and back, slow and medium, and its slow and medium speed runs (--known) to the goal; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
 following, away from the start; Gamusino: its 1.62 m ahead and its 180 deg turn; Futura: its controller sample's cells and pivots, up
 to the maze's north rows; Miniskybot: through 10 cells, not toppled; KERISE v1: its search to the goal and back
 to its start cell; KOGUMA: its search to the goal and back to its start cell, its fail-safe not tripped). Wall touches as in the short check. The stopwatch's times are reported;
@@ -354,6 +354,12 @@ def fujin(full):
     out = run(['fujin', '--headless', '--maze', MAZE, '--known', '--run-speed', 'medium', '--run-mode', 'diagonals'])
     if not goal_times(out):
         fails.append('its speed run (--known, medium, diagonals) not at the goal')
+    out = run(['fujin', '--headless', '--maze', MAZE, '--max-s', '400', '--mode', 'medium'])
+    pose = common(out, fails, clean=False)
+    if not goal_times(out):
+        fails.append('its medium search: the goal not reached')
+    elif 'its search over' not in out or far_from(pose, (90, 90), 120):
+        fails.append(f'its medium search: not back at the start ({pose})')
     return fails
 
 

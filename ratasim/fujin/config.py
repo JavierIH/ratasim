@@ -83,6 +83,12 @@ BATTERY_V = 12.0
 # a friction of 1.1 to 1.3.
 TIRE_FRICTION = 1.2
 TYRE_ELLIPSOID = False
+# Its tyres squashed by their load: its makers' run parameters with its fan at 600 take its wheels' radius as 13.1 mm,
+# its search's without it 13.25 (utils/movement_params.cpp); the simulated rigid tyres rolled at 13.24 with it, 1.1 %
+# farther than its odometry counted. 0.04 mm a newton (0.15 mm at its 3.7 N a tyre) gives its 13.1; 0.015 (13.19) is
+# what its runs at medium reach the goal with in every mode (0.03 and more: its diagonal runs end on post (14,1);
+# 0: its smooth ones at the goal's entrance): fitted to outcomes, between its makers' two radii.
+TYRE_SQUASH_MM_PER_N = 0.015
 # Its tyres' friction stiff (MuJoCo's solreffriction: time constant, damping ratio), as ZoroBot3's and KOGUMA's; with
 # MuJoCo's default (its contact's 4 ms) they creep sideways in a turn.
 TYRE_CREEP = (0.002, 1.0)
@@ -95,9 +101,11 @@ MOTOR_R_OHM = 0.44
 WHEEL_FRICTION_NM = 0.13 * 2.5 / MOTOR_R_OHM * MOTOR_KT
 WHEEL_ARMATURE = 2e-7       # the motor's rotor through its 68:9 gears, at the wheel (kg m^2)
 # Its tyres' scrub turning in place, for which its firmware gives each wheel 0.12 A more (its in-place Coulomb
-# feed-forward, GeneralParams; 0.01 A in its arcs): a yaw torque against the turn, fading as it rolls forward. 0.08 A
-# of it at the wheels: its turn around (a time profile of 180.7 degrees, tracked by its gyro) then turns 180.5.
-SCRUB_NM = 2 * 0.08 * 2.5 / MOTOR_R_OHM * MOTOR_KT / (WHEEL_RADIUS_MM / 1000) * 0.035
+# feed-forward, GeneralParams; 0.01 A in its arcs): a yaw torque against the turn, fading as it rolls forward. Fitted as
+# before, to its turn around (a time profile of 180.7 degrees, tracked by its gyro): at its yaw inertia below it turns
+# 179.7 (slow search) and 179.0 (medium). 0.0197 N m, fitted with the old inertia (1.35e-4), left them 4 deg short:
+# its medium search, after a dead end at (4,10), lost a wall at (5,8). 0.004 and less: past 180, its slow search lost.
+SCRUB_NM = 0.008
 SCRUB_SPEED = 0.05          # m/s
 # Its yaw inertia, from its makers' logs: their turns follow their profile with no lag (at 1.25 m/s, 19 rad/s, its
 # turns' voltages ramp up with the profile); at 1.35e-4 (assumed before: a uniform board's) the simulated one lagged
@@ -107,7 +115,7 @@ YAW_INERTIA = 5.5e-5
 # motors' model): the suction's rolling losses, viscous, a share of its downforce (N per m/s for each N). The same
 # drag on each wheel resists its turns (its logs' turns' voltages).
 ROLL_DRAG = 0.0             # N per m/s, without its fan
-ROLL_DRAG_PER_N = 0.1       # N per m/s more for each N of its fan's downforce
+ROLL_DRAG_PER_N = 0.075     # N per m/s more for each N of its fan's downforce (0.07-0.08 reach; its logs' regression 0.1)
 # Its fan's downforce at its rated 10 V, quadratic in the voltage: its web page's 650 gf (6.4 N) at its runs' fan 600
 # (6 V; fan_speed 600 of 1000 of its 10 V), as its grip in its logs needs.
 FAN_DOWNFORCE_N = 6.4 / 0.6 ** 2
