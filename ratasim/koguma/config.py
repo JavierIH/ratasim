@@ -108,6 +108,7 @@ TIRE_FRICTION = 1.2
 TYRE_CREEP = (0.002, 1.0)
 # Its tyres sliding sideways in its turns (ratasim/tyre.py): their cornering stiffness, per radian of slip angle.
 TYRE_CORNERING = float(os.environ.get('RATASIM_TYRE_C', '0')) or None
+TYRE_ALONG = float(os.environ.get('RATASIM_TYRE_CX', '0')) or None
 # Its motors (NFP-D0816S coreless, 8 mm; 5.4 ohm, Define.h MOTORR) at the wheel: torque = K (V - K w) / R, its
 # gears' and fan's losses as friction. Fitted to the voltage its logs need per wheel (docs/next_robot.md: V = 1.25 +
 # 1.5 v + 0.35 a, v in m/s, a in m/s^2): K from the 0.35 (half its mass at the wheel), viscous friction for the rest

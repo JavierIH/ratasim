@@ -18,6 +18,7 @@ from . import config as Z
 from . import model
 from ..hand import Hand
 from ..ir import Beam, Hits
+from .. import tyre
 from ..model import MM, WALL_GROUP
 from ..start import back_mm, cell_pose
 
@@ -285,6 +286,8 @@ class ZRobot:
         self.fan = fan
         self.data.xfrc_applied[self.body, 2] = -Z.FAN_DOWNFORCE_N * fan * fan
         mujoco.mj_step(self.model, self.data, nstep=2)
+        tyre.slide(self.model, self.data, self.body, self.free_qpos, self.free_dof, Z.MASS_KG,
+                   Z.MASS_KG * tyre.G + Z.FAN_DOWNFORCE_N * fan * fan, Z.TYRE_CORNERING, 0.001)
         return self.fw.state
 
     def pose(self):

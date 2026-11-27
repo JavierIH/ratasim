@@ -93,6 +93,8 @@ TYRE_SQUASH_MM_PER_N = 0.015
 # Its tyres' friction stiff (MuJoCo's solreffriction: time constant, damping ratio), as ZoroBot3's and KOGUMA's; with
 # MuJoCo's default (its contact's 4 ms) they creep sideways in a turn.
 TYRE_CREEP = (0.002, 1.0)
+# Its tyres sliding sideways in its turns (ratasim/tyre.py): their cornering stiffness, per radian of slip angle.
+TYRE_CORNERING = float(os.environ.get('RATASIM_TYRE_C', '0')) or None
 # Its motors at the wheel: torque = KT * (V - KT * w) / R. Fitted to its control loop's feed-forward (its search's
 # GeneralParams, in volts through its own motor model, control.cpp: amps times its 2.5 ohm): 0.62 V per m/s,
 # 0.0375 V per m/s^2, 0.0014 V per rad/s^2 of turn (with YAW_INERTIA below); its gears' friction, the 0.13 A

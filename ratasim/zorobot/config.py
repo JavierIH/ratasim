@@ -82,6 +82,8 @@ TIRE_FRICTION = 1.1
 # its time constant, its damping ratio). With the default soft friction its tyres crept sideways at 0.23 m/s in its
 # speed runs' turns (6 deg of slip at 60 % of their grip), every turn ending 20-40 mm wide of its cell's centre.
 TYRE_CREEP = (0.002, 1.0)
+# Its tyres sliding sideways in its turns (ratasim/tyre.py): their cornering stiffness, per radian of slip angle.
+TYRE_CORNERING = float(os.environ.get('RATASIM_TYRE_C', '0')) or None
 FAN_DOWNFORCE_N = 7.5                           # at 100 % duty, quadratic in it: its makers' 350-400 g at 70 %
 
 

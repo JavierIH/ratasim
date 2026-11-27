@@ -301,8 +301,9 @@ class KRobot:
             mujoco.mj_step(self.model, self.data)
             if self.lifted is None:
                 load = K.MASS_KG * tyre.G + K.FAN_DOWNFORCE_N * (fan_v / K.FAN_RATED_V) ** 2
+                push = sum(self.data.ctrl[self.act[w]] for w in 'lr') / (K.WHEEL_RADIUS_MM / 1000)
                 tyre.slide(self.model, self.data, self.body, self.free_qpos, self.free_dof, K.MASS_KG, load,
-                           K.TYRE_CORNERING, STEP_NS * 1e-9)
+                           K.TYRE_CORNERING, STEP_NS * 1e-9, push, K.TYRE_ALONG)
         return self.fw.state
 
     def leds(self):

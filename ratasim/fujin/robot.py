@@ -24,6 +24,7 @@ from .. import config as RC
 from .. import maze as MZ
 from ..hand import Hand
 from ..ir import Hits
+from .. import tyre
 from ..model import MM, WALL_GROUP
 from ..start import back_mm
 from . import config as F
@@ -339,6 +340,9 @@ class FRobot:
                 self.data.qpos[self.free_qpos:self.free_qpos + 7] = self.lifted
                 self.data.qvel[self.free_dof:self.free_dof + 6] = 0
             mujoco.mj_step(self.model, self.data)
+            if self.lifted is None:
+                tyre.slide(self.model, self.data, self.body, self.free_qpos, self.free_dof, F.MASS_KG,
+                           F.MASS_KG * tyre.G + self.downforce(), F.TYRE_CORNERING, STEP_NS * 1e-9)
         return self.fw.state
 
     def led(self):

@@ -113,6 +113,8 @@ IR_NOISE = 0.7                                  # counts, gaussian (its ADC: abo
 # A rechargeable PP3 (8.4 V), two N20 gearmotors with encoders, its boards, an Arduino Nano, printed brackets and
 # skids: about 135 g; its centre of mass a little behind its axle (the battery), over its rear skid.
 MASS_KG = 0.135
+# Its tyres sliding sideways in its turns (ratasim/tyre.py): their cornering stiffness, per radian of slip angle.
+TYRE_CORNERING = float(os.environ.get('RATASIM_TYRE_C', '0')) or None
 COM_MM = (0.0, -3.0, 18.0)
 BATTERY_V = 8.4
 TIRE_FRICTION = 1.0
