@@ -9,8 +9,8 @@ For comparing the simulator's changes on more than one maze (a change that helps
 Each run is one robot's command (RUNS below, as its makers start it; ratasim ROBOT --help) with --headless, --maze and
 --max-s, its log in OUT_DIR/ROBOT__MAZE__RUN[__sSEED].log; OUT_DIR/summary.csv, one row a run. The mazes default to
 MAZES: the OSHWDEM 2026 one, the test mazes of ratasim/mazes (a spiral: straights and 90 deg turns between walls;
-stairs: a diagonal; practice_E: an open field, turns with no walls to correct on) and two classic competition ones
-(external/mazefiles: Portugal 2025's final, All Japan 2025's expert final).
+stairs: a diagonal) and two classic competition ones (external/mazefiles: Portugal 2025's final, All Japan 2025's
+expert final). (practice_E and practice_F are Ratatron's practice field: their goal, 3,2, is not the centre.)
 """
 import argparse
 import csv
@@ -23,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from . import paths
 
-MAZES = ['oshwdem2026', 'spiral', 'stairs', 'practice_E', 'Portugal-2025-Final', 'alljapan-046-2025-exp-fin']
+MAZES = ['oshwdem2026', 'spiral', 'stairs', 'Portugal-2025-Final', 'alljapan-046-2025-exp-fin']
 
 # Each robot's runs: (name, its command's options, simulated seconds at most, takes --seed). The ones that reach the
 # goal: their searches and their speed runs at each speed.
@@ -32,6 +32,8 @@ RUNS = {
     'zorobot': [(f'run{s}', ['--run', '--speed', str(s)], 500, True) for s in (1, 2, 3, 4, 5)],
     'koguma': [(f'n{n}', ['--number', str(n)], 500, True) for n in (1, 4, 8, 9, 10)],
     'fujin': [(f'search-{m}', ['--mode', m], 400, True) for m in ('slow', 'medium', 'fast')]
+             + [(f'run-{s}', ['--run', '--mode', 'medium', '--run-speed', s, '--run-mode', 'diagonals'], 500, True)
+                for s in ('slow', 'medium')]
              + [(f'known-{s}-{k}', ['--known', '--run-speed', s, '--run-mode', k], 90, True)
                 for s in ('slow', 'medium', 'fast', 'super') for k in ('diagonals', 'smooth')],
     'kerise': [('search', [], 300, True)],
@@ -113,12 +115,17 @@ def table(rows):
     return '\n'.join(lines)
 
 
+def wanted(name, runs):
+    names = runs.split(',')
+    return not runs or name in names or (len(names) == 1 and runs in name)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('out')
     p.add_argument('--robots', default='zorobot,koguma,fujin')
     p.add_argument('--mazes', default=','.join(MAZES))
-    p.add_argument('--runs', default='', help='only the runs whose name has this in it')
+    p.add_argument('--runs', default='', help='only these runs: names, comma separated, or a part of one')
     p.add_argument('--seeds', default='', help='seeds, comma separated (robots that take --seed)')
     p.add_argument('--workers', type=int, default=max(1, (os.cpu_count() or 2) - 2))
     p.add_argument('--table', action='store_true', help='only print the table of OUT/summary.csv')
@@ -137,7 +144,7 @@ def main():
     seeds = [int(s) for s in a.seeds.split(',')] if a.seeds else [None]
     jobs = [(robot, maze, name, args, max_s, seed if seeded else None)
             for robot in a.robots.split(',') for maze in a.mazes.split(',')
-            for name, args, max_s, seeded in RUNS[robot] if a.runs in name
+            for name, args, max_s, seeded in RUNS[robot] if wanted(name, a.runs)
             for seed in (seeds if seeded else [None])]
     jobs = list(dict.fromkeys((j[0], j[1], j[2], tuple(j[3]), j[4], j[5]) for j in jobs))
     jobs.sort(key=lambda j: -j[4])      # the long ones first
