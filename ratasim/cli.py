@@ -18,6 +18,7 @@
     ratasim crash|loop OUT.mp4 [options]   scenes with Ratatron and ZoroBot3 (videos)
     ratasim portraits [DIR]         a square picture of each robot
     ratasim mazes [PATTERN] [--show NAME]   the mazes --maze takes by name (525 classic competition ones)
+    ratasim matrix OUT_DIR [--robots a,b] [--mazes a,b]   robots x mazes x their runs: at the goal, times, touches
     ratasim help                    this
 
 ratasim ROBOT --help: its modes (explore, race, speeds ...) and its options; no simulation.
@@ -55,6 +56,7 @@ COMMANDS = {     # batch ... real-ir: Ratatron's studies, its maker's tools (doc
     'minisumo': 'ratasim.scenes.minisumo',
     'portraits': 'ratasim.scenes.portraits',
     'mazes': 'ratasim.mazes',
+    'matrix': 'ratasim.matrix',
 }
 
 
