@@ -121,7 +121,14 @@ ratasim mazes                        # every name; ratasim mazes japan: the ones
 ratasim mazes --show japan2000       # one drawn
 ratasim kerise --maze japan2000
 ratasim batch out $(ratasim mazes --paths 'alljapan-*')   # Ratatron over many
+ratasim matrix out --robots zorobot,koguma,fujin --mazes oshwdem2026,apec2026   # robots x mazes x their runs
 ```
+
+`ratasim matrix` runs robots' searches and speed runs (at each of their speeds) in several mazes at once and makes a
+table of which reach the goal, in what time, and where they first touch a wall: a change to the simulator that helps
+in one maze only is a fit to that maze. Every robot is put down in its start cell as its makers put it down; `--start
+wall|centre|MM` puts it elsewhere (its tail against the back wall, its axle on the cell's middle, or its axle MM ahead
+of the middle).
 
 ### Running Ratatron
 
@@ -282,7 +289,10 @@ per robot:
 ```sh
 python tests/robots.py [robot ...]           # short: builds, starts, runs and leaves the start cell
 python tests/robots.py --full [robot ...]    # full: each robot's whole run (slower, for local use)
+python tests/robots.py --maze NAME [robot ...]   # any check in another maze
 ```
+
+The full check also runs the searches of the robots that reach the goal in a second maze, OSHWDEM 2019's.
 
 ## Scenes
 
