@@ -7,6 +7,7 @@ import math
 import os
 
 from .. import paths
+from ..ir import Beam
 
 FUJIN_DIR = os.environ.get('FUJIN_DIR', os.path.join(paths.EXTERNAL, 'fujin'))
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -122,15 +123,14 @@ FAN_DOWNFORCE_N = 6.4 / 0.6 ** 2
 # Its IR sensors: a reading's noise (mm); the ADC counts of a reading (the firmware's conversion, mm =
 # a / ln(raw + c) - b, both ways: fw/fbsp.cpp)
 IR_NOISE_MM = 0.8
-# What each sensor sees (robot.py, ir_mm): its emitter's spot (SFH 4550, +-3 deg at half intensity: a Gaussian of
+# What each sensor sees (robot.py, ir_mm; ratasim/ir.py, the same for every robot): its emitter's spot (SFH 4550, +-3 deg at half intensity: a Gaussian of
 # 2.5 deg; its receiver, a phototransistor its schematic does not name, is assumed wider) as seven rays across it, each
 # ray's light (its firmware's raw counts at its length) times the cosine of its incidence over its calibration's,
 # summed: the share of the spot a wall, a wall's end or a post takes, and a face at a slant returns less. Across only
-# (the spot's height: a wall fills it; the floor's share is in its calibration). Without the cosine (three rays'
-# lengths, a harmonic mean: 'harmonic') a far wall at a slant read as near as a square one (its search saw walls that
+# (the spot's height: a wall fills it; the floor's share is in its calibration). Without the cosine (before: three rays'
+# lengths, a harmonic mean) a far wall at a slant read as near as a square one (its search saw walls that
 # were not there); at 1.5 deg (fitted to outcomes before) its side sensors saw wall ends late.
-IR_BEAM = 'light'
-IR_RAYS = tuple((d, math.exp(-0.5 * (d / 2.5) ** 2)) for d in (-6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0))
+IR_BEAM = Beam(2.5, offsets=(-6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0))
 IR_MODEL = (4000.0, 440.0, 0.0)
 # Its LSM6DSR: the real bias off the one its firmware subtracts, the noise at its 2.1 kHz.
 GYRO_BIAS_DPS = GYRO_BIAS_SET_DPS + 0.03

@@ -18,6 +18,7 @@ from . import config as Z
 from . import model
 from .. import config as RC
 from ..hand import Hand
+from ..ir import Beam, Hits
 from ..model import MM, WALL_GROUP
 from ..start import back_mm, cell_pose
 
@@ -30,8 +31,7 @@ IR_FAR_MM = 400.0
 # search's map then wrong (4 searches in 12 reached the goal; with 1.25, 6 in 6).
 # In its diagonals its front sensors read the posts (12 mm) beside them: three rays read them in steps.
 IR_SIGMA_DEG = float(os.environ.get('ZOROBOT_IR_SIGMA', '1.25'))
-IR_RAYS = tuple((k * IR_SIGMA_DEG / 1.5, math.exp(-(k / 1.5) ** 2 / 2)) for k in (-3, -2, -1, 0, 1, 2, 3))
-IR_RAYS_WEIGHT = sum(w for _, w in IR_RAYS)
+IR_BEAM = Beam(IR_SIGMA_DEG)
 ADC_LSB = 3.3 / 4096
 VOLT_DIV_A = 3.96           # battery.c, robot version A (the simulated chip's UID)
 BUTTON_RAW = {None: 0, 'up': 1500, 'mode': 2500, 'down': 3900}
@@ -184,9 +184,7 @@ class ZRobot:
         self.wheel_dof = {s: m.joint(f'wheel_{s}').dofadr[0] for s in 'lr'}
         self.act = {s: m.actuator(f'motor_{s}').id for s in 'lr'}
         self.sites = {n: m.site(f'ir_{n}').id for n in Z.IR_SENSORS}
-        self.ray_group = np.zeros(6, np.uint8)
-        self.ray_group[WALL_GROUP] = 1
-        self.ray_geom = np.zeros(1, np.int32)
+        self.hits = Hits(m, self.data, WALL_GROUP, self.body, IR_FAR_MM)
         self.r = Z.WHEEL_RADIUS_MM * MM
         # its start: its tail against the back wall (Z.START_AXLE_MM), or where --start puts it
         x, y = cell_pose((0, 0), 0.0, back_mm(m, self.data, self.body, RC.CELL_MM / 2 - Z.START_AXLE_MM))
@@ -223,21 +221,6 @@ class ZRobot:
         rot = self.data.site_xmat[sid].reshape(3, 3)
         return self.data.site_xpos[sid].copy(), rot @ np.array([math.cos(deg), math.sin(deg), 0.0])
 
-    def _ray(self, origin, direction):
-        d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
-        return d / MM if d >= 0 else IR_FAR_MM
-
-    def _hit(self, origin, direction):
-        """The beam's length to the first wall or post (mm) and the cosine between it and that face's normal."""
-        d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
-        if d < 0:
-            return IR_FAR_MM, 1.0
-        g = self.ray_geom[0]
-        rot = self.data.geom_xmat[g].reshape(3, 3)
-        local = rot.T @ (origin + direction * d - self.data.geom_xpos[g])
-        k = int(np.argmax(np.abs(local) / self.model.geom_size[g]))       # the box's face it hits
-        return d / MM, abs(float(rot[:, k] @ direction))
-
     def _counts(self, name, beam):
         """Emitter-on minus emitter-off counts for a wall square to its calibration's at this beam length (mm): the
         inverse of the firmware's own conversion, for the distance its calibration means (fronts: from the axle to a
@@ -250,23 +233,18 @@ class ZRobot:
         return max(0.0, math.exp(min(a_ / (d + b_), 9.0)) - c_)
 
     def ir_signals(self, noise=True):
-        """Each sensor's reading: its emitter's spot as IR_RAYS rays across it, each one's light at the length it
-        reaches a wall or post, times the cosine of its incidence over the one its calibration had (fronts: a wall
-        ahead; sides: the side wall), weighted. A post takes part of the spot, a face at a slant returns less."""
+        """Each sensor's reading: its spot's light (ratasim/ir.py, IR_BEAM), each ray's the counts its calibration
+        gives at its length, the cosine of its incidence over its calibration's (fronts: a wall ahead; sides: the side
+        wall)."""
         sig = []
         R = self.data.site_xmat
         for name, (_, _, deg) in Z.IR_SENSORS.items():
             sid = self.sites[name]
-            p = self.data.site_xpos[sid]
-            rot = R[sid].reshape(3, 3)
             a0 = math.radians(deg)
             cal_cos = abs(math.sin(a0)) if name in ('FL', 'FR') else abs(math.cos(a0))
-            total = 0.0
-            for spread, w in IR_RAYS:
-                a = a0 + math.radians(spread)
-                beam, cos = self._hit(p, rot @ np.array([math.cos(a), math.sin(a), 0.0]))
-                total += w * self._counts(name, beam) * cos / cal_cos
-            sig.append(total / IR_RAYS_WEIGHT * (1.0 + (self.rng.gauss(0.0, 0.004) if noise else 0.0)))
+            total = IR_BEAM.light(self.hits, self.data.site_xpos[sid], R[sid].reshape(3, 3), deg,
+                                  lambda mm, n=name: self._counts(n, mm), cal_cos)
+            sig.append(total * (1.0 + (self.rng.gauss(0.0, 0.004) if noise else 0.0)))
         return sig
 
     def encoders(self):

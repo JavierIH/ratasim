@@ -23,6 +23,7 @@ import numpy as np
 from .. import config as RC
 from .. import maze as MZ
 from ..hand import Hand
+from ..ir import Hits
 from ..model import MM, WALL_GROUP
 from ..start import back_mm
 from . import config as F
@@ -30,7 +31,6 @@ from . import model
 
 FW_DIR = os.path.join(F.HERE, 'fw')
 LIB = os.path.join(F.BUILD, 'libfujinfw.so')
-IR_SPREAD_DEG = 2.5
 STEP_NS = 500000
 
 
@@ -145,9 +145,7 @@ class FRobot:
         self.act = {s: m.actuator(f'motor_{s}').id for s in 'lr'}
         self.sites = {n: m.site(f'ir_{n}').id for n in F.IR_SENSORS}
         self.hulls = {i for i in range(m.ngeom) if m.geom(i).name.startswith('hull')}
-        self.ray_group = np.zeros(6, np.uint8)
-        self.ray_group[WALL_GROUP] = 1
-        self.ray_geom = np.zeros(1, np.int32)
+        self.hits = Hits(m, self.data, WALL_GROUP, self.body)
         self.r = F.WHEEL_RADIUS_MM * MM
         self.battery_v = battery_v
         self.ir_scale = self._ir_scales()
@@ -236,53 +234,22 @@ class FRobot:
         rot = self.data.site_xmat[sid].reshape(3, 3)
         return self.data.site_xpos[sid].copy(), rot @ np.array([math.cos(deg), math.sin(deg), 0.0])
 
-    def _ray(self, origin, direction):
-        d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
-        return d / MM if d >= 0 else 1000.0
-
-    def _hit(self, origin, direction):
-        """A ray's length to the first wall or post (mm) and the cosine between it and that face's normal."""
-        d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
-        if d < 0:
-            return 1000.0, 1.0
-        g = self.ray_geom[0]
-        rot = self.data.geom_xmat[g].reshape(3, 3)
-        local = rot.T @ (origin + direction * d - self.data.geom_xpos[g])
-        k = int(np.argmax(np.abs(local) / self.model.geom_size[g]))       # the box's face it hits
-        return d / MM, abs(float(rot[:, k] @ direction))
-
     def ir_mm(self):
-        """Each sensor's reading (its firmware's mm), noise in. F.IR_BEAM 'light': its emitter's spot as rays
-        (F.IR_RAYS: angle, weight), each one's light (its firmware's raw counts at its length, through its own
-        conversion) times the cosine of its incidence over its calibration's (fronts: a wall ahead; sides: the side
-        wall with the robot centred), summed, back to mm: a post takes part of the spot, a face at a slant returns
-        less. 'harmonic': three rays' lengths, their harmonic mean."""
+        """Each sensor's reading (its firmware's mm), noise in: its spot's light (ratasim/ir.py; F.IR_BEAM), each
+        ray's its firmware's raw counts at its length through its own conversion, the cosine of its incidence over
+        its calibration's (fronts: a wall ahead; sides: the side wall with the robot centred); back to mm."""
         out = {}
         R = self.data.site_xmat
         a_, b_, c_ = F.IR_MODEL
         for name, (_, _, deg) in F.IR_SENSORS.items():
             sid = self.sites[name]
-            p = self.data.site_xpos[sid]
-            rot = R[sid].reshape(3, 3)
-            if F.IR_BEAM == 'light':
-                a0 = math.radians(deg)
-                cal_cos = abs(math.sin(a0)) if name in ('FL', 'FR') else abs(math.cos(a0))
-                raw = wsum = 0.0
-                for spread, w in F.IR_RAYS:
-                    a = a0 + math.radians(spread)
-                    beam, cos = self._hit(p, rot @ np.array([math.cos(a), math.sin(a), 0.0]))
-                    mm = beam * self.ir_scale[name]
-                    raw += w * math.exp(a_ / (mm + b_)) * cos / cal_cos
-                    wsum += w
-                raw = max(raw / wsum - c_, 1.0001)
-                reading = a_ / math.log(raw + c_) - b_ + self.rng.gauss(0.0, F.IR_NOISE_MM)
-            else:
-                inv = 0.0
-                for spread in (-IR_SPREAD_DEG, 0.0, IR_SPREAD_DEG):
-                    a = math.radians(deg + spread)
-                    v = rot @ np.array([math.cos(a), math.sin(a), 0.0])
-                    inv += 1.0 / max(self._ray(p, v), 1.0)
-                reading = 3.0 / inv * self.ir_scale[name] + self.rng.gauss(0.0, F.IR_NOISE_MM)
+            a0 = math.radians(deg)
+            cal_cos = abs(math.sin(a0)) if name in ('FL', 'FR') else abs(math.cos(a0))
+            scale = self.ir_scale[name]
+            raw = F.IR_BEAM.light(self.hits, self.data.site_xpos[sid], R[sid].reshape(3, 3), deg,
+                                  lambda mm: math.exp(a_ / (mm * scale + b_)), cal_cos)
+            raw = max(raw - c_, 1.0001)
+            reading = a_ / math.log(raw + c_) - b_ + self.rng.gauss(0.0, F.IR_NOISE_MM)
             out[name] = min(max(reading, 5.0), F.IR_MAX_MM + 50)
         return out
 
