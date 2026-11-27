@@ -38,6 +38,9 @@ def main(argv=None):
     p.add_argument('--run-speed', default='slow', choices=F.RUN_SPEEDS)
     p.add_argument('--run-mode', default='smooth', choices=F.RUN_MODES)
     p.add_argument('--backup', action='store_true', help='its run on the map it saved at the goal')
+    p.add_argument('--dump-log', metavar='TXT',
+                   help="after its run, its Logger's record of it (button 1 held in idle: its print_log, as its "
+                        "makers' logs in external/fujin/scripts/logs) written here")
     p.add_argument('--known', action='store_true',
                    help='no search: the maze written in its EEPROM (every wall known), then its run (--run)')
     add_view_args(p)
@@ -56,7 +59,11 @@ def main(argv=None):
     crash_t = -10000
     state = {'now': None, 'searched': False, 'over': False, 'ran': False, 'run_over': False}
 
+    dump = []
+
     def firmware_said(text):
+        if state['run_over'] and a.dump_log:
+            dump.append(text)
         for line in text.splitlines():
             if log:
                 log.write(f'[{r.fw.time_ms() / 1000:8.3f}] {line}\n')
@@ -127,6 +134,16 @@ def main(argv=None):
             if not run(500):
                 break
         run(1000, fast=True)
+        if a.dump_log and state['run_over']:
+            dump.clear()
+            r.press(1, 900)
+            quiet = 0
+            while quiet < 3 and run(1000, fast=True):     # until it has printed it all
+                quiet = 0 if dump and dump[-1] is not None else quiet + 1
+                dump.append(None)
+            with open(a.dump_log, 'w') as f:
+                f.write(''.join(t for t in dump if t).replace('\r', ''))
+            print(f'its log written to {a.dump_log}')
     print(f'end: {r.fw.time_ms() / 1000:.1f} s simulated in {time.monotonic() - t0:.0f} s, pose {[round(v) for v in r.pose()]}')
     if rec:
         rec.close()

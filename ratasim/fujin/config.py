@@ -35,6 +35,15 @@ IR_SENSORS = {
     'FR': (2, (32.1, 29.9), 85.6),
     'L': (3, (14.9, 38.2), 140.0),
 }
+# Its side sensors turned this much ahead of the STEP's axes (0: as in it). Where its runs correct their odometry at a
+# side wall's end (navigation.cpp, apply_wall_break_correction: the distance there set to cells x 180 + its
+# start_wall_break_mm, tuned on the robot), its makers' logs (external/fujin/scripts/logs, fan 600) find it off by -3
+# mm on average (-18 to +22); the simulated one, by +11 to +18 at the STEP's axes (it sees a wall's end late), -4 to +4
+# at 3 deg. But at 3 deg its slow search reads a wall where there is none and goes home without the goal (as ZoroBot3's
+# search did with its side sensors turned): a single ray, turned, is not what a real beam does at a wall's end.
+SIDE_FORWARD_DEG = 0.0
+IR_SENSORS['R'] = IR_SENSORS['R'][:2] + (IR_SENSORS['R'][2] + SIDE_FORWARD_DEG,)
+IR_SENSORS['L'] = IR_SENSORS['L'][:2] + (IR_SENSORS['L'][2] - SIDE_FORWARD_DEG,)
 IR_Z_MM = 3.0 - AXLE_IN_STEP_MM[2]
 START_BACK_MM = 13.5        # its tail against the start cell's back wall (its firmware counts 14.5: 6 mm walls)
 
@@ -53,7 +62,14 @@ GYRO_BIAS_SET_DPS = -0.4905     # its z gyro's bias (config.cpp: z_imu_bias), su
 MASS_KG = 0.105
 COM_MM = (0.0, -6.0, 6.0)
 BATTERY_V = 12.0
-TIRE_FRICTION = 1.0
+# Its tyres' grip: what its makers' logs (fan 600) turn at without slipping (its encoders' and gyro's turn rates within
+# 0.4 rad/s of each other): 55 to 80 m/s^2 sideways, slipping from about 90; at its 6.4 N of suction (below) that is
+# a friction of 1.1 to 1.3.
+TIRE_FRICTION = 1.2
+TYRE_ELLIPSOID = False
+# Its tyres' friction stiff (MuJoCo's solreffriction: time constant, damping ratio), as ZoroBot3's and KOGUMA's; with
+# MuJoCo's default (its contact's 4 ms) they creep sideways in a turn.
+TYRE_CREEP = (0.002, 1.0)
 # Its motors at the wheel: torque = KT * (V - KT * w) / R. Fitted to its control loop's feed-forward (its search's
 # GeneralParams, in volts through its own motor model, control.cpp: amps times its 2.5 ohm): 0.62 V per m/s,
 # 0.0375 V per m/s^2, 0.0014 V per rad/s^2 of turn (with YAW_INERTIA below); its gears' friction, the 0.13 A
@@ -67,8 +83,18 @@ WHEEL_ARMATURE = 2e-7       # the motor's rotor through its 68:9 gears, at the w
 # of it at the wheels: its turn around (a time profile of 180.7 degrees, tracked by its gyro) then turns 180.5.
 SCRUB_NM = 2 * 0.08 * 2.5 / MOTOR_R_OHM * MOTOR_KT / (WHEEL_RADIUS_MM / 1000) * 0.035
 SCRUB_SPEED = 0.05          # m/s
-YAW_INERTIA = 1.35e-4       # kg m^2: its mass near the axle (motors, gears, fan)
-FAN_DOWNFORCE_N = 6.4       # at its fan's rated 10 V; quadratic in the voltage
+# Its yaw inertia, from its makers' logs: their turns follow their profile with no lag (at 1.25 m/s, 19 rad/s, its
+# turns' voltages ramp up with the profile); at 1.35e-4 (assumed before: a uniform board's) the simulated one lagged
+# 4 ms behind, its firmware's PI wound up and its turns ended 5 to 11 % past (theirs 0 to 4 %).
+YAW_INERTIA = 5.5e-5
+# Its losses with its fan on: its makers' logs at fan 600 need 0.93 V a wheel per m/s (0.54 to 0.6 without it, as its
+# motors' model): the suction's rolling losses, viscous, a share of its downforce (N per m/s for each N). The same
+# drag on each wheel resists its turns (its logs' turns' voltages).
+ROLL_DRAG = 0.0             # N per m/s, without its fan
+ROLL_DRAG_PER_N = 0.1       # N per m/s more for each N of its fan's downforce
+# Its fan's downforce at its rated 10 V, quadratic in the voltage: its web page's 650 gf (6.4 N) at its runs' fan 600
+# (6 V; fan_speed 600 of 1000 of its 10 V), as its grip in its logs needs.
+FAN_DOWNFORCE_N = 6.4 / 0.6 ** 2
 # Its IR sensors: a reading's noise (mm); the ADC counts of a reading (the firmware's conversion, mm =
 # a / ln(raw + c) - b, both ways: fw/fbsp.cpp)
 IR_NOISE_MM = 0.8

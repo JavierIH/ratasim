@@ -186,26 +186,35 @@ made from the submodule at build time)
   165 mm right; its mm are not the beam's), the front ones the beam. Its firmware's side sensor angle (56.5 deg, for
   its lateral corrections, which it leaves off) is not the STEP's: with it the side sensors would read, entering a
   cell, the walls of the next one.
-- **Physics, assumed (its web page: 105 g, 3S, 650 gf of suction; 1022 coreless motors, 68:9):** its motors fitted
-  to its control loop's feed-forward (its own motor model, in volts); its gears' friction, its 0.13 A of Coulomb
-  feed-forward; its tyres' scrub turning in place, a yaw torque against the turn (its firmware gives 0.12 A more for
-  it; 0.08 A of it makes its 180.7 deg turn-around profile turn 180.5 deg: without it, 186, and its search got lost
-  after its dead ends). Fan downforce 6.4 N at its rated 10 V.
+- **Physics (its web page: 105 g, 3S, 650 gf of suction; 1022 coreless motors, 68:9), checked against its makers'
+  logs:** its repository keeps 500-odd of them (`scripts/logs`, July to October 2026: its `Logger`'s first 1.5 s of a
+  run at 2 kHz, its parameters, speeds, turn rates, PWMs, the gap between its encoders' and its gyro's turn rate,
+  its sensors), and `--dump-log` gives the simulated one's the same way. Its motors fitted to its control loop's
+  feed-forward (its own motor model, in volts): without its fan the voltages its logs need per m/s and per m/s² are
+  the model's (0.54 V a m/s logged, 0.61 simulated). Its gears' friction, its 0.13 A of Coulomb feed-forward; its tyres'
+  scrub turning in place, a yaw torque against the turn (its firmware gives 0.12 A more for it; 0.08 A of it makes its
+  180.7 deg turn-around profile turn 180.5 deg: without it, 186, and its search got lost after its dead ends). Its
+  yaw inertia 5.5e-5 kg m² (1.35e-4 assumed before, a uniform board's): its logs' turns follow their profile with no
+  lag; at 1.35e-4 the simulated ones lagged 4 ms, its PI wound up and they ended 5 to 11 % past (its logs' 0 to 4 %;
+  now 2 to 4 %). Its fan: 6.4 N (its 650 gf) at its runs' fan 600 (6 V), quadratic in the voltage, and its tyres'
+  friction 1.2: its logs turn at 55 to 80 m/s² sideways without slipping, from about 90 with; 2.3 N before let the
+  simulated one slip from 30. With its fan on, its logs need 0.93 V a wheel per m/s: the suction's rolling losses, a
+  viscous drag of 0.1 N per m/s for each N of downforce on each wheel, which also resists its turns as its logs'
+  turning voltages show. Its tyres' friction stiff (MuJoCo's `solreffriction` 0.002 s, as ZoroBot3's and KOGUMA's).
 - **Run:** `ratasim fujin --maze oshwdem2026 [--mode slow|medium|fast] [--headless] [--record out.mp4]`: started as
   its makers do, with its two buttons (button 2: search; button 1 held: its speeds, stepped with button 2; held: its
   exploration; held: it waits) and a hand in front of its front sensors, read for 0.4 s; two seconds' beep and it
-  goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 106.1 s, back at 177 s. Medium and
-  fast (its fan on) touch walls after their first turns: their curves land 10 to 15 mm off.
+  goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 105.5 s, back at 175 s. Medium and
+  fast (its fan on) too: the goal in 66.9 s (one touch) and 47.1 s (clean), and back.
 - **Speed runs:** `--run` (after its search) or `--known` (no search: the maze written in its EEPROM, as its search
   saves it, every wall known): put back in the start cell and started from its menu as its makers do
   (`fsm/states/run.cpp`: from idle, button 2 twice; button 1 held: its run's speeds, button 2 stepping custom, slow,
   medium, fast, super; held: its moves, smooth, diagonals, time-based (the path its time floodfill finds fastest) or
   hard-coded (a fixed test sequence of its makers'); held: its map, the one saved at its search's end or its backup,
   saved at the goal; held: it waits for a hand). `--run-speed`, `--run-mode`, `--backup`. Its custom speeds come from
-  its EEPROM, which its BLE app fills: here it has none, and its run does not start. On the OSHWDEM 2026 maze none
-  reaches the goal yet: slow runs up column 0 and along the north rows and touches a post in column 15 after ~10 s;
-  medium touches post (4,11) after 1.2 s, fast and super post (1,8), at the first turn after column 0's straight,
-  after 0.5 s (the same gap as its medium and fast searches').
+  its EEPROM, which its BLE app fills: here it has none, and its run does not start. On the OSHWDEM 2026 maze slow
+  reaches the goal in 21.3 s (diagonals); medium and super reach column 15 and touch a post at (15,8), fast at
+  (14,4), where its route zigzags between columns 14 and 15 (its 45 deg turns after a single cell between walls).
 
 ## KERISE v1
 

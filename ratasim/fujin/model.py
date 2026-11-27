@@ -58,7 +58,7 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
         wheels += f'''
       <body name="wheel_{side}" pos="{_f(x * MM, 0, 0)}">
         <joint name="wheel_{side}" type="hinge" axis="-1 0 0" armature="{F.WHEEL_ARMATURE:.3g}" frictionloss="{F.WHEEL_FRICTION_NM:.3g}"/>
-        <geom name="tire_{side}" class="ftire" type="cylinder" size="{_f(r * MM, 1.5 * MM)}" euler="0 90 0" mass="0.003"/>
+        {tyre(side, r)}
         {visual}
       </body>'''
     skids = ''.join(f'<geom name="skid_{n}" class="fskid" type="sphere" size="{1.5 * MM:.6g}" '
@@ -76,6 +76,25 @@ def robot_xml(start_xy=(0.5, 0.5), prefix=''):
       {chassis}{sites}{wheels}
     </body>'''
     return re.sub(r'( name| joint)="', rf'\1="{prefix}', xml) if prefix else xml
+
+
+def tyre(side, r):
+    """Its tyre: one contact point (an ellipsoid, as KOGUMA's: a rigid cylinder's points across its width scrub more
+    than a rubber tyre, which twists), or a cylinder."""
+    if F.TYRE_ELLIPSOID:
+        return f'<geom name="tire_{side}" class="ftire" type="ellipsoid" size="{_f(1.5 * MM, r * MM, r * MM)}" mass="0.003"/>'
+    return f'<geom name="tire_{side}" class="ftire" type="cylinder" size="{_f(r * MM, 1.5 * MM)}" euler="0 90 0" mass="0.003"/>'
+
+
+def tyre_pairs_xml():
+    """Its tyres on the floor as explicit contacts whose friction is stiff (F.TYRE_CREEP: MuJoCo's solreffriction,
+    its time constant and damping ratio); MuJoCo's default, its contact's 4 ms, lets them creep sideways in turns."""
+    if not F.TYRE_CREEP:
+        return ''
+    mu = F.TIRE_FRICTION
+    return '<contact>' + ''.join(
+        f'<pair geom1="tire_{s}" geom2="floor" condim="3" friction="{mu} {mu} 0.005 0.0001 0.0001" '
+        f'solref="0.004 1" solreffriction="{_f(*F.TYRE_CREEP)}"/>' for s in 'lr') + '</contact>'
 
 
 def scene_xml(maze):
@@ -107,6 +126,7 @@ def scene_xml(maze):
     {robot_xml()}
     {hand_xml()}
   </worldbody>
+  {tyre_pairs_xml()}
   <actuator>
     <motor name="motor_l" joint="wheel_l"/>
     <motor name="motor_r" joint="wheel_r"/>

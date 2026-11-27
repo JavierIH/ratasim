@@ -239,7 +239,11 @@ class FRobot:
     def _torque(self, s, duty):
         v = max(-1.0, min(1.0, duty / 1000.0)) * self.battery_v
         w = self.data.qvel[self.wheel_dof[s]]
-        return F.MOTOR_KT * (v - F.MOTOR_KT * w) / F.MOTOR_R_OHM
+        drag = (F.ROLL_DRAG + F.ROLL_DRAG_PER_N * self.downforce()) / 2 * (F.WHEEL_RADIUS_MM / 1000) ** 2
+        return F.MOTOR_KT * (v - F.MOTOR_KT * w) / F.MOTOR_R_OHM - drag * w
+
+    def downforce(self):
+        return F.FAN_DOWNFORCE_N * self.fan() ** 2
 
     def _scrub(self):
         """Its tyres' scrub turning in place: a torque against its turn, gone as it rolls forward (an arc)."""
@@ -291,7 +295,7 @@ class FRobot:
                 return self.fw.state
             for i, s in enumerate('lr'):
                 self.data.ctrl[self.act[s]] = self._torque(s, self.fw.lib.fsim_motor(i))
-            self.data.xfrc_applied[self.body, 2] = -F.FAN_DOWNFORCE_N * self.fan() ** 2
+            self.data.xfrc_applied[self.body, 2] = -self.downforce()
             self.data.xfrc_applied[self.body, 5] = self._scrub()
             if self.lifted is not None:
                 self.data.qpos[self.free_qpos:self.free_qpos + 7] = self.lifted
