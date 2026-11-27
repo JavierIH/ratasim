@@ -21,6 +21,7 @@ import numpy as np
 
 from ..hand import Hand
 from ..model import MM, WALL_GROUP
+from ..start import back_mm
 from . import config as K
 
 # Its emitters' beams: five rays, their light weighted as a Gaussian of their angle off the axis (sigma
@@ -142,7 +143,7 @@ class KRobot:
     def put_down(self, cell=(0, 0), heading_deg=0.0):
         """Down in a cell, facing heading_deg (0 north, positive to the left), its tail against the back wall."""
         h = math.radians(heading_deg)
-        back = K.START_BACK_MM
+        back = back_mm(self.model, self.data, self.body, K.START_BACK_MM)
         q = self.data.qpos
         a = self.free_qpos
         q[a:a + 3] = (((cell[0] + 0.5) * K.CELL_MM + back * math.sin(h)) * MM,

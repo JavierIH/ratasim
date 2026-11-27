@@ -12,6 +12,7 @@ import numpy as np
 from . import config as C
 from .firmware import Firmware
 from .model import MM, WALL_GROUP, scene_xml
+from .start import back_mm, cell_pose
 
 KV = {'l': C.FW['MOTOR_KV_L'], 'r': C.FW['MOTOR_KV_R']}    # PWM per mm/s
 KS = C.FW['MOTOR_KS_PWM']           # PWM lost to friction while moving
@@ -110,11 +111,12 @@ class Robot:
         self.button_now = (0, 0)
 
     def place(self, x, y, heading='N'):
-        """Robot standing at the centre of cell (x, y) facing heading (N/E/S/W), at rest."""
+        """Robot standing at the centre of cell (x, y) (or where --start says) facing heading (N/E/S/W), at rest."""
         yaw = {'N': 0.0, 'W': 90.0, 'S': 180.0, 'E': -90.0}[heading]
         q = self.data.qpos
         a = self.free_qpos
-        q[a:a + 3] = ((x + 0.5) * C.CELL_MM * MM, (y + 0.5) * C.CELL_MM * MM, -C.GROUND_Z_MM * MM + 0.0002)
+        px, py = cell_pose((x, y), yaw, back_mm(self.model, self.data, self.body, 0.0))      # or where --start says
+        q[a:a + 3] = (px * MM, py * MM, -C.GROUND_Z_MM * MM + 0.0002)
         h = math.radians(yaw) / 2
         q[a + 3:a + 7] = (math.cos(h), 0, 0, math.sin(h))
         self.data.qvel[:] = 0

@@ -19,6 +19,7 @@ import numpy as np
 
 from .. import config as RC
 from ..model import MM, WALL_GROUP
+from ..start import back_mm, cell_pose
 from . import config as G
 from . import model
 
@@ -147,7 +148,8 @@ class GRobot:
         """Down with its axle's middle on a cell's centre, facing heading_deg (0 north, positive to the left)."""
         q = self.data.qpos
         a = self.free_qpos
-        q[a:a + 3] = ((cell[0] + 0.5) * RC.CELL_MM * MM, (cell[1] + 0.5) * RC.CELL_MM * MM, (self.axle_mm + 0.2) * MM)
+        x, y = cell_pose(cell, heading_deg, back_mm(self.model, self.data, self.body, 0.0))
+        q[a:a + 3] = (x * MM, y * MM, (self.axle_mm + 0.2) * MM)
         h = math.radians(heading_deg) / 2
         q[a + 3:a + 7] = (math.cos(h), 0, 0, math.sin(h))
         self.data.qvel[self.free_dof:self.free_dof + 6] = 0

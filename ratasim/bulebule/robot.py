@@ -21,6 +21,7 @@ import numpy as np
 from .. import config as RC
 from ..hand import Hand
 from ..model import MM, WALL_GROUP
+from ..start import back_mm
 from . import config as B
 from . import model
 
@@ -183,7 +184,8 @@ class BRobot:
     def put_down(self, cell=(0, 0), heading_deg=0.0):
         """Down in a cell, centred across it, its back to the wall behind (as its firmware starts:
         MOUSE_START_SHIFT), facing heading_deg (0 north, positive to the left), still."""
-        back = RC.CELL_MM / 2 - B.WALL_WIDTH / 2 - B.TAIL - 0.5     # its tail 0.5 mm off the wall's face
+        # its tail 0.5 mm off the wall's face, or --start's
+        back = back_mm(self.model, self.data, self.body, RC.CELL_MM / 2 - B.WALL_WIDTH / 2 - B.TAIL - 0.5)
         h = math.radians(heading_deg)
         q = self.data.qpos
         a = self.free_qpos

@@ -34,7 +34,7 @@ from .maze import Maze, maze_path   # noqa: E402  (the robots' runners import ma
 from .recorder import Both, Recorder, Viewer, no_screen   # noqa: E402
 from .robot import Robot   # noqa: E402
 from .stopwatch import Stopwatch   # noqa: E402
-from .start import actions   # noqa: E402
+from .start import actions, add_start_arg   # noqa: E402
 
 KEY_PAGE_UP, KEY_PAGE_DOWN, KEY_END = 266, 267, 269
 
@@ -288,6 +288,7 @@ def make_parser():
     p.add_argument('--flash', default=os.path.join(paths.SIM_BUILD, 'flash.bin'),
                    help='the robot flash (saved map) between runs')
     p.add_argument('--erase-flash', action='store_true', help='start with blank flash (no saved map)')
+    add_start_arg(p)
     p.add_argument('--headless', action='store_true', help='no viewer')
     p.add_argument('--speed', type=float, default=1.0, help='real-time factor (0: as fast as possible)')
     p.add_argument('--race', type=int, metavar='K', help='started on race K of its race menu (1-6; on the map '

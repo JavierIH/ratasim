@@ -16,8 +16,10 @@ import numpy as np
 
 from . import config as Z
 from . import model
+from .. import config as RC
 from ..hand import Hand
 from ..model import MM, WALL_GROUP
+from ..start import back_mm, cell_pose
 
 FW_DIR = os.path.join(Z.HERE, 'fw')
 IR_FAR_MM = 400.0
@@ -173,7 +175,6 @@ class ZRobot:
         self.maze = maze
         self.model = mujoco.MjModel.from_xml_string(model.scene_xml(maze))
         self.data = mujoco.MjData(self.model)
-        mujoco.mj_forward(self.model, self.data)
         self.rng = random.Random(seed)
         m = self.model
         self.body = m.body('robot').id
@@ -187,6 +188,10 @@ class ZRobot:
         self.ray_group[WALL_GROUP] = 1
         self.ray_geom = np.zeros(1, np.int32)
         self.r = Z.WHEEL_RADIUS_MM * MM
+        # its start: its tail against the back wall (Z.START_AXLE_MM), or where --start puts it
+        x, y = cell_pose((0, 0), 0.0, back_mm(m, self.data, self.body, RC.CELL_MM / 2 - Z.START_AXLE_MM))
+        self.data.qpos[self.free_qpos:self.free_qpos + 2] = (x * MM, y * MM)
+        mujoco.mj_forward(self.model, self.data)
         self.cal = sensor_calibration('A')
         self.battery_raw = int(battery_v / (ADC_LSB * VOLT_DIV_A))
         self.battery_v = battery_v

@@ -24,6 +24,7 @@ from .. import config as RC
 from .. import maze as MZ
 from ..hand import Hand
 from ..model import MM, WALL_GROUP
+from ..start import back_mm
 from . import config as F
 from . import model
 
@@ -217,7 +218,7 @@ class FRobot:
         """Down in a cell, facing heading_deg (0 north, positive to the left), its axle START_BACK_MM behind the
         cell's centre: its tail against the back wall, as its firmware's start expects it."""
         h = math.radians(heading_deg)
-        back = F.START_BACK_MM
+        back = back_mm(self.model, self.data, self.body, F.START_BACK_MM)
         q = self.data.qpos
         a = self.free_qpos
         q[a:a + 3] = (((cell[0] + 0.5) * RC.CELL_MM + back * math.sin(h)) * MM,

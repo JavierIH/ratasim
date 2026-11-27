@@ -23,6 +23,7 @@ import numpy as np
 from .. import config as RC
 from ..hand import Hand
 from ..model import MM, WALL_GROUP
+from ..start import back_mm
 from . import config as U
 from . import model
 
@@ -153,7 +154,8 @@ class URobot:
         q = self.data.qpos
         a = self.free_qpos
         h = math.radians(heading_deg)
-        back = RC.CELL_MM / 2 - RC.WALL_MM / 2 + U.BACK_MM - 1.0      # its axle from the cell's centre, 1 mm off
+        # its axle from the cell's centre, its tail 1 mm off the wall, or --start's
+        back = back_mm(self.model, self.data, self.body, RC.CELL_MM / 2 - RC.WALL_MM / 2 + U.BACK_MM - 1.0)
         cx, cy = (cell[0] + 0.5) * RC.CELL_MM, (cell[1] + 0.5) * RC.CELL_MM
         q[a:a + 3] = ((cx + back * math.sin(h)) * MM, (cy - back * math.cos(h)) * MM, 0.0005)
         q[a + 3:a + 7] = (math.cos(h / 2), 0, 0, math.sin(h / 2))

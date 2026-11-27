@@ -174,6 +174,8 @@ def add_view_args(p):
     p.add_argument('--camera', choices=('follow', 'fixed'), default='follow',
                    help="the video's camera: following the robot, or the whole maze from above, still")
     p.add_argument('--trace', metavar='NPZ', help='no window: its joints every 10 ms to this file (ratasim/trace.py)')
+    from .start import add_start_arg
+    add_start_arg(p)
 
 
 def no_screen():

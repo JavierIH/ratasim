@@ -19,6 +19,11 @@ ROBOT_BACK_LENGTH = 40.706
 ROBOT_WIDTH = 70.2
 WHEELS_SEPARATION = 62.0
 CELL_MM = RC.CELL_MM
+# Its start: its tail against the start cell's back wall, as its makers put it down (its firmware's MOVE_START,
+# set_starting_position: its axle ROBOT_BACK_LENGTH + WALL_WIDTH / 2 from the wall's middle), 0.3 mm off its face.
+# In the cell's middle (before) it was 43 mm further on than its firmware counted until a wall's end or a front wall
+# put it right: its first turn 43 mm late (the stairs maze: on the wall at its first turn).
+START_AXLE_MM = ROBOT_BACK_LENGTH + 12.0 / 2 + 0.3
 
 # ---- From its Onshape assembly (cad.py): the "Full Assembly" exported as one STEP file into cad/ (not committed)
 CAD_STEP = os.environ.get('ZOROBOT3_STEP', os.path.join(HERE, 'cad', 'Full_Assembly.step'))
