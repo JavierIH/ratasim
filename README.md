@@ -170,7 +170,8 @@ ratasim fujin --maze oshwdem2026 --record fujin.mp4
 ```
 
 Its RCX 2026 firmware (C++23: g++ 13 or clang++ 15) searches to the goal and back. `--mode slow` (0.3 m/s) finishes;
-medium and fast do not yet.
+medium and fast do not yet. `--run` then makes its speed run on the map it saved (`--known`: on the maze written in
+its EEPROM, no search), started from its menu; none reaches the goal yet.
 
 ### Running KERISE v1
 

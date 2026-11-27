@@ -55,6 +55,9 @@ MODES = {
         ('ratasim fujin', 'search, slow: 0.3 m/s, no fan; to the goal and back'),
         ('ratasim fujin --mode medium', 'search, medium speeds, fan on'),
         ('ratasim fujin --mode fast', 'search, fast speeds, fan on'),
+        ('ratasim fujin --run', 'search, then a speed run on the map it saved (--run-speed slow|medium|fast|super, '
+                                '--run-mode smooth|diagonals|time; --backup: the map saved at the goal)'),
+        ('ratasim fujin --known --run-speed slow', 'no search: the maze written in its EEPROM, then its speed run'),
     ],
     'futura': [
         ('ratasim futura', 'its only program: cell by cell at 0.5 m/s, pivots at walls'),

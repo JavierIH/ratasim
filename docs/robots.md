@@ -196,6 +196,16 @@ made from the submodule at build time)
   exploration; held: it waits) and a hand in front of its front sensors, read for 0.4 s; two seconds' beep and it
   goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 106.1 s, back at 177 s. Medium and
   fast (its fan on) touch walls after their first turns: their curves land 10 to 15 mm off.
+- **Speed runs:** `--run` (after its search) or `--known` (no search: the maze written in its EEPROM, as its search
+  saves it, every wall known): put back in the start cell and started from its menu as its makers do
+  (`fsm/states/run.cpp`: from idle, button 2 twice; button 1 held: its run's speeds, button 2 stepping custom, slow,
+  medium, fast, super; held: its moves, smooth, diagonals, time-based (the path its time floodfill finds fastest) or
+  hard-coded (a fixed test sequence of its makers'); held: its map, the one saved at its search's end or its backup,
+  saved at the goal; held: it waits for a hand). `--run-speed`, `--run-mode`, `--backup`. Its custom speeds come from
+  its EEPROM, which its BLE app fills: here it has none, and its run does not start. On the OSHWDEM 2026 maze none
+  reaches the goal yet: slow runs up column 0 and along the north rows and touches a post in column 15 after ~10 s;
+  medium touches post (4,11) after 1.2 s, fast and super post (1,8), at the first turn after column 0's straight,
+  after 0.5 s (the same gap as its medium and fast searches').
 
 ## KERISE v1
 

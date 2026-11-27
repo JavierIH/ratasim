@@ -46,6 +46,7 @@ WHEELS_DIST_MM = 70.0       # services/config.hpp
 # what its calibration gives); the fronts read the distance from the emitter.
 IR_SIDE_REF_MM = {'L': 180.0, 'R': 165.0}
 IR_MAX_MM = 270.0
+EEPROM_MAZE, EEPROM_MAZE_BACKUP = 0x3000, 0x4000    # bsp/eeprom.hpp: ADDR_MAZE_START, ADDR_MAZE_BACKUP_START
 GYRO_BIAS_SET_DPS = -0.4905     # its z gyro's bias (config.cpp: z_imu_bias), subtracted by its BSP
 
 # ---- Assumed physics (from its web page: 105 g, 3S LiPo, 650 gf of suction; the rest not measured) ------------------
@@ -93,6 +94,31 @@ def start(cell, heading_deg, mode='slow'):
            ('say', 'button 1 held: its speeds'), ('press', 1, 900), ('wait', 1200)]
     out += [('press', 2, 200), ('wait', 500)] * steps
     out += [('say', f'button 1 held: search {mode}, normal exploration'), ('press', 1, 900), ('wait', 1200),
+            ('press', 1, 900), ('wait', 1300),
+            ('say', 'white: a hand in front of its front sensors'), ('hand', ['FL', 'FR'], 700), ('wait', 600)]
+    return out
+
+
+RUN_SPEEDS = ('custom', 'slow', 'medium', 'fast', 'super')
+RUN_MODES = ('smooth', 'diagonals', 'time', 'hardcoded')
+
+
+def run_start(cell, heading_deg, speed='slow', mode='smooth', backup=False):
+    """As its makers start a speed run on the maze its search saved (fsm/states/run.cpp): put down in the start cell
+    again; from idle, button 2 twice (its search's menu, then its run's); button 1 held: its run's speeds (button 2
+    steps them: custom, slow, medium, fast, super); held: its moves (button 2: smooth, diagonals, time-based,
+    hard-coded); held: its map (button 2: the one saved at its search's end, or its backup, saved at the goal);
+    held: it waits for a hand in front of its front sensors (0.4 s), beeps two seconds and goes."""
+    out = [('put_down', cell, heading_deg), ('wait', 1500),
+           ('say', 'button 2 twice: its run'), ('press', 2, 200), ('wait', 500), ('press', 2, 200), ('wait', 500),
+           ('say', 'button 1 held: its speeds'), ('press', 1, 900), ('wait', 1200)]
+    out += [('press', 2, 200), ('wait', 500)] * RUN_SPEEDS.index(speed)
+    out += [('say', f'button 1 held: run {speed}, its moves'), ('press', 1, 900), ('wait', 1200)]
+    out += [('press', 2, 200), ('wait', 500)] * RUN_MODES.index(mode)
+    out += [('say', f'button 1 held: {mode}, its map'), ('press', 1, 900), ('wait', 1200)]
+    if backup:
+        out += [('press', 2, 200), ('wait', 500)]
+    out += [('say', f'button 1 held: {"its backup" if backup else "its saved"} map, waits for a hand'),
             ('press', 1, 900), ('wait', 1300),
             ('say', 'white: a hand in front of its front sensors'), ('hand', ['FL', 'FR'], 700), ('wait', 600)]
     return out

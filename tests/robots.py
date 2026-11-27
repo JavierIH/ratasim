@@ -18,7 +18,7 @@ it).
 The full check (--full) is the whole run, as before: it fails when the firmware does not build, stops, or the robot
 does not do its run (Ratatron: the search to the goal and back, then race 2.4 on its map; ZoroBot3: its exploration
 to the goal and back, then its speed run at speed 5 to the goal, its makers' menu; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
-the goal and back; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
+the goal and back, and its speed run (--known, slow) started; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
 following, away from the start; Gamusino: its 1.62 m ahead and its 180 deg turn; Futura: its controller sample's cells and pivots, up
 to the maze's north rows; Miniskybot: through 10 cells, not toppled; KERISE v1: its search to the goal and back
 to its start cell; KOGUMA: its search to the goal and back to its start cell, its fail-safe not tripped). Wall touches as in the short check. The stopwatch's times are reported;
@@ -346,6 +346,9 @@ def fujin(full):
         fails.append('its search did not end')
     elif far_from(pose, (90, 90), 120):
         fails.append(f'not back at the start ({pose})')
+    out = run(['fujin', '--headless', '--maze', MAZE, '--known', '--run-speed', 'slow'])
+    if 'run started: True' not in out or 'stopwatch: run 1 started' not in out:
+        fails.append('its speed run (--known) did not start')
     return fails
 
 

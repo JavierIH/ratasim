@@ -245,6 +245,11 @@ const char *param_name(uint16_t address) {
 }
 }  // namespace bsp::eeprom
 
+// The simulator writes its memory as a person would with its makers' tools (a maze known before its run)
+extern "C" void fsim_eeprom_write(uint32_t a, const uint8_t *d, uint32_t n) {
+    if (a + n <= sizeof(bsp::eeprom::mem)) memcpy(bsp::eeprom::mem + a, d, n);
+}
+
 // ---- Encoders (AS5047P on each wheel, its A output: 1024 counts a turn) -------------------------------------------
 namespace bsp::encoders {
 static constexpr float COUNTS_PER_TURN = 1024.0f;

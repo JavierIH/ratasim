@@ -21,6 +21,7 @@ import mujoco
 import numpy as np
 
 from .. import config as RC
+from .. import maze as MZ
 from ..hand import Hand
 from ..model import MM, WALL_GROUP
 from . import config as F
@@ -83,6 +84,7 @@ class FFirmware:
         lib.fsim_stripe.restype = C.c_uint32
         lib.fsim_console.argtypes = [C.c_char_p, C.c_uint32]
         lib.fsim_console.restype = C.c_uint32
+        lib.fsim_eeprom_write.argtypes = [C.c_uint32, C.c_char_p, C.c_uint32]
         self._buf = C.create_string_buffer(1 << 16)
         self.state = 0
         lib.fsim_ir_model(*F.IR_MODEL)
@@ -170,6 +172,20 @@ class FRobot:
         q = self.data.qpos[self.free_qpos:self.free_qpos + 7].copy()
         q[2] += 0.08
         self.lifted = q
+
+    def load_maze(self, maze=None):
+        """Its maze in its EEPROM, every wall known, as its search saves it (services/maze.cpp: a cell in 4 bytes at
+        ADDR_MAZE_START + 4 (16 x + y): its walls, N 1, W 2, S 4, E 8; its known ones; its distance, which its run's
+        floodfill computes again), in both its map and its backup: a run on a maze it has not searched."""
+        maze = maze or self.maze
+        bits = {MZ.N: 1, MZ.W: 2, MZ.S: 4, MZ.E: 8}
+        data = bytearray()
+        for x in range(maze.size):
+            for y in range(maze.size):
+                walls = sum(b for d, b in bits.items() if maze.has(x, y, d))
+                data += bytes((0, 0, 0x0F, walls))     # its u32 of (walls, known, distance, 0), big-endian
+        for base in (F.EEPROM_MAZE, F.EEPROM_MAZE_BACKUP):
+            self.fw.lib.fsim_eeprom_write(base, bytes(data), len(data))
 
     def put_down(self, cell=(0, 0), heading_deg=0.0):
         """Down in a cell, facing heading_deg (0 north, positive to the left), its axle START_BACK_MM behind the
