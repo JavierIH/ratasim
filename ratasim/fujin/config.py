@@ -35,13 +35,11 @@ IR_SENSORS = {
     'FR': (2, (32.1, 29.9), 85.6),
     'L': (3, (14.9, 38.2), 140.0),
 }
-# Its side sensors turned this much ahead of the STEP's axes (0: as in it). Where its runs correct their odometry at a
-# side wall's end (navigation.cpp, apply_wall_break_correction: the distance there set to cells x 180 + its
-# start_wall_break_mm, tuned on the robot), its makers' logs (external/fujin/scripts/logs, fan 600) find it off by -3
-# mm on average (-18 to +22); the simulated one, by +11 to +18 at the STEP's axes (it sees a wall's end late), -4 to +4
-# at 3 deg. But at 3 deg its slow search reads a wall where there is none and goes home without the goal (as ZoroBot3's
-# search did with its side sensors turned): a single ray, turned, is not what a real beam does at a wall's end.
-SIDE_FORWARD_DEG = 0.0
+# Its side sensors turned this much ahead of the STEP's axes. Where its runs correct their odometry at a side wall's
+# end (navigation.cpp, apply_wall_break_correction: the distance there set to cells x 180 + its start_wall_break_mm,
+# tuned on the robot), its makers' logs (external/fujin/scripts/logs, fan 600) find it off by -3 mm on average (-18
+# to +22); the simulated one (IR_BEAM 'light' below), by +5 (-3 to +12) at the STEP's axes, -3 (-8 to +5) at 3 deg.
+SIDE_FORWARD_DEG = 3.0
 IR_SENSORS['R'] = IR_SENSORS['R'][:2] + (IR_SENSORS['R'][2] + SIDE_FORWARD_DEG,)
 IR_SENSORS['L'] = IR_SENSORS['L'][:2] + (IR_SENSORS['L'][2] - SIDE_FORWARD_DEG,)
 IR_Z_MM = 3.0 - AXLE_IN_STEP_MM[2]
@@ -51,9 +49,26 @@ START_BACK_MM = 13.5        # its tail against the start cell's back wall (its f
 WHEEL_RADIUS_MM = 13.25     # utils/movement_params.cpp, its search's wheel radius (its tyres measured)
 ENCODER_COUNTS = 1024       # bsp: AS5047P on each wheel
 WHEELS_DIST_MM = 70.0       # services/config.hpp
-# Its sensors' references (services/config.cpp): the side sensors' readings with the robot centred in a cell (mm,
-# what its calibration gives); the fronts read the distance from the emitter.
-IR_SIDE_REF_MM = {'L': 180.0, 'R': 165.0}
+# Its sensors' references (services/config.cpp, ir_wall_dist_ref_left/right): the side sensors' readings with the
+# robot centred in a cell (mm, what its calibration gives), read from its firmware (its makers changed them, 180 and
+# 165 up to its RCX 2026 tag, 185.40 and 176.37 since 086fc9e); the fronts read the distance from the emitter.
+
+
+def _side_refs():
+    import re
+    refs = {'L': 180.0, 'R': 165.0}
+    try:
+        text = open(os.path.join(FUJIN_DIR, 'firmware', 'src', 'services', 'config.cpp')).read()
+    except OSError:
+        return refs
+    for side, name in (('L', 'left'), ('R', 'right')):
+        m = re.search(r'Config::ir_wall_dist_ref_%s\s*=\s*([0-9.]+)' % name, text)
+        if m:
+            refs[side] = float(m[1])
+    return refs
+
+
+IR_SIDE_REF_MM = _side_refs()
 IR_MAX_MM = 270.0
 EEPROM_MAZE, EEPROM_MAZE_BACKUP = 0x3000, 0x4000    # bsp/eeprom.hpp: ADDR_MAZE_START, ADDR_MAZE_BACKUP_START
 GYRO_BIAS_SET_DPS = -0.4905     # its z gyro's bias (config.cpp: z_imu_bias), subtracted by its BSP
@@ -98,6 +113,13 @@ FAN_DOWNFORCE_N = 6.4 / 0.6 ** 2
 # Its IR sensors: a reading's noise (mm); the ADC counts of a reading (the firmware's conversion, mm =
 # a / ln(raw + c) - b, both ways: fw/fbsp.cpp)
 IR_NOISE_MM = 0.8
+# What each sensor sees (robot.py, ir_mm): its emitter's spot as seven rays, a Gaussian of 1.5 deg, each ray's light
+# at its length times the cosine of its incidence over its calibration's. Without the cosine (three rays' lengths, a
+# harmonic mean: 'harmonic') a far wall at a slant read as near as a square one: with its side sensors turned 3 deg
+# its search read, entering a cell with a wall ahead and none at a side, that side's wall (224-228 mm, its threshold
+# 230) and went home without the goal; 2.5 deg smears its wall ends (its fast runs end on posts sooner).
+IR_BEAM = 'light'
+IR_RAYS = tuple((d, math.exp(-0.5 * (d / 1.5) ** 2)) for d in (-3.6, -2.4, -1.2, 0.0, 1.2, 2.4, 3.6))
 IR_MODEL = (4000.0, 440.0, 0.0)
 # Its LSM6DSR: the real bias off the one its firmware subtracts, the noise at its 2.1 kHz.
 GYRO_BIAS_DPS = GYRO_BIAS_SET_DPS + 0.03

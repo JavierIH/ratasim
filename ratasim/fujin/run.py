@@ -20,6 +20,7 @@ import time
 
 os.environ.setdefault('MUJOCO_GL', 'egl')
 
+from .. import maze as MZ   # noqa: E402
 from ..maze import Maze   # noqa: E402
 from ..recorder import add_view_args, make_view, time_limit   # noqa: E402
 from ..run import maze_path   # noqa: E402
@@ -27,6 +28,23 @@ from ..start import play   # noqa: E402
 from ..stopwatch import Stopwatch   # noqa: E402
 from . import config as F   # noqa: E402
 from .robot import FRobot   # noqa: E402
+
+
+def report_map(r):
+    """Its saved map against the maze: the walls its search believes that are not there, and those it missed, among
+    the cells it visited (their walls known)."""
+    saved, real = r.saved_maze(), r.maze
+    names = {MZ.N: 'N', MZ.E: 'E', MZ.S: 'S', MZ.W: 'W'}
+    phantom, missed = [], []
+    for x in range(real.size):
+        for y in range(real.size):
+            for d in (MZ.N, MZ.E):
+                a, b = saved.has(x, y, d), real.has(x, y, d)
+                if a and not b:
+                    phantom.append(f'({x},{y}){names[d]}')
+                elif b and not a:
+                    missed.append(f'({x},{y}){names[d]}')
+    print(f'its map: {len(phantom)} walls not there {" ".join(phantom[:12])}; {len(missed)} walls not seen')
 
 
 def main(argv=None):
@@ -124,6 +142,8 @@ def main(argv=None):
             if not run(500):
                 break
         run(1000, fast=True)
+        if state['over']:
+            report_map(r)
     if a.run and state['over']:
         play(r, F.run_start((0, 0), 0.0, a.run_speed, a.run_mode, a.backup), lambda ms: run(ms, fast=True), say)
         print(f'[{r.fw.time_ms() / 1000:7.2f}] run started: {state["ran"]}')

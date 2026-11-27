@@ -182,10 +182,16 @@ made from the submodule at build time)
   a hole for each; drawn only: the beams do not see them). Collisions: boxes over its
   board's outline, its tyres, two skids. Its tyres are drawn at its firmware's radius (13.25 mm; 12.6 in its CAD).
 - **Sensors:** where its STEP puts the emitters: the front pair looking ahead, the side pair crossed, 50 deg off
-  ahead. The side readings scaled to its firmware's references with the robot centred in a cell (180 mm left,
-  165 mm right; its mm are not the beam's), the front ones the beam. Its firmware's side sensor angle (56.5 deg, for
-  its lateral corrections, which it leaves off) is not the STEP's: with it the side sensors would read, entering a
-  cell, the walls of the next one.
+  ahead, turned 3 deg further ahead. Each sees its emitter's spot as seven rays, a Gaussian of 1.5 deg, each ray's
+  light (its firmware's raw counts at its length, through its own conversion) times the cosine of its incidence over
+  its calibration's, back to mm. The side readings scaled to its firmware's references with the robot centred in a
+  cell, read from its firmware (185.40 mm left, 176.37 right since 086fc9e; 180 and 165 before). The 3 deg: where its
+  runs correct their odometry at a side wall's end (`apply_wall_break_correction`), its makers' logs find it off by -3
+  mm on average, the simulated one by +5 at the STEP's axes and by -3 at 3 deg. The cosine: without it, a far wall at
+  a slant (entering a cell with a wall ahead and none at a side) read 224-228 mm, under its 230 threshold, and its
+  search believed a wall there; its patterns (`analog_sensors.cpp`) read 270 there. With `FUJIN_LOG_WALLS` set its
+  BSP prints every wall reading of its search (what it saw and its four readings); after a search, `its map:` gives
+  the walls of its saved map not in the maze.
 - **Physics (its web page: 105 g, 3S, 650 gf of suction; 1022 coreless motors, 68:9), checked against its makers'
   logs:** its repository keeps 500-odd of them (`scripts/logs`, July to October 2026: its `Logger`'s first 1.5 s of a
   run at 2 kHz, its parameters, speeds, turn rates, PWMs, the gap between its encoders' and its gyro's turn rate,
@@ -204,8 +210,11 @@ made from the submodule at build time)
 - **Run:** `ratasim fujin --maze oshwdem2026 [--mode slow|medium|fast] [--headless] [--record out.mp4]`: started as
   its makers do, with its two buttons (button 2: search; button 1 held: its speeds, stepped with button 2; held: its
   exploration; held: it waits) and a hand in front of its front sensors, read for 0.4 s; two seconds' beep and it
-  goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 105.5 s, back at 175 s. Medium and
-  fast (its fan on) too: the goal in 66.9 s (one touch) and 47.1 s (clean), and back.
+  goes. Slow (0.3 m/s, no fan) searches the OSHWDEM 2026 maze clean: the goal in 104.1 s, back at 173 s. Medium and
+  fast (its fan on) not yet: after two turns in a row they end 10-16 mm off their cell's centre line and 4 deg off
+  (left then right at (5,7)-(5,8)), where their side sensors read a wall that is there as none (236-244 mm). With its
+  sensors' references at 180 and 165 (its firmware's before 086fc9e) both reached the goal: their readings 3-7 % lower
+  hid it.
 - **Speed runs:** `--run` (after its search) or `--known` (no search: the maze written in its EEPROM, as its search
   saves it, every wall known): put back in the start cell and started from its menu as its makers do
   (`fsm/states/run.cpp`: from idle, button 2 twice; button 1 held: its run's speeds, button 2 stepping custom, slow,
@@ -213,8 +222,8 @@ made from the submodule at build time)
   hard-coded (a fixed test sequence of its makers'); held: its map, the one saved at its search's end or its backup,
   saved at the goal; held: it waits for a hand). `--run-speed`, `--run-mode`, `--backup`. Its custom speeds come from
   its EEPROM, which its BLE app fills: here it has none, and its run does not start. On the OSHWDEM 2026 maze slow
-  reaches the goal in 21.3 s (diagonals); medium and super reach column 15 and touch a post at (15,8), fast at
-  (14,4), where its route zigzags between columns 14 and 15 (its 45 deg turns after a single cell between walls).
+  reaches the goal in 21.0 s (diagonals), medium in 8.9 s; fast and super touch posts on their way (at (4,3) or
+  (10,1)).
 
 ## KERISE v1
 

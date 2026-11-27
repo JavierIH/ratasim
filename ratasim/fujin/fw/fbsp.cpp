@@ -1,3 +1,4 @@
+#include <cstdlib>
 // Fujin's BSP for the simulator: the interface its firmware is written against (its inc/bsp/*.hpp), implemented on
 // the simulated board of fchip.cpp instead of its STM32G474's peripherals. Our own code: nothing of its
 // src/bsp/target-* is used. Where its interface holds more than hardware (the IR sensors' wall detection, the
@@ -248,6 +249,9 @@ const char *param_name(uint16_t address) {
 // The simulator writes its memory as a person would with its makers' tools (a maze known before its run)
 extern "C" void fsim_eeprom_write(uint32_t a, const uint8_t *d, uint32_t n) {
     if (a + n <= sizeof(bsp::eeprom::mem)) memcpy(bsp::eeprom::mem + a, d, n);
+}
+extern "C" void fsim_eeprom_read(uint32_t a, uint8_t *d, uint32_t n) {
+    if (a + n <= sizeof(bsp::eeprom::mem)) memcpy(d, bsp::eeprom::mem + a, n);
 }
 
 // ---- Encoders (AS5047P on each wheel, its A output: 1024 counts a turn) -------------------------------------------
@@ -518,8 +522,13 @@ float get_sensor_l_slope_max_th() { return slope_max[LEFT]; }
 bool ir_start_condition() { return dist[FRONT_LEFT] < START_MM && dist[FRONT_RIGHT] < START_MM; }
 
 SensingStatus ir_get_sensing_status() {
-    return {dist[FRONT_LEFT] < FRONT_WALL_MM && dist[FRONT_RIGHT] < FRONT_WALL_MM, dist[RIGHT] < SIDE_WALL_MM,
-            dist[LEFT] < SIDE_WALL_MM};
+    const SensingStatus st = {dist[FRONT_LEFT] < FRONT_WALL_MM && dist[FRONT_RIGHT] < FRONT_WALL_MM,
+                              dist[RIGHT] < SIDE_WALL_MM, dist[LEFT] < SIDE_WALL_MM};
+    static const bool log_walls = getenv("FUJIN_LOG_WALLS") != nullptr;    // the simulator's: what its search reads
+    if (log_walls)
+        printf("walls F%d L%d R%d (%.0f %.0f %.0f %.0f)\r\n", st.front_seeing, st.left_seeing, st.right_seeing,
+               dist[LEFT], dist[FRONT_LEFT], dist[FRONT_RIGHT], dist[RIGHT]);
+    return st;
 }
 
 // How far from the corridor's middle (its walls' references; with one wall, twice its error), + towards the right.

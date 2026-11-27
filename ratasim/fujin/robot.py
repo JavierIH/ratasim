@@ -85,6 +85,7 @@ class FFirmware:
         lib.fsim_console.argtypes = [C.c_char_p, C.c_uint32]
         lib.fsim_console.restype = C.c_uint32
         lib.fsim_eeprom_write.argtypes = [C.c_uint32, C.c_char_p, C.c_uint32]
+        lib.fsim_eeprom_read.argtypes = [C.c_uint32, C.c_char_p, C.c_uint32]
         self._buf = C.create_string_buffer(1 << 16)
         self.state = 0
         lib.fsim_ir_model(*F.IR_MODEL)
@@ -187,6 +188,21 @@ class FRobot:
         for base in (F.EEPROM_MAZE, F.EEPROM_MAZE_BACKUP):
             self.fw.lib.fsim_eeprom_write(base, bytes(data), len(data))
 
+    def saved_maze(self, backup=False):
+        """The maze its search saved in its EEPROM (its walls as it believes them), as a Maze."""
+        n = self.maze.size
+        buf = C.create_string_buffer(4 * n * n)
+        self.fw.lib.fsim_eeprom_read(F.EEPROM_MAZE_BACKUP if backup else F.EEPROM_MAZE, buf, len(buf))
+        bits = {MZ.N: 1, MZ.W: 2, MZ.S: 4, MZ.E: 8}
+        out = MZ.Maze(n)
+        for x in range(n):
+            for y in range(n):
+                walls = buf.raw[4 * (x * n + y) + 3]
+                for d, b in bits.items():
+                    if walls & b:
+                        out.walls[x][y] |= d
+        return out
+
     def put_down(self, cell=(0, 0), heading_deg=0.0):
         """Down in a cell, facing heading_deg (0 north, positive to the left), its axle START_BACK_MM behind the
         cell's centre: its tail against the back wall, as its firmware's start expects it."""
@@ -213,20 +229,49 @@ class FRobot:
         d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
         return d / MM if d >= 0 else 1000.0
 
+    def _hit(self, origin, direction):
+        """A ray's length to the first wall or post (mm) and the cosine between it and that face's normal."""
+        d = mujoco.mj_ray(self.model, self.data, origin, direction, self.ray_group, 1, self.body, self.ray_geom)
+        if d < 0:
+            return 1000.0, 1.0
+        g = self.ray_geom[0]
+        rot = self.data.geom_xmat[g].reshape(3, 3)
+        local = rot.T @ (origin + direction * d - self.data.geom_xpos[g])
+        k = int(np.argmax(np.abs(local) / self.model.geom_size[g]))       # the box's face it hits
+        return d / MM, abs(float(rot[:, k] @ direction))
+
     def ir_mm(self):
-        """Each sensor's reading (its firmware's mm), noise in."""
+        """Each sensor's reading (its firmware's mm), noise in. F.IR_BEAM 'light': its emitter's spot as rays
+        (F.IR_RAYS: angle, weight), each one's light (its firmware's raw counts at its length, through its own
+        conversion) times the cosine of its incidence over its calibration's (fronts: a wall ahead; sides: the side
+        wall with the robot centred), summed, back to mm: a post takes part of the spot, a face at a slant returns
+        less. 'harmonic': three rays' lengths, their harmonic mean."""
         out = {}
         R = self.data.site_xmat
+        a_, b_, c_ = F.IR_MODEL
         for name, (_, _, deg) in F.IR_SENSORS.items():
             sid = self.sites[name]
             p = self.data.site_xpos[sid]
             rot = R[sid].reshape(3, 3)
-            inv = 0.0
-            for spread in (-IR_SPREAD_DEG, 0.0, IR_SPREAD_DEG):
-                a = math.radians(deg + spread)
-                v = rot @ np.array([math.cos(a), math.sin(a), 0.0])
-                inv += 1.0 / max(self._ray(p, v), 1.0)
-            reading = 3.0 / inv * self.ir_scale[name] + self.rng.gauss(0.0, F.IR_NOISE_MM)
+            if F.IR_BEAM == 'light':
+                a0 = math.radians(deg)
+                cal_cos = abs(math.sin(a0)) if name in ('FL', 'FR') else abs(math.cos(a0))
+                raw = wsum = 0.0
+                for spread, w in F.IR_RAYS:
+                    a = a0 + math.radians(spread)
+                    beam, cos = self._hit(p, rot @ np.array([math.cos(a), math.sin(a), 0.0]))
+                    mm = beam * self.ir_scale[name]
+                    raw += w * math.exp(a_ / (mm + b_)) * cos / cal_cos
+                    wsum += w
+                raw = max(raw / wsum - c_, 1.0001)
+                reading = a_ / math.log(raw + c_) - b_ + self.rng.gauss(0.0, F.IR_NOISE_MM)
+            else:
+                inv = 0.0
+                for spread in (-IR_SPREAD_DEG, 0.0, IR_SPREAD_DEG):
+                    a = math.radians(deg + spread)
+                    v = rot @ np.array([math.cos(a), math.sin(a), 0.0])
+                    inv += 1.0 / max(self._ray(p, v), 1.0)
+                reading = 3.0 / inv * self.ir_scale[name] + self.rng.gauss(0.0, F.IR_NOISE_MM)
             out[name] = min(max(reading, 5.0), F.IR_MAX_MM + 50)
         return out
 
