@@ -1,8 +1,8 @@
 """Every robot in the OSHWDEM 2026 maze, each run as its makers start it, checked by what it prints. The CI runs one
 robot per job, in the short check; locally, any of them or all, short or full:
 
-    python tests/robots.py [--full] [ratatron zorobot gamusino bulebule nezumibot perenquen fujin futura ukmarsbot miniskybot kerise
-                                     koguma]
+    python tests/robots.py [--full] [--maze NAME] [ratatron zorobot gamusino bulebule nezumibot perenquen fujin futura
+                                                  ukmarsbot miniskybot kerise koguma]
 
 The short check (the default, the CI's) asks each robot only the basics: its firmware builds, it is started as its
 makers start it (its start sequence printed: Ratatron's search, ZoroBot3's and Fujin's "started: True", Bulebule's
@@ -17,12 +17,17 @@ it).
 
 The full check (--full) is the whole run, as before: it fails when the firmware does not build, stops, or the robot
 does not do its run (Ratatron: the search to the goal and back, then race 2.4 on its map; ZoroBot3: its exploration
-to the goal and back, then its speed run at speed 5 to the goal, its makers' menu; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
+to the goal and back, then its speed run at speed 2 to the goal; Bulebule: its exploration, to the goal and back to its start cell, its path saved; Fujin: its search to
 the goal and back, slow and medium, and its slow and medium speed runs (--known) to the goal; UKMARSBOT: its search to the goal and back to the start; NezumiBot and Perenquén: their wall
 following, away from the start; Gamusino: its 1.62 m ahead and its 180 deg turn; Futura: its controller sample's cells and pivots, up
 to the maze's north rows; Miniskybot: through 10 cells, not toppled; KERISE v1: its search to the goal and back
 to its start cell; KOGUMA: its search to the goal and back to its start cell, its fail-safe not tripped). Wall touches as in the short check. The stopwatch's times are reported;
 Ratatron, ZoroBot3, Fujin, UKMARSBOT, KERISE v1 and KOGUMA, which reach the goal, fail without one.
+
+The full check also runs the robots that reach the goal (GOAL_ROBOTS) in a second maze (SECOND_MAZE), their searches
+only, to the goal and back: a change to the simulator fitted to one maze fails in another (ratasim matrix compares
+robots, mazes and runs). --maze NAME: every check in that maze only (ratasim mazes: its test mazes and 525 classic
+competition ones).
 
 A robot with a model and no firmware yet is checked by its model (model()): it builds and stands on the floor.
 ZoroBot3's meshes need its STEP (not in the repository, README): without it only its firmware is built.
@@ -36,7 +41,15 @@ import tempfile
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)
-MAZE = 'oshwdem2026'
+FIRST_MAZE = MAZE = 'oshwdem2026'     # MAZE: the one being checked (main sets it)
+# The full check's second maze, for the robots that reach the goal (GOAL_ROBOTS): their searches there too, to the
+# goal and back (SEARCH_ONLY: their speed runs only in the first). What is fitted to one maze fails in another.
+# OSHWDEM 2019's (external/mazefiles): the same contest, another year. In it (2026-11-27) Ratatron's, Bulebule's,
+# Fujin's, UKMARSBOT's, KERISE v1's and KOGUMA's searches reach the goal; ZoroBot3's exploration stops after backing
+# against a wall (ratasim matrix: of six classic finals, the one most of them get through).
+SECOND_MAZE = 'oshwdem2019'
+GOAL_ROBOTS = ('ratatron', 'zorobot', 'bulebule', 'fujin', 'ukmarsbot', 'kerise', 'koguma')
+SEARCH_ONLY = False
 CI = os.environ.get('GITHUB_ACTIONS') == 'true'
 # The short check's simulated seconds per robot: about 5 s more than its start sequence and its leaving the start
 # cell take in the OSHWDEM 2026 maze (the stopwatch's start: Futura 1.4 s, Perenquén 2.9, UKMARSBOT 3.7, KERISE v1 4.5,
@@ -142,7 +155,7 @@ def ratatron(full):
         left_start(out, fails)
         return fails
     base += ['--max-s', '600']
-    for name, start in (('search', ['--erase-flash']), ('race 2.4', ['--race', '4'])):     # its start (config.py)
+    for name, start in (('search', ['--erase-flash']), ('race 2.4', ['--race', '4']))[:1 if SEARCH_ONLY else 2]:
         out = run(base + start)
         if 'End: OK' not in out:
             fails.append(f'{name}: no "End: OK"')
@@ -167,14 +180,15 @@ def zorobot(full):
         return short(['zorobot'], SHORT_S['zorobot'], clean=False, started='started: True')
     fails = []
     # its speed run at speed 2 (medium): at 4 and 5 (haki) it ends on a post (ratasim/zorobot/config.py, YAW_INERTIA)
-    out = run(['zorobot', '--headless', '--maze', MAZE, '--run', '--speed', '2', '--max-s', '400'])
+    out = run(['zorobot', '--headless', '--maze', MAZE, '--speed', '2', '--max-s', '400']
+              + ([] if SEARCH_ONLY else ['--run']))
     common(out, fails, clean=False)
     if 'started: True' not in out:
         fails.append('not started')
     if 'race over' not in out:
         fails.append('its runs did not end')
-    elif len(goal_times(out)) < 2:
-        fails.append('its exploration and its speed run not both at the goal (the stopwatch)')
+    elif len(goal_times(out)) < (1 if SEARCH_ONLY else 2):
+        fails.append('its exploration' + ('' if SEARCH_ONLY else ' and its speed run not both') + ' at the goal')
     return fails
 
 
@@ -346,6 +360,8 @@ def fujin(full):
         fails.append('its search did not end')
     elif far_from(pose, (90, 90), 120):
         fails.append(f'not back at the start ({pose})')
+    if SEARCH_ONLY:
+        return fails
     out = run(['fujin', '--headless', '--maze', MAZE, '--known', '--run-speed', 'slow'])
     if 'run started: True' not in out or 'stopwatch: run 1 started' not in out:
         fails.append('its speed run (--known) did not start')
@@ -406,19 +422,32 @@ ROBOTS = {'ratatron': ratatron, 'zorobot': zorobot, 'gamusino': gamusino, 'buleb
 
 
 def main(args):
+    global MAZE, SEARCH_ONLY
     full = '--full' in args
+    mazes = None
+    if '--maze' in args:
+        i = args.index('--maze')
+        if i + 1 >= len(args):
+            sys.exit('--maze takes a maze\'s name (ratasim mazes)')
+        mazes = [args[i + 1]]
+        args = args[:i] + args[i + 2:]
     names = [a for a in args if a != '--full']
     for name in names:
         if name not in ROBOTS:
             sys.exit(f'unknown robot {name!r} (robots: {" ".join(ROBOTS)})')
     failed = []
     for name in names or ROBOTS:
-        print(f'==== {name}{" (full)" if full else ""}', flush=True)
-        fails = ROBOTS[name](full)
-        for f in fails:
-            note('error', f'{name}: {f}')
-        print(f'==== {name}: {"FAILED" if fails else "OK"}', flush=True)
-        failed += [name] if fails else []
+        for MAZE in mazes or ([FIRST_MAZE, SECOND_MAZE] if full and name in GOAL_ROBOTS else [FIRST_MAZE]):
+            SEARCH_ONLY = full and MAZE == SECOND_MAZE and not mazes
+            what = f'{name} in {MAZE}' + (' (full: its search)' if SEARCH_ONLY else ' (full)' if full else '')
+            print(f'==== {what}', flush=True)
+            fails = ROBOTS[name](full)
+            for f in fails:
+                note('error', f'{name} ({MAZE}): {f}')
+            print(f'==== {what}: {"FAILED" if fails else "OK"}', flush=True)
+            failed += [what] if fails else []
+    if failed:
+        print('FAILED: ' + ', '.join(failed), flush=True)
     return 1 if failed else 0
 
 
