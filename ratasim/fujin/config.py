@@ -35,11 +35,12 @@ IR_SENSORS = {
     'FR': (2, (32.1, 29.9), 85.6),
     'L': (3, (14.9, 38.2), 140.0),
 }
-# Its side sensors turned this much ahead of the STEP's axes. Where its runs correct their odometry at a side wall's
-# end (navigation.cpp, apply_wall_break_correction: the distance there set to cells x 180 + its start_wall_break_mm,
-# tuned on the robot), its makers' logs (external/fujin/scripts/logs, fan 600) find it off by -3 mm on average (-18
-# to +22); the simulated one (IR_BEAM 'light' below), by +5 (-3 to +12) at the STEP's axes, -3 (-8 to +5) at 3 deg.
-SIDE_FORWARD_DEG = 3.0
+# Its side sensors turned this much ahead of the STEP's axes: none. Where its runs correct their odometry at a side
+# wall's end (navigation.cpp, apply_wall_break_correction: the distance there set to cells x 180 + its
+# start_wall_break_mm, tuned on the robot), its makers' logs (external/fujin/scripts/logs, fan 600) find it off by -3
+# mm on average (-18 to +22), the simulated one (its beam below) by +2 (-5 to +10). With a narrower beam (1.5 deg) it
+# saw wall ends late (+5) and needed 3 deg, which opened its search's turns.
+SIDE_FORWARD_DEG = 0.0
 IR_SENSORS['R'] = IR_SENSORS['R'][:2] + (IR_SENSORS['R'][2] + SIDE_FORWARD_DEG,)
 IR_SENSORS['L'] = IR_SENSORS['L'][:2] + (IR_SENSORS['L'][2] - SIDE_FORWARD_DEG,)
 IR_Z_MM = 3.0 - AXLE_IN_STEP_MM[2]
@@ -113,13 +114,15 @@ FAN_DOWNFORCE_N = 6.4 / 0.6 ** 2
 # Its IR sensors: a reading's noise (mm); the ADC counts of a reading (the firmware's conversion, mm =
 # a / ln(raw + c) - b, both ways: fw/fbsp.cpp)
 IR_NOISE_MM = 0.8
-# What each sensor sees (robot.py, ir_mm): its emitter's spot as seven rays, a Gaussian of 1.5 deg, each ray's light
-# at its length times the cosine of its incidence over its calibration's. Without the cosine (three rays' lengths, a
-# harmonic mean: 'harmonic') a far wall at a slant read as near as a square one: with its side sensors turned 3 deg
-# its search read, entering a cell with a wall ahead and none at a side, that side's wall (224-228 mm, its threshold
-# 230) and went home without the goal; 2.5 deg smears its wall ends (its fast runs end on posts sooner).
+# What each sensor sees (robot.py, ir_mm): its emitter's spot (SFH 4550, +-3 deg at half intensity: a Gaussian of
+# 2.5 deg; its receiver, a phototransistor its schematic does not name, is assumed wider) as seven rays across it, each
+# ray's light (its firmware's raw counts at its length) times the cosine of its incidence over its calibration's,
+# summed: the share of the spot a wall, a wall's end or a post takes, and a face at a slant returns less. Across only
+# (the spot's height: a wall fills it; the floor's share is in its calibration). Without the cosine (three rays'
+# lengths, a harmonic mean: 'harmonic') a far wall at a slant read as near as a square one (its search saw walls that
+# were not there); at 1.5 deg (fitted to outcomes before) its side sensors saw wall ends late.
 IR_BEAM = 'light'
-IR_RAYS = tuple((d, math.exp(-0.5 * (d / 1.5) ** 2)) for d in (-3.6, -2.4, -1.2, 0.0, 1.2, 2.4, 3.6))
+IR_RAYS = tuple((d, math.exp(-0.5 * (d / 2.5) ** 2)) for d in (-6.0, -4.0, -2.0, 0.0, 2.0, 4.0, 6.0))
 IR_MODEL = (4000.0, 440.0, 0.0)
 # Its LSM6DSR: the real bias off the one its firmware subtracts, the noise at its 2.1 kHz.
 GYRO_BIAS_DPS = GYRO_BIAS_SET_DPS + 0.03
